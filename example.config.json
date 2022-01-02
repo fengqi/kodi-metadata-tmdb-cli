@@ -1,0 +1,20 @@
+{
+    "log_level": 0,
+    "log_file": "/tmp/tmdb-collector.log",
+    "cron_seconds": 3600,
+    "rating": "US",
+    "api_key": "fetch at https://www.themoviedb.org/settings/api",
+    "language": "zh-CN",
+    "shows_dir": [
+        "/volume1/down/shows"
+    ],
+    "movies_dir": [
+        "/volume1/down/movies"
+    ],
+    "stock_dir": [
+        "/volume1/down/stock"
+    ],
+    "music_dir": [
+        "/volume1/down/music"
+    ]
+}
