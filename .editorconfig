@@ -61,3 +61,7 @@ ij_json_wrap_long_lines = false
 
 [{*.mk,GNUmakefile,makefile}]
 ij_visual_guides = none
+
+[*.yml]
+indent_style = space
+indent_size = 2
