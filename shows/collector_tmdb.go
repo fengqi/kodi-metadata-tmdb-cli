@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // GetTvDetail 获取详情
@@ -17,7 +18,8 @@ func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
 
 	// 从缓存读取
 	tvCacheFile := d.GetCacheDir() + "/tv.json"
-	if _, err = os.Stat(tvCacheFile); err == nil {
+	cacheExpire := false
+	if cf, err := os.Stat(tvCacheFile); err == nil {
 		utils.Logger.DebugF("get tv detail from cache: %s", tvCacheFile)
 
 		bytes, err := ioutil.ReadFile(tvCacheFile)
@@ -29,11 +31,14 @@ func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
 		if err != nil {
 			utils.Logger.WarningF("parse tv file: %s err: %v", tvCacheFile, err)
 		}
+
+		airTime, _ := time.Parse("2006-01-02", detail.LastAirDate)
+		cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
 	}
 
 	// 缓存失效，重新搜索
-	if detail == nil || detail.Id == 0 {
-		tvId := 0
+	if detail == nil || detail.Id == 0 || cacheExpire {
+		tvId := detail.Id
 		idFile := d.GetCacheDir() + "/id.txt"
 		if _, err = os.Stat(idFile); err == nil {
 			bytes, err := ioutil.ReadFile(idFile)
@@ -82,7 +87,8 @@ func (f *File) getTvEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
 	var detail = new(tmdb.TvEpisodeDetail)
 
 	cacheFile := f.getCacheDir() + "/" + f.SeasonEpisode + ".json"
-	if _, err = os.Stat(cacheFile); err == nil {
+	cacheExpire := false
+	if cf, err := os.Stat(cacheFile); err == nil {
 		utils.Logger.DebugF("get episode from cache: %s", cacheFile)
 
 		bytes, err := ioutil.ReadFile(cacheFile)
@@ -94,10 +100,13 @@ func (f *File) getTvEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
 		if err != nil {
 			utils.Logger.WarningF("parse episode cache: %s err: %v", cacheFile, err)
 		}
+
+		airTime, _ := time.Parse("2006-01-02", detail.AirDate)
+		cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
 	}
 
 	// 请求tmdb
-	if detail == nil || detail.Id == 0 {
+	if detail == nil || detail.Id == 0 || cacheExpire {
 		detail, err = tmdb.GetTvEpisodeDetail(f.TvId, f.Season, f.Episode)
 		if err != nil {
 			utils.Logger.ErrorF("get tv episode error %v", err)

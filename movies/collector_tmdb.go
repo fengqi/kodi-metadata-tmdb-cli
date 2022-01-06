@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func (d *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
@@ -19,7 +20,8 @@ func (d *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 	if d.IsFile {
 		cacheFile = d.GetCacheDir() + "/" + d.OriginTitle + ".movie.json"
 	}
-	if _, err = os.Stat(cacheFile); err == nil {
+	cacheExpire := false
+	if cf, err := os.Stat(cacheFile); err == nil {
 		utils.Logger.DebugF("get movie detail from cache: %s", cacheFile)
 
 		bytes, err := ioutil.ReadFile(cacheFile)
@@ -31,11 +33,14 @@ func (d *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 		if err != nil {
 			utils.Logger.WarningF("parse movie: %s file err: %v", cacheFile, err)
 		}
+
+		airTime, _ := time.Parse("2006-01-02", detail.ReleaseDate)
+		cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
 	}
 
 	// 缓存失效，重新搜索
-	if detail == nil || detail.Id == 0 {
-		movieId := 0
+	if detail == nil || detail.Id == 0 || cacheExpire {
+		movieId := detail.Id
 		idFile := d.GetCacheDir() + "/id.txt"
 		if d.IsFile {
 			idFile = d.Dir + "/tmdb/" + d.OriginTitle + ".id.txt"
