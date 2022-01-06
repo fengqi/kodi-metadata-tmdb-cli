@@ -11,6 +11,7 @@ import (
 )
 
 // 解析目录, 返回详情
+// TODO 跳过电视剧，放错目录了
 func parseShowsDir(baseDir string, file fs.FileInfo) *Movie {
 	suffix := utils.IsVideo(file.Name())
 	if !file.IsDir() && suffix == "" {
