@@ -15,6 +15,10 @@ Kodi需要配置为仅本地，开发版本为Kodi 19，其他版本自行测试
 3. 接口调用失败
 表现为所有剧集都不能匹配，大概率是 `https://api.themoviedb.org/` 域名被阻断，请自行科学上网或修改HOSTS解决。
 
+4. 运行报错 `Error No more hard-disk space available` 或 `no space left on device` 但实际上磁盘空间足够
+其实原因是inotify的允许监听文件数不够用了，可通过增大 `fs.inotify.max_user_watches` 解决。
+
+
 # 更新线路图
 
 - [x] 建议日志打印和分级
