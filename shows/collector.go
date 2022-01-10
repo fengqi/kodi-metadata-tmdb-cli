@@ -185,6 +185,16 @@ func (c *Collector) scanDir(dir string) ([]*Dir, error) {
 			continue
 		}
 
+		if utils.IsCollection(file.Name()) {
+			movieDir, err := c.scanDir(dir + "/" + file.Name())
+			if err != nil {
+				utils.Logger.ErrorF("scan collection dir: %s err: %v", dir+"/"+file.Name(), err)
+				continue
+			}
+			movieDirs = append(movieDirs, movieDir...)
+			continue
+		}
+
 		movieDir := parseShowsDir(dir, file)
 		if movieDir == nil {
 			continue
