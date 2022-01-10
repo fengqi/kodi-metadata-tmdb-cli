@@ -66,13 +66,11 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 	}
 
 	// 用点号.或者空格分割
-	split := strings.Split(file.Name(), ".")
+	formatName := strings.Replace(file.Name(), " ", ".", -1)
+	split := strings.Split(formatName, ".")
 	if split == nil || len(split) < 3 {
-		split = strings.Split(file.Name(), " ")
-		if split == nil || len(split) < 5 {
-			utils.Logger.WarningF("file name: %s syntax err, skipped", file.Name())
-			return nil
-		}
+		utils.Logger.WarningF("file name: %s syntax err, skipped", file.Name())
+		return nil
 	}
 
 	showsDir := &Dir{Dir: baseDir, OriginTitle: file.Name()}

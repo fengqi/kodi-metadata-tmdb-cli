@@ -25,13 +25,11 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Movie {
 	}
 
 	// 用点号.或者空格分割，这里假定文件或者目录命名时规范的
-	split := strings.Split(movieName, ".")
-	if split == nil || len(split) < 5 {
-		split = strings.Split(movieName, " ")
-		if split == nil || len(split) < 5 {
-			utils.Logger.WarningF("file name: %s syntax err, skipped", file.Name())
-			return nil
-		}
+	formatName := strings.Replace(movieName, " ", ".", -1)
+	split := strings.Split(formatName, ".")
+	if split == nil || len(split) < 3 {
+		utils.Logger.WarningF("file name: %s syntax err, skipped", file.Name())
+		return nil
 	}
 
 	movieDir := &Movie{Dir: baseDir, OriginTitle: movieName, IsFile: !file.IsDir(), Suffix: suffix}
