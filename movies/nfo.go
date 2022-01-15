@@ -25,26 +25,26 @@ type MovieNfo struct {
 	Runtime       int      `xml:"-"`
 	Thumb         []Thumb  `xml:"-"`
 	FanArt        FanArt   `xml:"fanart"`
-	MPaa          string   `xml:"mpaa"`
+	MPaa          string   `xml:"-"`
 	PlayCount     int      `xml:"-"`
 	LastPlayed    string   `xml:"-"`
 	Id            int      `xml:"id"`
 	UniqueId      UniqueId `xml:"uniqueid"`
 	Genre         []string `xml:"genre"`
 	Tag           []string `xml:"tag"`
-	Set           Set      `xml:"set"`
+	Set           Set      `xml:"-"`
 	Country       []string `xml:"country"`
 	Credits       []string `xml:"credits"`
 	Director      []string `xml:"director"`
-	Premiered     string   `xml:"premiered"`
+	Premiered     string   `xml:"-"`
 	Year          string   `xml:"year"`
 	Status        string   `xml:"status"`
 	Aired         string   `xml:"-"`
 	Studio        []string `xml:"studio"`
-	Trailer       string   `xml:"trailer"`
-	FileInfo      FileInfo `xml:"fileinfo"`
+	Trailer       string   `xml:"-"`
+	FileInfo      FileInfo `xml:"-"`
 	Actor         []Actor  `xml:"actor"`
-	ShowLink      string   `xml:"showlink"`
+	ShowLink      string   `xml:"-"`
 	Resume        Resume   `xml:"-"`
 	DateAdded     int      `xml:"-"`
 }
@@ -108,6 +108,7 @@ type UniqueId struct {
 	XMLName xml.Name `xml:"uniqueid"`
 	Type    string   `xml:"type,attr"`
 	Default bool     `xml:"default,attr"`
+	Value   string   `xml:",chardata"`
 }
 
 type Actor struct {
@@ -157,10 +158,11 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail) error {
 	if detail.Credits != nil {
 		for _, item := range detail.Credits.Cast {
 			actor = append(actor, Actor{
-				Name:  item.Name,
-				Role:  item.Character,
-				Order: item.Order,
-				Thumb: tmdb.ImageW500 + item.ProfilePath,
+				Name:      item.Name,
+				Role:      item.Character,
+				Order:     item.Order,
+				Thumb:     tmdb.ImageW500 + item.ProfilePath,
+				SortOrder: item.CastId,
 			})
 		}
 	}
@@ -176,13 +178,13 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail) error {
 		SortTitle:     detail.Title,
 		Plot:          detail.Overview,
 		UniqueId: UniqueId{
-			Type:    strconv.Itoa(detail.Id),
+			Type:    "tmdb",
 			Default: true,
+			Value:   strconv.Itoa(detail.Id),
 		},
 		Id:         detail.Id,
 		Year:       year,
 		Ratings:    Ratings{Rating: rating},
-		MPaa:       "TV-14",
 		Status:     detail.Status,
 		Genre:      genre,
 		Tag:        genre,
