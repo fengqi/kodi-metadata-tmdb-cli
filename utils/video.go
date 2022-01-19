@@ -92,6 +92,16 @@ func IsVideo(name string) string {
 	return ""
 }
 
+// IsYearRange 判断并返回年范围，用于合集
+func IsYearRange(name string) string {
+	compile, err := regexp.Compile("^[12][0-9]{3}-[12][0-9]{3}$")
+	if err != nil {
+		return ""
+	}
+
+	return compile.FindString(name)
+}
+
 // IsYear 判断是否是年份
 func IsYear(name string) int {
 	ok, err := regexp.MatchString("^[12][0-9]{3}$", name)
@@ -102,6 +112,16 @@ func IsYear(name string) int {
 	year, _ := strconv.Atoi(name)
 
 	return year
+}
+
+// IsSeasonRange 判断并返回合集
+func IsSeasonRange(name string) string {
+	compile, err := regexp.Compile("[sS](0|)[0-9]+-[sS](0|)[0-9]+")
+	if err != nil {
+		return ""
+	}
+
+	return compile.FindString(name)
 }
 
 // IsSeason 判断并返回季，可能和名字写在一起，所以使用子串，如：黄石S01.Yellowstone.2018.1080p

@@ -20,11 +20,13 @@ type Dir struct {
 	Title        string `json:"title"`         // 名称 Hawkeye
 	TvId         int    `json:"tv_id"`         // TMDV tv id
 	Season       int    `json:"season"`        // 第几季 ，电影类 -1
+	SeasonRange  string `json:"season_range"`  // 合集：S01-S05
 	Year         int    `json:"year"`          // 年份：2020、2021
+	YearRange    string `json:"year_range"`    // 年份：2010-2015
 	Format       string `json:"format"`        // 格式：720p、1080p
 	Source       string `json:"source"`        // 来源
 	Studio       string `json:"studio"`        // 媒体
-	IsCollection bool   `json:"is_collection"` // 是否是合集
+	IsCollection bool   `json:"is_collection"` // 是否是合集目录
 }
 
 // File 电视剧目录内文件详情，从名字分析

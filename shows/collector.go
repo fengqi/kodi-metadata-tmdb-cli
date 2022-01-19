@@ -47,7 +47,27 @@ func (c *Collector) showsDirProcess() {
 			_ = dir.saveToNfo(detail)
 			dir.downloadImage(detail)
 
-			files, err := dir.scanShowsFile()
+			files := make([]*File, 0)
+			if dir.IsCollection {
+				subDir, err := c.scanDir(dir.GetFullDir())
+				if err != nil {
+					utils.Logger.ErrorF("scan collection dir: %s err: %v", dir.OriginTitle, err)
+					continue
+				}
+
+				for _, item := range subDir {
+					item.checkCacheDir()
+					subFiles, err := item.scanShowsFile()
+					if err != nil {
+						utils.Logger.ErrorF("scan collection sub dir: %s err: %v", item.OriginTitle, err)
+						continue
+					}
+					files = append(files, subFiles...)
+				}
+			} else {
+				files, err = dir.scanShowsFile()
+			}
+
 			if err != nil || len(files) == 0 {
 				continue
 			}
@@ -95,10 +115,10 @@ func (c *Collector) runWatcher() {
 		}
 
 		for _, showDir := range showDirs {
-			err := c.watcher.Add(item + "/" + showDir.OriginTitle)
-			utils.Logger.DebugF("runWatcher add shows dir: %s to watcher", item+"/"+showDir.OriginTitle)
+			err := c.watcher.Add(showDir.Dir + "/" + showDir.OriginTitle)
+			utils.Logger.DebugF("runWatcher add shows dir: %s to watcher", showDir.Dir+"/"+showDir.OriginTitle)
 			if err != nil {
-				utils.Logger.FatalF("add shows dir: %s to watcher err :%v", item+"/"+showDir.OriginTitle, err)
+				utils.Logger.FatalF("add shows dir: %s to watcher err :%v", showDir.Dir+"/"+showDir.OriginTitle, err)
 			}
 		}
 	}
@@ -154,7 +174,7 @@ func (c *Collector) runCronScan() {
 				}
 
 				for _, showDir := range showDirs {
-					err := c.watcher.Add(item + "/" + showDir.OriginTitle)
+					err := c.watcher.Add(showDir.Dir + "/" + showDir.OriginTitle)
 					utils.Logger.DebugF("runCronScan add shows dir: %s to watcher", item+"/"+showDir.OriginTitle)
 					if err != nil {
 						utils.Logger.FatalF("add shows dir: %s to err: %v err: %v", showDir, err)
@@ -182,16 +202,6 @@ func (c *Collector) scanDir(dir string) ([]*Dir, error) {
 
 	for _, file := range fileInfo {
 		if !file.IsDir() {
-			continue
-		}
-
-		if utils.IsCollection(file.Name()) {
-			movieDir, err := c.scanDir(dir + "/" + file.Name())
-			if err != nil {
-				utils.Logger.ErrorF("scan collection dir: %s err: %v", dir+"/"+file.Name(), err)
-				continue
-			}
-			movieDirs = append(movieDirs, movieDir...)
 			continue
 		}
 

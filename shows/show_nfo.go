@@ -42,7 +42,7 @@ type TvShowNfo struct {
 	UniqueId       UniqueId      `xml:"uniqueid"`
 	Genre          []string      `xml:"genre"`
 	Tag            []string      `xml:"tag"`
-	Premiered      string        `json:"premiered"`
+	Premiered      string        `xml:"premiered"`
 	Year           string        `xml:"-"`
 	Status         string        `xml:"status"`
 	Aired          string        `xml:"-"`
@@ -86,7 +86,8 @@ type Url struct {
 }
 
 type NamedSeason struct {
-	Number string `xml:"number"`
+	Number int    `xml:"number,attr"`
+	Value  string `xml:",chardata"`
 }
 
 type Resume struct {
@@ -127,6 +128,14 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 		}
 	}
 
+	namedSeason := make([]NamedSeason, 0)
+	for _, item := range detail.Seasons {
+		namedSeason = append(namedSeason, NamedSeason{
+			Number: item.SeasonNumber,
+			Value:  item.Name,
+		})
+	}
+
 	top := &TvShowNfo{
 		Title:         detail.Name,
 		OriginalTitle: detail.OriginalName,
@@ -137,17 +146,18 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 			Type:    strconv.Itoa(detail.Id),
 			Default: true,
 		},
-		Id:         detail.Id,
-		Premiered:  detail.FirstAirDate,
-		Ratings:    Ratings{Rating: rating},
-		MPaa:       "TV-14",
-		Status:     detail.Status,
-		Genre:      genre,
-		Studio:     studio,
-		Season:     detail.NumberOfSeasons,
-		Episode:    detail.NumberOfEpisodes,
-		UserRating: detail.VoteAverage,
-		Actor:      actor,
+		Id:          detail.Id,
+		Premiered:   detail.FirstAirDate,
+		Ratings:     Ratings{Rating: rating},
+		MPaa:        "TV-14",
+		Status:      detail.Status,
+		Genre:       genre,
+		Studio:      studio,
+		Season:      detail.NumberOfSeasons,
+		Episode:     detail.NumberOfEpisodes,
+		UserRating:  detail.VoteAverage,
+		Actor:       actor,
+		NamedSeason: namedSeason,
 		FanArt: FanArt{
 			Thumb: []ShowThumb{
 				{

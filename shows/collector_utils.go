@@ -3,6 +3,7 @@ package shows
 import (
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"os"
@@ -59,12 +60,6 @@ func parseShowsFile(dir *Dir, file fs.FileInfo) *File {
 
 // 解析目录, 返回详情
 func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
-	// 跳过合集
-	if utils.IsCollection(file.Name()) {
-		utils.Logger.WarningF("file pass, maybe not dir, or is collection: %s", file.Name())
-		return nil
-	}
-
 	// 用点号.或者空格分割
 	formatName := strings.Replace(file.Name(), " ", ".", -1)
 	split := strings.Split(formatName, ".")
@@ -73,13 +68,23 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 		return nil
 	}
 
-	showsDir := &Dir{Dir: baseDir, OriginTitle: file.Name()}
+	showsDir := &Dir{Dir: baseDir, OriginTitle: file.Name(), IsCollection: utils.IsCollection(file.Name())}
 	nameStart := false
 	nameStop := false
 	for _, item := range split {
+		if yearRange := utils.IsYearRange(item); len(yearRange) > 0 {
+			showsDir.YearRange = yearRange
+			continue
+		}
+
 		if year := utils.IsYear(item); year > 0 {
 			showsDir.Year = year
 			nameStop = true
+			continue
+		}
+
+		if seasonRange := utils.IsSeasonRange(item); len(seasonRange) > 0 {
+			showsDir.SeasonRange = seasonRange
 			continue
 		}
 
@@ -133,7 +138,7 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 		return nil
 	}
 
-	if showsDir.Season == 0 {
+	if showsDir.Season == 0 && len(showsDir.YearRange) == 0 {
 		showsDir.Season = 1
 		seasonFile := baseDir + "/" + file.Name() + "/tmdb/season.txt"
 		if _, err := os.Stat(seasonFile); err == nil {
@@ -204,6 +209,13 @@ func (d *Dir) downloadImage(detail *tmdb.TvDetail) {
 
 	if len(detail.BackdropPath) > 0 {
 		_ = utils.DownloadFile(tmdb.ImageOriginal+detail.BackdropPath, d.GetFullDir()+"/fanart.jpg")
+	}
+
+	if len(detail.Seasons) > 0 {
+		for _, item := range detail.Seasons {
+			seasonPoster := fmt.Sprintf("season%02d-poster.jpg", item.SeasonNumber)
+			_ = utils.DownloadFile(tmdb.ImageOriginal+item.PosterPath, d.GetFullDir()+"/"+seasonPoster)
+		}
 	}
 }
 
