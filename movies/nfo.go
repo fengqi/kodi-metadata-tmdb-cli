@@ -36,8 +36,8 @@ type MovieNfo struct {
 	Country       []string `xml:"country"`
 	Credits       []string `xml:"credits"`
 	Director      []string `xml:"director"`
-	Premiered     string   `xml:"-"`
-	Year          string   `xml:"year"`
+	Premiered     string   `xml:"premiered"`
+	Year          string   `xml:"-"`
 	Status        string   `xml:"status"`
 	Aired         string   `xml:"-"`
 	Studio        []string `xml:"studio"`
@@ -167,11 +167,6 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail) error {
 		}
 	}
 
-	year := ""
-	if len(detail.ReleaseDate) > 3 {
-		year = detail.ReleaseDate[0:4]
-	}
-
 	top := &MovieNfo{
 		Title:         detail.Title,
 		OriginalTitle: detail.OriginalTitle,
@@ -183,7 +178,7 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail) error {
 			Value:   strconv.Itoa(detail.Id),
 		},
 		Id:         detail.Id,
-		Year:       year,
+		Premiered:  detail.ReleaseDate,
 		Ratings:    Ratings{Rating: rating},
 		Status:     detail.Status,
 		Genre:      genre,

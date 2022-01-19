@@ -42,7 +42,8 @@ type TvShowNfo struct {
 	UniqueId       UniqueId      `xml:"uniqueid"`
 	Genre          []string      `xml:"genre"`
 	Tag            []string      `xml:"tag"`
-	Year           string        `xml:"year"`
+	Premiered      string        `json:"premiered"`
+	Year           string        `xml:"-"`
 	Status         string        `xml:"status"`
 	Aired          string        `xml:"-"`
 	Studio         []string      `xml:"studio"`
@@ -126,11 +127,6 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 		}
 	}
 
-	year := ""
-	if len(detail.FirstAirDate) > 3 {
-		year = detail.FirstAirDate[0:4]
-	}
-
 	top := &TvShowNfo{
 		Title:         detail.Name,
 		OriginalTitle: detail.OriginalName,
@@ -142,7 +138,7 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 			Default: true,
 		},
 		Id:         detail.Id,
-		Year:       year,
+		Premiered:  detail.FirstAirDate,
 		Ratings:    Ratings{Rating: rating},
 		MPaa:       "TV-14",
 		Status:     detail.Status,
