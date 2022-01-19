@@ -115,11 +115,6 @@ func (f *File) saveToNfo(episode *tmdb.TvEpisodeDetail) error {
 		Votes: episode.VoteCount,
 	}
 
-	year := ""
-	if len(episode.AirDate) > 3 {
-		year = episode.AirDate[0:4]
-	}
-
 	top := &TvEpisodeNfo{
 		Title:         episode.Name,
 		ShowTitle:     episode.Name,
@@ -129,7 +124,7 @@ func (f *File) saveToNfo(episode *tmdb.TvEpisodeDetail) error {
 			Type:    strconv.Itoa(episode.Id),
 			Default: true,
 		},
-		Year:           year,
+		Premiered:      episode.AirDate,
 		MPaa:           "TV-14",
 		Season:         episode.SeasonNumber,
 		Episode:        episode.EpisodeNumber,
