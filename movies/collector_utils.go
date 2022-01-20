@@ -187,6 +187,10 @@ func (m *Movie) getNfoFile() string {
 		return m.GetFullDir() + "/VIDEO_TS/VIDEO_TS.nfo"
 	}
 
+	if m.VideoFileName == "" {
+		return m.GetFullDir() + "/movie.nfo"
+	}
+
 	suffix := utils.IsVideo(m.VideoFileName)
 	return m.GetFullDir() + "/" + strings.Replace(m.VideoFileName, "."+suffix, "", 1) + ".nfo"
 }

@@ -6,6 +6,10 @@ import (
 )
 
 func SaveNfo(file string, v interface{}) error {
+	if file == "" {
+		return nil
+	}
+
 	bytes, err := xml.MarshalIndent(v, "", "  ")
 	if err != nil {
 		panic(err)

@@ -134,7 +134,13 @@ type Resume struct {
 }
 
 func (d *Movie) saveToNfo(detail *tmdb.MovieDetail) error {
-	utils.Logger.InfoF("save movie.nfo to: %s", d.getNfoFile())
+	nfoFile := d.getNfoFile()
+	if nfoFile == "" {
+		utils.Logger.InfoF("movie nfo empty %v", d)
+		return nil
+	}
+
+	utils.Logger.InfoF("save movie nfo to: %s", nfoFile)
 
 	genre := make([]string, 0)
 	for _, item := range detail.Genres {
@@ -195,5 +201,5 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail) error {
 		},
 	}
 
-	return utils.SaveNfo(d.getNfoFile(), top)
+	return utils.SaveNfo(nfoFile, top)
 }
