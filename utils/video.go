@@ -92,6 +92,16 @@ func IsVideo(name string) string {
 	return ""
 }
 
+// IsYearRangeLike 判断并返回年范围，用于合集
+func IsYearRangeLike(name string) string {
+	compile, err := regexp.Compile("[12][0-9]{3}-[12][0-9]{3}")
+	if err != nil {
+		return ""
+	}
+
+	return compile.FindString(name)
+}
+
 // IsYearRange 判断并返回年范围，用于合集
 func IsYearRange(name string) string {
 	compile, err := regexp.Compile("^[12][0-9]{3}-[12][0-9]{3}$")

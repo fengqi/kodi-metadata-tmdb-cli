@@ -62,9 +62,9 @@ func (c *Collector) runWatcher() {
 
 			utils.Logger.InfoF("created file: %s", event.Name)
 
-			showsDir := parseShowsDir(filepath.Dir(event.Name), fileInfo)
-			if showsDir != nil {
-				c.channel <- showsDir
+			moviesDir := parseMoviesDir(filepath.Dir(event.Name), fileInfo)
+			if moviesDir != nil {
+				c.channel <- moviesDir
 			}
 
 		case err, ok := <-c.watcher.Errors:
@@ -109,14 +109,14 @@ func (c *Collector) runCronScan() {
 			for _, item := range c.config.MoviesDir {
 				utils.Logger.DebugF("movies scan ticker trigger")
 
-				showDirs, err := c.scanDir(item)
+				movieDirs, err := c.scanDir(item)
 				if err != nil {
 					utils.Logger.FatalF("scan movies dir: %s err :%v", item, err)
 					continue
 				}
 
-				for _, showDir := range showDirs {
-					c.channel <- showDir
+				for _, movieDir := range movieDirs {
+					c.channel <- movieDir
 				}
 			}
 		}
@@ -137,7 +137,18 @@ func (c *Collector) scanDir(dir string) ([]*Movie, error) {
 	}
 
 	for _, file := range fileInfo {
-		movieDir := parseShowsDir(dir, file)
+		// 合集，以 Iron.Man.2008-2013.Blu-ray.x264.MiniBD1080P-CMCT 为例，暂定使用 2008-2013 做为判断特征
+		if yearRange := utils.IsYearRangeLike(file.Name()); yearRange != "" {
+			movieDir, err := c.scanDir(dir + "/" + file.Name())
+			if err != nil {
+				utils.Logger.ErrorF("scan collection dir: %s err: %v", dir+"/"+file.Name(), err)
+				continue
+			}
+			movieDirs = append(movieDirs, movieDir...)
+			continue
+		}
+
+		movieDir := parseMoviesDir(dir, file)
 		if movieDir == nil {
 			continue
 		}

@@ -12,7 +12,7 @@ import (
 
 // 解析目录, 返回详情
 // TODO 跳过电视剧，放错目录了
-func parseShowsDir(baseDir string, file fs.FileInfo) *Movie {
+func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 	suffix := utils.IsVideo(file.Name())
 	if !file.IsDir() && suffix == "" {
 		return nil
@@ -99,10 +99,11 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Movie {
 			audioTs := false
 			videoTs := false
 			for _, item := range fileInfo {
-				if item.IsDir() && item.Name() == "BDMV" {
+				if item.IsDir() && item.Name() == "BDMV" || item.Name() == "CERTIFICATE" {
 					movieDir.IsBluray = true
 					break
 				}
+
 				if item.IsDir() && item.Name() == "AUDIO_TS" {
 					audioTs = true
 				}
@@ -111,6 +112,12 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Movie {
 				}
 				if videoTs && audioTs {
 					movieDir.IsDvd = true
+					break
+				}
+
+				if suffix := utils.IsVideo(item.Name()); suffix != "" {
+					movieDir.IsSingleFile = true
+					movieDir.VideoFileName = item.Name()
 					break
 				}
 			}
@@ -180,5 +187,6 @@ func (m *Movie) getNfoFile() string {
 		return m.GetFullDir() + "/VIDEO_TS/VIDEO_TS.nfo"
 	}
 
-	return m.GetFullDir() + "/movie.nfo"
+	suffix := utils.IsVideo(m.VideoFileName)
+	return m.GetFullDir() + "/" + strings.Replace(m.VideoFileName, "."+suffix, "", 1) + ".nfo"
 }
