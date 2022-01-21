@@ -43,7 +43,7 @@ func DownloadFile(url string, filename string) error {
 	}(resp.Body)
 
 	if resp.StatusCode != 200 {
-		Logger.ErrorF("download: %s status code failed: %d", resp.StatusCode)
+		Logger.ErrorF("download: %s status code failed: %d", url, resp.StatusCode)
 		return nil
 	}
 

@@ -150,6 +150,15 @@ func (d *Movie) GetFullDir() string {
 	return d.Dir + "/" + d.OriginTitle
 }
 
+func (m *Movie) VideoFileNameWithoutSuffix() string {
+	if !m.IsSingleFile {
+		return ""
+	}
+
+	suffix := utils.IsVideo(m.VideoFileName)
+	return m.GetFullDir() + "/" + strings.Replace(m.VideoFileName, "."+suffix, "", 1)
+}
+
 func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 	utils.Logger.DebugF("download %s images", d.Title)
 
@@ -158,6 +167,8 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 		posterFile := d.GetFullDir() + "/poster.jpg"
 		if d.IsFile {
 			posterFile = d.GetFullDir() + "-poster.jpg"
+		} else if name := d.VideoFileNameWithoutSuffix(); name != "" {
+			posterFile = name + "-poster.jpg"
 		}
 		err = utils.DownloadFile(tmdb.ImageOriginal+detail.PosterPath, posterFile)
 	}
@@ -166,6 +177,8 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 		fanArtFile := d.GetFullDir() + "/fanart.jpg"
 		if d.IsFile {
 			fanArtFile = d.GetFullDir() + "-fanart.jpg"
+		} else if name := d.VideoFileNameWithoutSuffix(); name != "" {
+			fanArtFile = name + "-poster.jpg"
 		}
 		err = utils.DownloadFile(tmdb.ImageOriginal+detail.BackdropPath, fanArtFile)
 	}
@@ -194,6 +207,5 @@ func (m *Movie) getNfoFile() string {
 		return m.GetFullDir() + "/movie.nfo"
 	}
 
-	suffix := utils.IsVideo(m.VideoFileName)
-	return m.GetFullDir() + "/" + strings.Replace(m.VideoFileName, "."+suffix, "", 1) + ".nfo"
+	return m.VideoFileNameWithoutSuffix() + ".nfo"
 }
