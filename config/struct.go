@@ -19,6 +19,15 @@ type Config struct {
 	StockDir    []string `json:"stock_dir"`
 	MusicDir    []string `json:"music_dir"`
 	CronSeconds int      `json:"cron_seconds"` // todo、shows、movies 分别设置
+
+	Kodi KodiConfig `json:"kodi"`
+}
+
+type KodiConfig struct {
+	JsonRpc  string `json:"json_rpc"`
+	Timeout  int    `json:"timeout"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 func LoadConfig(file string) *Config {
