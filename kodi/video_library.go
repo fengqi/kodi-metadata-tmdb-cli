@@ -1,56 +1,83 @@
 package kodi
 
 import (
-	"bytes"
 	"encoding/json"
-	"io"
-	"net/http"
+	"sync"
 )
 
-type JsonRpcRequest struct {
-	Id      string      `json:"id"`
-	JsonRpc string      `json:"jsonrpc"`
-	Method  string      `json:"method"`
-	Params  interface{} `json:"params"`
+var (
+	vlOnce sync.Once
+	vl     *VideoLibrary
+)
+
+type VideoLibrary struct{}
+
+type RefreshMovieRequest struct {
+	MovieId   int    `json:"movieid"`
+	IgnoreNfo bool   `json:"ignorenfo"`
+	Title     string `json:"title"`
 }
 
-type VideoLibraryScan struct {
-	Description string      `json:"description"`
-	Params      []Parameter `json:"params"`
-	Permission  string      `json:"permission"`
-	Returns     string      `json:"returns"`
-	Type        string      `json:"type"`
+type GetMoviesRequest struct {
+	Filter     *Filter  `json:"filter"`
+	Limit      *Limits  `json:"limits"`
+	Properties []string `json:"properties"`
 }
 
-type Parameter struct {
-	Type    string `json:"type"`
-	Name    string `json:"name"`
-	Default string `json:"default"`
+type GetMoviesResponse struct {
+	Id      string                  `json:"id"`
+	JsonRpc string                  `json:"jsonrpc"`
+	Result  GetMoviesResponseResult `json:"result"`
 }
 
-func SendRequest(v interface{}) {
-	req := &JsonRpcRequest{
-		JsonRpc: "2.0",
-		Id:      "1",
-		Method:  "",
+type GetMoviesResponseResult struct {
+	Limits LimitsResult    `json:"limits"`
+	Movies []*MovieDetails `json:"movies"`
+}
+
+type ScanRequest struct {
+	Directory   string `json:"directory"`
+	ShowDialogs bool   `json:"showdialogs"`
+}
+
+func NewVideoLibrary() *VideoLibrary {
+	vlOnce.Do(func() {
+		vl = &VideoLibrary{}
+	})
+	return vl
+}
+
+func (vl *VideoLibrary) Scan(req *ScanRequest) bool {
+	if req == nil {
+		req = &ScanRequest{Directory: "", ShowDialogs: false}
+	}
+	_, err := request(&JsonRpcRequest{
+		Method: "VideoLibrary.Scan",
+		Params: req,
+	})
+	return err == nil
+}
+
+func (vl *VideoLibrary) GetMovies(req *GetMoviesRequest) *GetMoviesResponse {
+	body, err := request(&JsonRpcRequest{Method: "VideoLibrary.GetMovies", Params: req})
+	if len(body) == 0 {
+		return nil
 	}
 
-	jsonBytes, err := json.Marshal(req)
+	resp := &GetMoviesResponse{}
+	err = json.Unmarshal(body, resp)
 	if err != nil {
-		//
+		panic(err)
 	}
 
-	resp, err := http.Post("http://192.168.50.142/jsonrpc", "", bytes.NewReader(jsonBytes))
-	if err != nil {
-		//
-	}
+	return resp
+}
 
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			//
-		}
-	}(resp.Body)
-
-	//
+// RefreshMovie Refresh the given movie in the library
+func (vl *VideoLibrary) RefreshMovie(req *RefreshMovieRequest) bool {
+	_, err := request(&JsonRpcRequest{
+		Method: "VideoLibrary.RefreshMovie",
+		Params: req,
+	})
+	return err == nil
 }

@@ -3,6 +3,7 @@ package movies
 import (
 	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/config"
+	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
@@ -94,6 +95,28 @@ func (c *Collector) runMoviesProcess() {
 
 			_ = dir.saveToNfo(detail)
 			_ = dir.downloadImage(detail)
+
+			if kodi.Ping() {
+				videoLibrary := kodi.NewVideoLibrary()
+				kodiMoviesReq := &kodi.GetMoviesRequest{
+					Filter: &kodi.Filter{
+						Field:    "originaltitle",
+						Operator: "is",
+						Value:    detail.OriginalTitle,
+					},
+					Limit: &kodi.Limits{
+						Start: 0,
+						End:   1,
+					},
+					Properties: []string{"title", "originaltitle", "year"},
+				}
+				kodiMoviesResp := videoLibrary.GetMovies(kodiMoviesReq)
+				if kodiMoviesResp == nil || kodiMoviesResp.Result.Limits.Total == 0 {
+					videoLibrary.Scan(nil)
+				} else {
+					videoLibrary.RefreshMovie(&kodi.RefreshMovieRequest{MovieId: kodiMoviesResp.Result.Movies[0].MovieId, IgnoreNfo: false})
+				}
+			}
 		}
 	}
 }

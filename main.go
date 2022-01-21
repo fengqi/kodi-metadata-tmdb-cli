@@ -2,6 +2,7 @@ package main
 
 import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
+	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/movies"
 	"fengqi/kodi-metadata-tmdb-cli/music"
 	"fengqi/kodi-metadata-tmdb-cli/shows"
@@ -25,6 +26,7 @@ func main() {
 	c := config.LoadConfig(configFile)
 	utils.InitLogger(c.LogLevel, c.LogFile)
 	tmdb.InitTmdb(c)
+	kodi.InitKodi(c.Kodi)
 
 	wg := &sync.WaitGroup{}
 	wg.Add(3)
