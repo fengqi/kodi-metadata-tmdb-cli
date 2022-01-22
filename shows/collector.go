@@ -131,15 +131,26 @@ func (c *Collector) runWatcher() {
 			}
 
 			fileInfo, _ := os.Stat(event.Name)
-			if fileInfo == nil || !fileInfo.IsDir() || event.Op&fsnotify.Create != fsnotify.Create {
+			if fileInfo == nil || (!fileInfo.IsDir() && utils.IsVideo(event.Name) == "") || event.Op&fsnotify.Create != fsnotify.Create {
 				continue
 			}
 
 			utils.Logger.InfoF("created file: %s", event.Name)
 
-			showsDir := parseShowsDir(filepath.Dir(event.Name), fileInfo)
-			if showsDir != nil {
-				c.dirChan <- showsDir
+			if fileInfo.IsDir() {
+				showsDir := parseShowsDir(filepath.Dir(event.Name), fileInfo)
+				if showsDir != nil {
+					c.dirChan <- showsDir
+				}
+			} else {
+				filePath := filepath.Dir(event.Name)
+				basePath := filepath.Dir(filePath)
+				dirInfo, _ := os.Stat(filePath)
+				dir := parseShowsDir(basePath, dirInfo)
+				tvDetail, _ := dir.getTvDetail()
+				showsFile := parseShowsFile(dir, fileInfo)
+				showsFile.TvId = tvDetail.Id
+				c.fileChan <- showsFile
 			}
 
 		case err, ok := <-c.watcher.Errors:
