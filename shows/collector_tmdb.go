@@ -65,6 +65,12 @@ func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
 			}
 
 			tvId = SearchResults.Id
+
+			// 保存tvId
+			err = ioutil.WriteFile(idFile, []byte(strconv.Itoa(tvId)), 0664)
+			if err != nil {
+				utils.Logger.ErrorF("save %d to %s err: %v", tvId, idFile, err)
+			}
 		}
 
 		// 获取详情
