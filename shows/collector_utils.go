@@ -72,6 +72,10 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 	nameStart := false
 	nameStop := false
 	for _, item := range split {
+		if item[0:1] == "[" || item[len(item)-1:] == "]" {
+			continue
+		}
+
 		if yearRange := utils.IsYearRange(item); len(yearRange) > 0 {
 			showsDir.YearRange = yearRange
 			continue
