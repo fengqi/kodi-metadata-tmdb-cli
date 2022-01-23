@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/config"
+	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -65,6 +66,9 @@ func InitKodi(c config.KodiConfig) {
 
 func Ping() bool {
 	_, err := request(&JsonRpcRequest{})
+	if err != nil {
+		utils.Logger.WarningF("ping kodi err: %v", err)
+	}
 	return err == nil
 }
 
