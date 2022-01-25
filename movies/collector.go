@@ -166,6 +166,10 @@ func (c *Collector) scanDir(dir string) ([]*Movie, error) {
 	}
 
 	for _, file := range fileInfo {
+		if file.Name() == "tmdb" {
+			continue
+		}
+
 		// 合集，以 Iron.Man.2008-2013.Blu-ray.x264.MiniBD1080P-CMCT 为例，暂定使用 2008-2013 做为判断特征
 		if yearRange := utils.IsYearRangeLike(file.Name()); yearRange != "" {
 			movieDir, err := c.scanDir(dir + "/" + file.Name())
