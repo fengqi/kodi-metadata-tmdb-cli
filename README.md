@@ -19,10 +19,15 @@ Kodi 刮削器命令行版本，使用TMDB数据源匹配剧集和电影并生�
 - rating 内容分级国家
 - api_key TMDB 开发者token，请参考[Wiki](https://github.com/fengqi/kodi-metadata-tmdb-cli/wiki)申请
 - language 刮削语言，中文可以填：zh-CN
+- movies_nfo_mode 电影NFO写入模式：1 movie.nfo、2 \<VideoFileName\>.nfo，媒体库如果勾选“电影在以片名命名的单独目录中”填1否则填2，建议使用1。
 - shows_dir 电视剧、电视节目目录，可以多个
 - movies_dir 电影目录，可以多个
 - stock_dir 不可描述的目录，功能暂未实现
 - music_dir 音乐目录，功能暂未实现
+- kodi.json_rpc kodi rpc地址
+- kodi.timeout 调用kodi超时时间，单位秒
+- kodi.username kodi rpc认证用户名
+- kodi.password kodi rpc认证用密码
 
 # 功能列表
 
