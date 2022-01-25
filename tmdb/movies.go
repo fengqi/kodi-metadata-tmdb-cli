@@ -61,7 +61,7 @@ func GetMovieDetail(id int) (*MovieDetail, error) {
 
 	resp, err := http.Get(api)
 	if err != nil {
-		utils.Logger.ErrorF("request tmdb: %d err: %v", api, err)
+		utils.Logger.ErrorF("request tmdb: %s err: %v", api, err)
 		return nil, err
 	}
 	defer func(Body io.ReadCloser) {

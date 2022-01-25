@@ -221,7 +221,7 @@ func (c *Collector) runCronScan() {
 				err := c.watcher.Add(item)
 				utils.Logger.DebugF("runCronScan add shows dir: %s to watcher", item)
 				if err != nil {
-					utils.Logger.FatalF("add shows dir: %s to err: %v err: %v", item, err)
+					utils.Logger.FatalF("add shows dir: %s to watcher err: %v", item, err)
 				}
 
 				showDirs, err := c.scanDir(item)
@@ -231,9 +231,9 @@ func (c *Collector) runCronScan() {
 
 				for _, showDir := range showDirs {
 					err := c.watcher.Add(showDir.Dir + "/" + showDir.OriginTitle)
-					utils.Logger.DebugF("runCronScan add shows dir: %s to watcher", item+"/"+showDir.OriginTitle)
+					utils.Logger.DebugF("runCronScan add shows dir: %s to watcher", showDir.Dir+"/"+showDir.OriginTitle)
 					if err != nil {
-						utils.Logger.FatalF("add shows dir: %s to err: %v err: %v", showDir, err)
+						utils.Logger.FatalF("add shows dir: %s to watcher err: %v", showDir.Dir+"/"+showDir.OriginTitle, err)
 					}
 
 					c.dirChan <- showDir

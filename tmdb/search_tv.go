@@ -94,7 +94,7 @@ func SearchShows(title string, year int) (*SearchResults, error) {
 	}
 
 	if len(tvResp.Results) > 0 {
-		utils.Logger.InfoF("search tv: %s %d result count: %d, use: %d", title, year, len(tvResp.Results), tvResp.Results[0])
+		utils.Logger.InfoF("search tv: %s %d result count: %d, use: %v", title, year, len(tvResp.Results), tvResp.Results[0])
 	}
 
 	return tvResp.Results[0], nil
