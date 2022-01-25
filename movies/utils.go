@@ -17,10 +17,12 @@ func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 
 	// 使用目录或者没有后缀的文件名
 	suffix := utils.IsVideo(movieName)
-	if !file.IsDir() && suffix == "" {
-		return nil
-	} else {
-		movieName = strings.Replace(movieName, "."+suffix, "", 1)
+	if !file.IsDir() {
+		if suffix != "" {
+			movieName = strings.Replace(movieName, "."+suffix, "", 1)
+		} else {
+			return nil
+		}
 	}
 
 	// 过滤可选字符
