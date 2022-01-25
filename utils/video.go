@@ -45,9 +45,24 @@ var (
 		".!qb",
 		".!ut",
 	}
-	videoMap  = map[string]struct{}{}
-	sourceMap = map[string]struct{}{}
-	studioMap = map[string]struct{}{}
+	delimiter = []string{
+		"-",
+		".",
+		",",
+		"_",
+		" ",
+		"[",
+		"]",
+		"(",
+		")",
+		"{",
+		"}",
+		"@",
+	}
+	videoMap     = map[string]struct{}{}
+	sourceMap    = map[string]struct{}{}
+	studioMap    = map[string]struct{}{}
+	delimiterMap = map[string]struct{}{}
 )
 
 func init() {
@@ -61,6 +76,10 @@ func init() {
 
 	for _, item := range studio {
 		studioMap[item] = struct{}{}
+	}
+
+	for _, item := range delimiter {
+		delimiterMap[item] = struct{}{}
 	}
 }
 
@@ -247,4 +266,58 @@ func FilterTmpSuffix(name string) string {
 		}
 	}
 	return name
+}
+
+// FilterOptionals 过滤掉可选的字符: 被中括号[]包围的
+func FilterOptionals(name string) string {
+	compile, err := regexp.Compile("\\[.*?\\]")
+	if err != nil {
+		panic(err)
+	}
+
+	return compile.ReplaceAllString(name, "")
+}
+
+// IsResolution 分辨率
+func IsResolution(name string) string {
+	compile, err := regexp.Compile("[0-9]{3,4}Xx*[0-9]{3,4}")
+	if err != nil {
+		return ""
+	}
+
+	return compile.FindString(name)
+}
+
+// Split 影视目录或文件名切割
+// TODO 对于web-dl, h.264, blu-ray这样的可以不切割
+func Split(name string) []string {
+	runeStr := []rune(name)
+	split := make([]string, 0)
+	start := 0
+	match := false
+	lastMatch := false
+	for k, v := range runeStr {
+		if _, ok := delimiterMap[string(v)]; ok {
+			if match {
+				lastMatch = true
+				subStr := string(runeStr[start:k])
+				if subStr != "" {
+					split = append(split, subStr)
+				}
+				match = false
+			}
+			start = k + 1
+		}
+		lastMatch = false
+		match = true
+	}
+
+	if !lastMatch {
+		subStr := string(runeStr[start:])
+		if subStr != "" {
+			split = append(split, subStr)
+		}
+	}
+
+	return split
 }

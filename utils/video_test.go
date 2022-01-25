@@ -4,24 +4,6 @@ import (
 	"testing"
 )
 
-func TestCleanTitle(t *testing.T) {
-	unit := map[string]string{
-		"中国通史":                           "中国通史",
-		"The Sex Lives of College":       "The Sex Lives of College",
-		"BBC 行星 The Planets":             "The Planets",
-		"[Arcane]":                       "Arcane",
-		"[机智的医生生活]":                      "机智的医生生活",
-		"[机智的医生生活] A Wise Doctor's Life": "A Wise Doctor's Life",
-	}
-
-	for k, v := range unit {
-		actual := CleanTitle(k)
-		if actual != v {
-			t.Errorf("cleanTitle(%s) = %s; expected %s", k, actual, v)
-		}
-	}
-}
-
 func TestIsFormat(t *testing.T) {
 	unit := map[string]string{
 		"720":        "",
@@ -60,6 +42,55 @@ func TestIsSeason(t *testing.T) {
 		actual := IsSeason(k)
 		if actual != v {
 			t.Errorf("isSeason(%s) = %s; expected %s", k, actual, v)
+		}
+	}
+}
+
+func TestSplit(t *testing.T) {
+	unit := map[string][]string{
+		"[梦蓝字幕组]Crayonshinchan 蜡笔小新[1105][2021.11.06][AVC][1080P][GB_JP][MP4]V2.mp4": []string{
+			"梦蓝字幕组",
+			"Crayonshinchan",
+			"蜡笔小新",
+			"1105",
+			"2021",
+			"11",
+			"06",
+			"AVC",
+		},
+		"The Last Son 2021.mkv": []string{
+			"The",
+			"Last",
+			"Son",
+			"2021",
+			"mkv",
+		},
+		"Midway 2019 2160p CAN UHD Blu-ray HEVC DTS-HD MA 5.1-THDBST@HDSky.nfo": []string{
+			"Midway",
+			"2019",
+			"2160p",
+			"CAN",
+			"UHD",
+			"Blu",
+			"ray",
+			"HEVC",
+			"DTS",
+			"HD",
+			"MA",
+			"5",
+			"1",
+			"THDBST",
+			"HDSky",
+			"nfo",
+		},
+	}
+
+	for k, v := range unit {
+		actual := Split(k)
+		for k2, v2 := range v {
+			if actual[k2] != v2 {
+				t.Errorf("Split(%s) = %s; expected %s", k, actual[k2], v2)
+			}
 		}
 	}
 }
