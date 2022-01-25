@@ -5,6 +5,7 @@
     "rating": "US",
     "api_key": "fetch at https://www.themoviedb.org/settings/api",
     "language": "zh-CN",
+    "movies_nfo_mode": 2,
     "shows_dir": [
         "/volume1/down/shows"
     ],

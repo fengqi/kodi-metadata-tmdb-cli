@@ -133,8 +133,8 @@ type Resume struct {
 	Total    int    `xml:"total"`
 }
 
-func (d *Movie) saveToNfo(detail *tmdb.MovieDetail) error {
-	nfoFile := d.getNfoFile()
+func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
+	nfoFile := d.getNfoFile(mode)
 	if nfoFile == "" {
 		utils.Logger.InfoF("movie nfo empty %v", d)
 		return nil

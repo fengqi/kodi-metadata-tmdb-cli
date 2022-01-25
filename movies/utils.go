@@ -188,7 +188,7 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 // Kodi比较推荐 <VideoFileName>.nfo 但是存在一种情况就是，使用inotify监听文件变动，可能电影目录先创建
 // 里面的视频文件会迟一点，这个时候 VideoFileName 就会为空，导致NFO写入失败
 // 如果使用 movie.nfo 就不需要考虑这个情况，但是需要打开媒体源的 "电影在以片名命名的单独目录中"
-func (m *Movie) getNfoFile() string {
+func (m *Movie) getNfoFile(mode int) string {
 	if m.IsFile {
 		return m.GetFullDir() + ".nfo"
 	}
@@ -201,8 +201,12 @@ func (m *Movie) getNfoFile() string {
 		return m.GetFullDir() + "/VIDEO_TS/VIDEO_TS.nfo"
 	}
 
-	if m.VideoFileName == "" {
+	if mode == 2 {
 		return m.GetFullDir() + "/movie.nfo"
+	}
+
+	if mode == 1 && m.VideoFileName == "" {
+		return ""
 	}
 
 	return m.VideoFileNameWithoutSuffix() + ".nfo"

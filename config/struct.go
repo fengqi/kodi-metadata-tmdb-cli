@@ -14,11 +14,12 @@ type Config struct {
 	ApiKey   string `json:"api_key"`  // api key
 	Language string `json:"language"` // 语言
 
-	ShowsDir    []string `json:"shows_dir"`
-	MoviesDir   []string `json:"movies_dir"`
-	StockDir    []string `json:"stock_dir"`
-	MusicDir    []string `json:"music_dir"`
-	CronSeconds int      `json:"cron_seconds"` // todo、shows、movies 分别设置
+	MoviesNfoMode int      `json:"movies_nfo_mode"` // 电影NFO写入模式：1 movie.nfo， 2 <VideoFileName>.nfo
+	ShowsDir      []string `json:"shows_dir"`
+	MoviesDir     []string `json:"movies_dir"`
+	StockDir      []string `json:"stock_dir"`
+	MusicDir      []string `json:"music_dir"`
+	CronSeconds   int      `json:"cron_seconds"` // todo、shows、movies 分别设置
 
 	Kodi KodiConfig `json:"kodi"`
 }

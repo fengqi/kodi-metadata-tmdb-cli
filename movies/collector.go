@@ -23,6 +23,7 @@ func RunCollector(config *config.Config) {
 		config:  config,
 		watcher: watcher,
 		channel: make(chan *Movie, 100),
+		nfoMode: config.MoviesNfoMode,
 	}
 
 	go collector.runWatcher()
@@ -93,7 +94,7 @@ func (c *Collector) runMoviesProcess() {
 				continue
 			}
 
-			_ = dir.saveToNfo(detail)
+			_ = dir.saveToNfo(detail, c.nfoMode)
 			_ = dir.downloadImage(detail)
 
 			// 通知kodi刷新媒体库，电视可能没开机，所以先ping一下
