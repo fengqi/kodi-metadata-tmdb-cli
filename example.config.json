@@ -18,6 +18,7 @@
         "/volume1/down/music"
     ],
     "kodi": {
+        "enable": true,
         "json_rpc": "http://192.168.1.123:8080/jsonrpc",
         "timeout": 1,
         "username": "kodi",
