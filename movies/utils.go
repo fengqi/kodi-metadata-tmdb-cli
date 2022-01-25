@@ -13,31 +13,31 @@ import (
 // 解析目录, 返回详情
 // TODO 跳过电视剧，放错目录了
 func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
-	suffix := utils.IsVideo(file.Name())
-	if !file.IsDir() && suffix == "" {
-		return nil
-	}
+	movieName := file.Name()
 
 	// 使用目录或者没有后缀的文件名
-	movieName := file.Name()
-	if suffix != "" {
+	suffix := utils.IsVideo(movieName)
+	if !file.IsDir() && suffix == "" {
+		return nil
+	} else {
 		movieName = strings.Replace(movieName, "."+suffix, "", 1)
 	}
 
-	// 用点号.或者空格分割，这里假定文件或者目录命名时规范的
-	formatName := strings.Replace(movieName, " ", ".", -1)
-	split := strings.Split(formatName, ".")
-	if split == nil || len(split) < 3 {
-		utils.Logger.WarningF("file name: %s syntax err, skipped", file.Name())
-		return nil
-	}
+	// 过滤可选字符
+	movieName = utils.FilterOptionals(movieName)
 
-	movieDir := &Movie{Dir: baseDir, OriginTitle: movieName, IsFile: !file.IsDir(), Suffix: suffix}
-
+	// 使用自定义方法切割
+	split := utils.Split(movieName)
 	// 文件名识别
 	nameStart := false
 	nameStop := false
+	movieDir := &Movie{Dir: baseDir, OriginTitle: movieName, IsFile: !file.IsDir(), Suffix: suffix}
 	for _, item := range split {
+		if resolution := utils.IsResolution(item); resolution != "" {
+			nameStop = true
+			continue
+		}
+
 		if year := utils.IsYear(item); year > 0 {
 			movieDir.Year = year
 			nameStop = true
@@ -45,19 +45,16 @@ func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 		}
 
 		if format := utils.IsFormat(item); len(format) > 0 {
-			movieDir.Format = format
 			nameStop = true
 			continue
 		}
 
 		if source := utils.IsSource(item); len(source) > 0 {
-			movieDir.Source = source
 			nameStop = true
 			continue
 		}
 
 		if studio := utils.IsStudio(item); len(studio) > 0 {
-			movieDir.Studio = studio
 			nameStop = true
 			continue
 		}
@@ -71,6 +68,7 @@ func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 			movieDir.Title += item + " "
 		}
 	}
+
 	movieDir.Title = utils.CleanTitle(movieDir.Title)
 	if len(movieDir.Title) == 0 {
 		utils.Logger.WarningF("file: %s parse title empty: %v", file.Name(), movieDir)
