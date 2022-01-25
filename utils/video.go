@@ -199,6 +199,7 @@ func CleanTitle(name string) string {
 	name = strings.Replace(name, "]", "", -1)
 	name = strings.Replace(name, "{", "", -1)
 	name = strings.Replace(name, "}", "", -1)
+	name = strings.Trim(name, " ")
 
 	newName := ""
 	split := strings.Split(name, " ")
