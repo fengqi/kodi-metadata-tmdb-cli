@@ -20,9 +20,6 @@ type Movie struct {
 	Title           string `json:"title"`          // 名称 Hawkeye
 	MovieId         int    `json:"tv_id"`          // 电影id
 	Year            int    `json:"year"`           // 年份：2020、2021
-	Format          string `json:"format"`         // 格式：720p、1080p
-	Source          string `json:"source"`         // 来源
-	Studio          string `json:"studio"`         // 媒体
 	IsFile          bool   `json:"is_file"`        // 是否是单文件，而不是目录
 	Suffix          string `json:"suffix"`         // 单文件时，文件的后缀
 	IsBluray        bool   `json:"is_bluray"`      // 蓝光目录
