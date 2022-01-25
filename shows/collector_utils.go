@@ -60,22 +60,16 @@ func parseShowsFile(dir *Dir, file fs.FileInfo) *File {
 
 // 解析目录, 返回详情
 func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
-	// 用点号.或者空格分割
-	formatName := strings.Replace(file.Name(), " ", ".", -1)
-	split := strings.Split(formatName, ".")
-	if split == nil || len(split) < 3 {
-		utils.Logger.WarningF("file name: %s syntax err, skipped", file.Name())
-		return nil
-	}
+	// 过滤可选字符
+	showName := utils.FilterOptionals(file.Name())
+
+	// 使用自定义方法切割
+	split := utils.Split(showName)
 
 	showsDir := &Dir{Dir: baseDir, OriginTitle: file.Name(), IsCollection: utils.IsCollection(file.Name())}
 	nameStart := false
 	nameStop := false
 	for _, item := range split {
-		if item[0:1] == "[" || item[len(item)-1:] == "]" {
-			continue
-		}
-
 		if yearRange := utils.IsYearRange(item); len(yearRange) > 0 {
 			showsDir.YearRange = yearRange
 			continue
@@ -135,6 +129,7 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 		}
 	}
 
+	// 文件名清理
 	showsDir.Title = utils.CleanTitle(showsDir.Title)
 
 	if len(showsDir.Title) == 0 {

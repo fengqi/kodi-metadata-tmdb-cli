@@ -39,6 +39,7 @@ var (
 		"hulu",
 		"kktv",
 		"crunchyroll",
+		"bbc",
 	}
 	tmpSuffix = []string{
 		".part",
@@ -204,6 +205,7 @@ func CleanTitle(name string) string {
 	for _, item := range split {
 		r := []rune(item)
 		if item == "" || unicode.Is(unicode.Han, r[0]) {
+			newName = ""
 			continue
 		}
 		newName += item + " "
