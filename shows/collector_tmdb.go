@@ -85,6 +85,10 @@ func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
 		detail.SaveToCache(tvCacheFile)
 	}
 
+	if detail.Id == 0 || detail.Name == "" {
+		return nil, err
+	}
+
 	return detail, err
 }
 

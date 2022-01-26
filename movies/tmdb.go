@@ -84,5 +84,9 @@ func (d *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 		detail.SaveToCache(cacheFile)
 	}
 
+	if detail.Id == 0 || d.Title == "" {
+		return nil, err
+	}
+
 	return detail, err
 }
