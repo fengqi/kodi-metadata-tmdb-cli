@@ -4,9 +4,7 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/movies"
-	"fengqi/kodi-metadata-tmdb-cli/music"
 	"fengqi/kodi-metadata-tmdb-cli/shows"
-	"fengqi/kodi-metadata-tmdb-cli/stock"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"flag"
@@ -29,10 +27,8 @@ func main() {
 	kodi.InitKodi(c.Kodi)
 
 	wg := &sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(2)
 	go shows.RunCollector(c)
 	go movies.RunCollector(c)
-	go stock.RunCollector(c)
-	go music.RunCollector(c)
 	wg.Wait()
 }

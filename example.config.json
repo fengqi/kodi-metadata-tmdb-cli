@@ -12,12 +12,6 @@
     "movies_dir": [
         "/volume1/down/movies"
     ],
-    "stock_dir": [
-        "/volume1/down/stock"
-    ],
-    "music_dir": [
-        "/volume1/down/music"
-    ],
     "kodi": {
         "enable": true,
         "json_rpc": "http://192.168.1.123:8080/jsonrpc",

@@ -132,5 +132,9 @@ func (f *File) getTvEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
 		detail.SaveToCache(cacheFile)
 	}
 
+	if detail.Id == 0 || detail.Name == "" {
+		return nil, err
+	}
+
 	return detail, err
 }
