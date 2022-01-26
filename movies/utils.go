@@ -33,7 +33,7 @@ func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 	// 文件名识别
 	nameStart := false
 	nameStop := false
-	movieDir := &Movie{Dir: baseDir, OriginTitle: movieName, IsFile: !file.IsDir(), Suffix: suffix}
+	movieDir := &Movie{Dir: baseDir, OriginTitle: file.Name(), IsFile: !file.IsDir(), Suffix: suffix}
 	for _, item := range split {
 		if resolution := utils.IsResolution(item); resolution != "" {
 			nameStop = true
