@@ -15,6 +15,10 @@ import (
 func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 	movieName := file.Name()
 
+	if movieName == "eaDir" || movieName == "@eaDir" || movieName == "tmdb" {
+		return nil
+	}
+
 	// 使用目录或者没有后缀的文件名
 	suffix := utils.IsVideo(movieName)
 	if !file.IsDir() {
