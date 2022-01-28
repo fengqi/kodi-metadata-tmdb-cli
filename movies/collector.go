@@ -131,23 +131,28 @@ func (c *Collector) runMoviesProcess() {
 func (c *Collector) runCronScan() {
 	utils.Logger.DebugF("run movies scan cron_seconds: %d", c.config.CronSeconds)
 
+	task := func() {
+		for _, item := range c.config.MoviesDir {
+			utils.Logger.DebugF("movies scan ticker trigger")
+
+			movieDirs, err := c.scanDir(item)
+			if err != nil {
+				utils.Logger.FatalF("scan movies dir: %s err :%v", item, err)
+				continue
+			}
+
+			for _, movieDir := range movieDirs {
+				c.channel <- movieDir
+			}
+		}
+	}
+
+	task()
 	ticker := time.NewTicker(time.Second * time.Duration(c.config.CronSeconds))
 	for {
 		select {
 		case <-ticker.C:
-			for _, item := range c.config.MoviesDir {
-				utils.Logger.DebugF("movies scan ticker trigger")
-
-				movieDirs, err := c.scanDir(item)
-				if err != nil {
-					utils.Logger.FatalF("scan movies dir: %s err :%v", item, err)
-					continue
-				}
-
-				for _, movieDir := range movieDirs {
-					c.channel <- movieDir
-				}
-			}
+			task()
 		}
 	}
 }
