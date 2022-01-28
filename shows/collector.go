@@ -69,11 +69,11 @@ func (c *Collector) showsDirProcess() {
 						Properties: []string{"title", "originaltitle", "year"},
 					}
 					kodiShowsResp := videoLibrary.GetTVShows(kodiTvShowsReq)
-					if kodiTvShowsReq == nil || kodiShowsResp.Limits.Total == 0 {
+					if kodiShowsResp == nil || kodiShowsResp.Limits.Total == 0 {
 						utils.Logger.DebugF("maybe new shows, scan video library")
 						videoLibrary.Scan(nil)
 					} else {
-						utils.Logger.DebugF("maybe existing shows, refresh video library")
+						utils.Logger.DebugF("maybe existing shows, refresh video library %s")
 						kodiRefreshReq := &kodi.RefreshTVShowRequest{
 							TvShowId:        kodiShowsResp.TvShows[0].TvShowId,
 							IgnoreNfo:       false,
@@ -212,33 +212,38 @@ func (c *Collector) runWatcher() {
 func (c *Collector) runCronScan() {
 	utils.Logger.DebugF("run shows scan cron_seconds: %d", c.config.CronSeconds)
 
+	task := func() {
+		for _, item := range c.config.ShowsDir {
+			// 扫描到的每个目录都添加到watcher，因为还不能只监听根目录
+			err := c.watcher.Add(item)
+			utils.Logger.DebugF("runCronScan add shows dir: %s to watcher", item)
+			if err != nil {
+				utils.Logger.FatalF("add shows dir: %s to watcher err: %v", item, err)
+			}
+
+			showDirs, err := c.scanDir(item)
+			if err != nil {
+				utils.Logger.FatalF("scan shows dir: %s err :%v", item, err)
+			}
+
+			for _, showDir := range showDirs {
+				err := c.watcher.Add(showDir.Dir + "/" + showDir.OriginTitle)
+				utils.Logger.DebugF("runCronScan add shows dir: %s to watcher", showDir.Dir+"/"+showDir.OriginTitle)
+				if err != nil {
+					utils.Logger.FatalF("add shows dir: %s to watcher err: %v", showDir.Dir+"/"+showDir.OriginTitle, err)
+				}
+
+				c.dirChan <- showDir
+			}
+		}
+	}
+
+	task()
 	ticker := time.NewTicker(time.Second * time.Duration(c.config.CronSeconds))
 	for {
 		select {
 		case <-ticker.C:
-			for _, item := range c.config.ShowsDir {
-				// 扫描到的每个目录都添加到watcher，因为还不能只监听根目录
-				err := c.watcher.Add(item)
-				utils.Logger.DebugF("runCronScan add shows dir: %s to watcher", item)
-				if err != nil {
-					utils.Logger.FatalF("add shows dir: %s to watcher err: %v", item, err)
-				}
-
-				showDirs, err := c.scanDir(item)
-				if err != nil {
-					utils.Logger.FatalF("scan shows dir: %s err :%v", item, err)
-				}
-
-				for _, showDir := range showDirs {
-					err := c.watcher.Add(showDir.Dir + "/" + showDir.OriginTitle)
-					utils.Logger.DebugF("runCronScan add shows dir: %s to watcher", showDir.Dir+"/"+showDir.OriginTitle)
-					if err != nil {
-						utils.Logger.FatalF("add shows dir: %s to watcher err: %v", showDir.Dir+"/"+showDir.OriginTitle, err)
-					}
-
-					c.dirChan <- showDir
-				}
-			}
+			task()
 		}
 	}
 }
