@@ -59,6 +59,8 @@ var (
 		"{",
 		"}",
 		"@",
+		":",
+		"：",
 	}
 	videoMap     = map[string]struct{}{}
 	sourceMap    = map[string]struct{}{}

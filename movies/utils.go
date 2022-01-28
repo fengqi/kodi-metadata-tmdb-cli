@@ -35,6 +35,10 @@ func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 	nameStop := false
 	movieDir := &Movie{Dir: baseDir, OriginTitle: file.Name(), IsFile: !file.IsDir(), Suffix: suffix}
 	for _, item := range split {
+		if item == "TLOTR" {
+			continue
+		}
+
 		if resolution := utils.IsResolution(item); resolution != "" {
 			nameStop = true
 			continue
@@ -166,7 +170,8 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 	if len(detail.PosterPath) > 0 {
 		posterFile := d.GetFullDir() + "/poster.jpg"
 		if d.IsFile {
-			posterFile = d.GetFullDir() + "-poster.jpg"
+			suffix := utils.IsVideo(d.OriginTitle)
+			posterFile = d.Dir + "/" + strings.Replace(d.OriginTitle, "."+suffix, "", 1) + "-poster.jpg"
 		} else if name := d.VideoFileNameWithoutSuffix(); name != "" {
 			posterFile = name + "-poster.jpg"
 		}
@@ -176,7 +181,8 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 	if len(detail.BackdropPath) > 0 {
 		fanArtFile := d.GetFullDir() + "/fanart.jpg"
 		if d.IsFile {
-			fanArtFile = d.GetFullDir() + "-fanart.jpg"
+			suffix := utils.IsVideo(d.OriginTitle)
+			fanArtFile = d.Dir + "/" + strings.Replace(d.OriginTitle, "."+suffix, "", 1) + "-fanart.jpg"
 		} else if name := d.VideoFileNameWithoutSuffix(); name != "" {
 			fanArtFile = name + "-poster.jpg"
 		}
@@ -192,7 +198,8 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 // 如果使用 movie.nfo 就不需要考虑这个情况，但是需要打开媒体源的 "电影在以片名命名的单独目录中"
 func (m *Movie) getNfoFile(mode int) string {
 	if m.IsFile {
-		return m.GetFullDir() + ".nfo"
+		suffix := utils.IsVideo(m.OriginTitle)
+		return m.Dir + "/" + strings.Replace(m.OriginTitle, "."+suffix, "", 1) + ".nfo"
 	}
 
 	if m.IsBluray {
