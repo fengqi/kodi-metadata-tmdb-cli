@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -223,44 +224,35 @@ func CleanTitle(name string) string {
 
 // MatchEpisode 匹配季和集
 func MatchEpisode(name string) (string, int, int) {
-	compile, err := regexp.Compile("[sS][0-9]+[ ._x-]?[eE][0-9]+")
+	compile, err := regexp.Compile("([sS]([0-9]+))?[ ._x-]?([eEpP]([0-9]+))")
 	if err != nil {
 		panic(err)
 	}
 
-	se := compile.FindString(name)
-	if se == "" {
-		compile, err = regexp.Compile("[eE][0-9]+")
-		if err != nil {
-			panic(err)
-		}
-		se = compile.FindString(name)
+	find := compile.FindStringSubmatch(name)
+	if len(find) != 5 {
+		return "", 0, 0
 	}
 
-	se = strings.ToLower(se)
-	if len(se) > 0 {
-		split := strings.Split(se, "e")
-		if se[0:1] == "s" {
-			s, err := strconv.Atoi(split[0][1:])
-			if err != nil {
-				panic(err)
-			}
-			e, err := strconv.Atoi(split[1])
-			if err != nil {
-				panic(err)
-			}
-			return se, s, e
-		} else if se[0:1] == "e" {
-			s := 1
-			e, err := strconv.Atoi(split[1])
-			if err != nil {
-				panic(err)
-			}
-			return se, s, e
+	season := 1
+	episode := 0
+	if len(find[2]) > 0 {
+		s, err := strconv.Atoi(find[2])
+		if err == nil {
+			season = s
 		}
 	}
 
-	return se, 0, 0
+	if len(find[4]) > 0 {
+		s, err := strconv.Atoi(find[4])
+		if err == nil {
+			episode = s
+		}
+	}
+
+	se := fmt.Sprintf("s%02de%02d", season, episode)
+
+	return se, season, episode
 }
 
 // FilterTmpSuffix 过滤临时文件后缀，部分软件会在未完成的文件后面增加后缀

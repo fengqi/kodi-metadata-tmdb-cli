@@ -4,6 +4,27 @@ import (
 	"testing"
 )
 
+func TestMatchEpisode(t *testing.T) {
+	cases := map[string][]int{
+		"[堕落].The.Fall.2013.S02.E03.Complete.BluRay.720p.x264.AC3-CMCT.mkv":                 {2, 3},
+		"[堕落].The.Fall.2013.S10.E12.Complete.BluRay.720p.x264.AC3-CMCT.mkv":                 {10, 12},
+		"[堕落].The.Fall.2013.S120.E132.Complete.BluRay.720p.x264.AC3-CMCT.mkv":               {120, 132},
+		"Agent.Carter.S02E01.1080p.BluRay.DD5.1.x264-HDS.mkv":                               {2, 1},
+		"[壹高清]21点灵.Leave No Soul Behind.Ep01.HDTV.1080p.H264-OneHD.ts":                      {1, 1},
+		"Kimetsu.no.Yaiba.Yuukaku-hen.E01.2021.Crunchyroll.WEB-DL.1080p.x264.AAC-HDCTV.mkv": {1, 1},
+	}
+	for name, cse := range cases {
+		_, s, e := MatchEpisode(name)
+		if s != cse[0] {
+			t.Errorf("MatchEpisode(%s)\n season %d; expected %d", name, s, cse[0])
+		}
+		if e != cse[1] {
+			t.Errorf("MatchEpisode(%s)\n episode %d; expected %d", name, e, cse[1])
+		}
+
+	}
+}
+
 func TestIsFormat(t *testing.T) {
 	unit := map[string]string{
 		"720":        "",
