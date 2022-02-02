@@ -19,7 +19,8 @@ type Config struct {
 	MoviesDir     []string `json:"movies_dir"`
 	CronSeconds   int      `json:"cron_seconds"` // todo、shows、movies 分别设置
 
-	Kodi KodiConfig `json:"kodi"`
+	Kodi    KodiConfig `json:"kodi"`
+	Exclude []string   `json:"exclude`
 }
 
 type KodiConfig struct {
