@@ -63,6 +63,11 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 	// 过滤可选字符
 	showName := utils.FilterOptionals(file.Name())
 
+	// 过滤无用文件
+	if showName == "@eaDir" || showName == "tmdb" || showName == "metadata" || showName[0:1] == "." {
+		return nil
+	}
+
 	// 使用自定义方法切割
 	split := utils.Split(showName)
 

@@ -13,9 +13,11 @@ import (
 // 解析目录, 返回详情
 // TODO 跳过电视剧，放错目录了
 func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
-	movieName := file.Name()
+	// 过滤可选字符
+	movieName := utils.FilterOptionals(file.Name())
 
-	if movieName == "eaDir" || movieName == "@eaDir" || movieName == "tmdb" {
+	// 过滤无用文件
+	if movieName == "@eaDir" || movieName == "tmdb" || movieName == "metadata" || movieName[0:1] == "." {
 		return nil
 	}
 
@@ -28,9 +30,6 @@ func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 			return nil
 		}
 	}
-
-	// 过滤可选字符
-	movieName = utils.FilterOptionals(movieName)
 
 	// 使用自定义方法切割
 	split := utils.Split(movieName)
