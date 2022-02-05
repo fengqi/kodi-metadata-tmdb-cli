@@ -10,7 +10,11 @@ var (
 	vl     *VideoLibrary
 )
 
-type VideoLibrary struct{}
+type VideoLibrary struct {
+	scanLimiter   *Limiter
+	refreshMovie  *Limiter
+	refreshTVShow *Limiter
+}
 
 // RefreshMovieRequest 刷新电影请求参数
 type RefreshMovieRequest struct {
@@ -61,13 +65,21 @@ type ScanRequest struct {
 
 func NewVideoLibrary() *VideoLibrary {
 	vlOnce.Do(func() {
-		vl = &VideoLibrary{}
+		vl = &VideoLibrary{
+			scanLimiter:   NewLimiter(300),
+			refreshMovie:  NewLimiter(300),
+			refreshTVShow: NewLimiter(300),
+		}
 	})
 	return vl
 }
 
 // Scans the video sources for new library items
 func (vl *VideoLibrary) Scan(req *ScanRequest) bool {
+	if !vl.scanLimiter.take() {
+		return false
+	}
+
 	if req == nil {
 		req = &ScanRequest{Directory: "", ShowDialogs: false}
 	}
@@ -105,6 +117,10 @@ func (vl *VideoLibrary) GetMovies(req *GetMoviesRequest) *GetMoviesResponse {
 
 // RefreshMovie Refresh the given movie in the library
 func (vl *VideoLibrary) RefreshMovie(req *RefreshMovieRequest) bool {
+	if !vl.refreshMovie.take() {
+		return false
+	}
+
 	_, err := request(&JsonRpcRequest{
 		Method: "VideoLibrary.RefreshMovie",
 		Params: req,
@@ -139,6 +155,10 @@ func (vl *VideoLibrary) GetTVShows(req *GetTVShowsRequest) *GetTVShowsResponse {
 
 // RefreshTVShow Refresh the given tv show in the library
 func (vl *VideoLibrary) RefreshTVShow(req *RefreshTVShowRequest) bool {
+	if !vl.refreshTVShow.take() {
+		return false
+	}
+
 	_, err := request(&JsonRpcRequest{
 		Method: "VideoLibrary.RefreshTVShow",
 		Params: req,

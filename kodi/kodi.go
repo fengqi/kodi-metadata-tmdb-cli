@@ -74,6 +74,8 @@ func Ping() bool {
 
 // 发送json rpc请求
 func request(rpcReq *JsonRpcRequest) ([]byte, error) {
+	utils.Logger.DebugF("request kodi: %s", rpcReq.Method)
+
 	if rpcReq.JsonRpc == "" {
 		rpcReq.JsonRpc = "2.0"
 	}
