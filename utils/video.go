@@ -269,7 +269,8 @@ func FilterTmpSuffix(name string) string {
 func FilterOptionals(name string) string {
 	compile, err := regexp.Compile("\\[.*?\\]")
 	if err != nil {
-		panic(err)
+		Logger.ErrorF("regexp compile err: %v", err)
+		return name
 	}
 
 	return compile.ReplaceAllString(name, "")

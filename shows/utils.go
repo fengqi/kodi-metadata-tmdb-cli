@@ -60,13 +60,16 @@ func parseShowsFile(dir *Dir, file fs.FileInfo) *File {
 
 // 解析目录, 返回详情
 func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
-	// 过滤可选字符
-	showName := utils.FilterOptionals(file.Name())
+	showName := file.Name()
 
 	// 过滤无用文件
 	if showName == "@eaDir" || showName == "tmdb" || showName == "metadata" || showName[0:1] == "." {
+		utils.Logger.DebugF("pass file: %s", showName)
 		return nil
 	}
+
+	// 过滤可选字符
+	showName = utils.FilterOptionals(showName)
 
 	// 使用自定义方法切割
 	split := utils.Split(showName)

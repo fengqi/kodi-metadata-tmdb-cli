@@ -13,13 +13,15 @@ import (
 // 解析目录, 返回详情
 // TODO 跳过电视剧，放错目录了
 func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
-	// 过滤可选字符
-	movieName := utils.FilterOptionals(file.Name())
+	movieName := file.Name()
 
 	// 过滤无用文件
 	if movieName == "@eaDir" || movieName == "tmdb" || movieName == "metadata" || movieName[0:1] == "." {
 		return nil
 	}
+
+	// 过滤可选字符
+	movieName = utils.FilterOptionals(movieName)
 
 	// 使用目录或者没有后缀的文件名
 	suffix := utils.IsVideo(movieName)
