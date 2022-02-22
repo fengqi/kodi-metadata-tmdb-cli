@@ -34,10 +34,12 @@ func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
 
 		airTime, _ := time.Parse("2006-01-02", detail.LastAirDate)
 		cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
+		detail.FromCache = true
 	}
 
 	// 缓存失效，重新搜索
 	if detail == nil || detail.Id == 0 || cacheExpire {
+		detail.FromCache = false
 		tvId := detail.Id
 		idFile := d.GetCacheDir() + "/id.txt"
 		if _, err = os.Stat(idFile); err == nil {
@@ -113,10 +115,12 @@ func (f *File) getTvEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
 
 		airTime, _ := time.Parse("2006-01-02", detail.AirDate)
 		cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
+		detail.FromCache = true
 	}
 
 	// 请求tmdb
 	if detail == nil || detail.Id == 0 || cacheExpire {
+		detail.FromCache = false
 		detail, err = tmdb.GetTvEpisodeDetail(f.TvId, f.Season, f.Episode)
 		if err != nil {
 			utils.Logger.ErrorF("get tv episode error %v", err)

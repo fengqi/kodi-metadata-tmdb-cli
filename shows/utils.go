@@ -138,8 +138,7 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 	}
 
 	// 文件名清理
-	showsDir.Title = utils.CleanTitle(showsDir.Title)
-
+	showsDir.ChsTitle, showsDir.EngTitle = utils.SplitChsEngTitle(showsDir.Title)
 	if len(showsDir.Title) == 0 {
 		utils.Logger.WarningF("file: %s parse title empty: %v", file.Name(), showsDir)
 		return nil

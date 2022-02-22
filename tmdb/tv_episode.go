@@ -29,6 +29,7 @@ type TvEpisodeDetail struct {
 	StillPath      string       `json:"still_path"`
 	VoteAverage    float32      `json:"vote_average"`
 	VoteCount      int          `json:"vote_count"`
+	FromCache      bool         `json:"from_cache"`
 }
 
 type Crew struct {

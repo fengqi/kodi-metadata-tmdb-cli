@@ -53,6 +53,7 @@ type TvDetail struct {
 	VoteAverage         float32             `json:"vote_average"`
 	VoteCount           int                 `json:"vote_count"`
 	AggregateCredits    *TvAggregateCredits `json:"aggregate_credits"`
+	FromCache           bool                `json:"from_cache"`
 }
 
 type Genre struct {
