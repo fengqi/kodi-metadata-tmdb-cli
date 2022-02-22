@@ -91,7 +91,7 @@ func (c *Collector) runMoviesProcess() {
 
 			dir.checkCacheDir()
 			detail, err := dir.getMovieDetail()
-			if err != nil || detail == nil {
+			if err != nil || detail == nil || detail.FromCache {
 				continue
 			}
 

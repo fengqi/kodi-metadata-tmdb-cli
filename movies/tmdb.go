@@ -36,10 +36,12 @@ func (d *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 
 		airTime, _ := time.Parse("2006-01-02", detail.ReleaseDate)
 		cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
+		detail.FromCache = true
 	}
 
 	// 缓存失效，重新搜索
 	if detail == nil || detail.Id == 0 || cacheExpire {
+		detail.FromCache = false
 		movieId := detail.Id
 		idFile := d.GetCacheDir() + "/id.txt"
 		if d.IsFile {

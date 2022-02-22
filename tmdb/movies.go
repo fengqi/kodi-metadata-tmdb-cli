@@ -37,6 +37,7 @@ type MovieDetail struct {
 	VoteAverage         float32             `json:"vote_average"`
 	VoteCount           int                 `json:"vote_count"`
 	Credits             *Credit             `json:"credits"`
+	FromCache           bool                `json:"from_cache"`
 }
 
 type BelongsToCollection struct {
