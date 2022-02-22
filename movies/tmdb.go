@@ -58,7 +58,7 @@ func (d *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 
 		if movieId == 0 {
 			SearchResults, err := tmdb.SearchMovie(d.ChsTitle, d.EngTitle, d.Year)
-			if SearchResults == nil {
+			if err != nil || SearchResults == nil {
 				utils.Logger.ErrorF("search title: %s or, year: %d failed", d.ChsTitle, d.EngTitle, d.Year)
 				return detail, err
 			}

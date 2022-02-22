@@ -2,22 +2,12 @@ package tmdb
 
 import (
 	"encoding/json"
+	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
-	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
+	"strconv"
 )
-
-type SearchTvRequest struct {
-	ApiKey           string `json:"api_key"`             // api_key, required
-	Language         string `json:"language"`            // ISO 639-1, optional, default en-US
-	Page             int    `json:"page"`                // page, 1-1000, optional, default 1
-	Query            string `json:"query"`               // query text, required, URI encoded
-	IncludeAdult     bool   `json:"include_adult"`       // include adult, optional
-	FirstAirDateYear int    `json:"first_air_date_year"` // year, optional
-}
 
 type SearchTvResponse struct {
 	Page         int              `json:"page"`
@@ -49,65 +39,85 @@ type Response struct {
 }
 
 // SearchShows 搜索tmdb
-func SearchShows(title string, year int) (*SearchResults, error) {
-	utils.Logger.InfoF("search: %s %d from tmdb", title, year)
+func SearchShows(chsTitle, engTitle string, year int) (*SearchResults, error) {
+	utils.Logger.InfoF("search: %s or %s %d from tmdb", chsTitle, engTitle, year)
 
-	req := &SearchTvRequest{
-		ApiKey:           getApiKey(),
-		Query:            title,
-		FirstAirDateYear: year,
-		Page:             1,
-		IncludeAdult:     true,
-		Language:         getLanguage(),
-	}
+	strYear := strconv.Itoa(year)
+	searchComb := make([]map[string]string, 0)
 
-	api := host + apiSearchTv + "?" + req.ToQuery()
-	utils.Logger.DebugF("request tmdb: %s", api)
-
-	resp, err := http.Get(api)
-	if err != nil {
-		utils.Logger.WarningF("search shows err: %v", err)
-		return nil, err
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
+	if chsTitle != "" {
+		if year > 0 {
+			searchComb = append(searchComb, map[string]string{
+				"api_key":             getApiKey(),
+				"language":            getLanguage(),
+				"query":               chsTitle,
+				"page":                "1",
+				"include_adult":       "true",
+				"first_air_date_year": strYear,
+			})
 		}
-	}(resp.Body)
+		searchComb = append(searchComb, map[string]string{
+			"api_key":       getApiKey(),
+			"language":      getLanguage(),
+			"query":         chsTitle,
+			"page":          "1",
+			"include_adult": "true",
+		})
+	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		utils.Logger.ErrorF("read tmdb response err: %v", err)
-		return nil, err
+	if engTitle != "" {
+		if year > 0 {
+			searchComb = append(searchComb, map[string]string{
+				"api_key":             getApiKey(),
+				"language":            getLanguage(),
+				"query":               engTitle,
+				"page":                "1",
+				"include_adult":       "true",
+				"first_air_date_year": strYear,
+			})
+		}
+		searchComb = append(searchComb, map[string]string{
+			"api_key":       getApiKey(),
+			"language":      getLanguage(),
+			"query":         engTitle,
+			"page":          "1",
+			"include_adult": "true",
+		})
+	}
+
+	if len(searchComb) == 0 {
+		return nil, errors.New("title empty")
 	}
 
 	tvResp := &SearchTvResponse{}
-	err = json.Unmarshal(body, tvResp)
-	if err != nil {
-		utils.Logger.ErrorF("parse tmdb response err: %v", err)
-		return nil, err
+	for _, req := range searchComb {
+		api := host + apiSearchTv + "?" + utils.StringMapToQuery(req)
+		utils.Logger.DebugF("request tmdb: %s", api)
+
+		resp, err := http.Get(api)
+		if err != nil {
+			utils.Logger.WarningF("search shows err: %v", err)
+			continue
+		}
+
+		body, err := ioutil.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		if err != nil {
+			utils.Logger.ErrorF("read tmdb response err: %v", err)
+			continue
+		}
+
+		err = json.Unmarshal(body, tvResp)
+		if err != nil {
+			utils.Logger.ErrorF("parse tmdb response err: %v", err)
+			continue
+		}
+
+		if len(tvResp.Results) > 0 {
+			utils.Logger.InfoF("search tv: %s %d result count: %d, use: %v", chsTitle, year, len(tvResp.Results), tvResp.Results[0])
+			return tvResp.Results[0], nil
+		}
 	}
 
-	if len(tvResp.Results) == 0 {
-		return nil, nil
-	}
-
-	if len(tvResp.Results) > 0 {
-		utils.Logger.InfoF("search tv: %s %d result count: %d, use: %v", title, year, len(tvResp.Results), tvResp.Results[0])
-	}
-
-	return tvResp.Results[0], nil
-}
-
-func (r *SearchTvRequest) ToQuery() string {
-	return fmt.Sprintf(
-		"api_key=%s&language=%s&page=%d&include_adult=%t&query=%s&first_air_date_year=%d",
-		r.ApiKey,
-		r.Language,
-		r.Page,
-		r.IncludeAdult,
-		url.QueryEscape(r.Query),
-		r.FirstAirDateYear,
-	)
+	return nil, errors.New("search tv not found")
 }

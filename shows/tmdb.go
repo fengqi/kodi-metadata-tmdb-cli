@@ -52,16 +52,8 @@ func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
 		}
 
 		if tvId == 0 {
-			SearchResults, err := tmdb.SearchShows(d.Title, d.Year)
-			if err != nil {
-				return nil, err
-			}
-
-			if SearchResults == nil {
-				SearchResults, err = tmdb.SearchShows(d.Title, 0)
-			}
-
-			if SearchResults == nil {
+			SearchResults, err := tmdb.SearchShows(d.ChsTitle, d.EngTitle, d.Year)
+			if err != nil || SearchResults == nil {
 				utils.Logger.ErrorF("search title: %s year: %d failed", d.Title, d.Year)
 				return detail, err
 			}

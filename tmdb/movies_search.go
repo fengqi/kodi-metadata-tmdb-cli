@@ -99,5 +99,5 @@ func SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesResults, err
 		}
 	}
 
-	return nil, errors.New("search not found")
+	return nil, errors.New("search movie not found")
 }
