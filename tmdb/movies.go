@@ -10,43 +10,6 @@ import (
 	"os"
 )
 
-type MovieDetail struct {
-	Adult               bool                `json:"adult"`
-	BackdropPath        string              `json:"backdrop_path"`
-	BelongsToCollection BelongsToCollection `json:"belongs_to_collection"`
-	Budget              int                 `json:"budget"`
-	Genres              []Genre             `json:"genres"`
-	Homepage            string              `json:"homepage"`
-	Id                  int                 `json:"id"`
-	ImdbId              string              `json:"imdb_id"`
-	OriginalLanguage    string              `json:"original_language"`
-	OriginalTitle       string              `json:"original_title"`
-	Overview            string              `json:"overview"`
-	Popularity          float32             `json:"popularity"`
-	PosterPath          string              `json:"poster_path"`
-	ProductionCompanies []ProductionCompany `json:"production_companies"`
-	ProductionCountries []ProductionCountry `json:"production_countries"`
-	ReleaseDate         string              `json:"release_date"`
-	Revenue             int                 `json:"revenue"`
-	Runtime             int                 `json:"runtime"`
-	SpokenLanguages     []SpokenLanguage    `json:"spoken_languages"`
-	Status              string              `json:"status"`
-	Tagline             string              `json:"tagline"`
-	Title               string              `json:"title"`
-	Video               bool                `json:"video"`
-	VoteAverage         float32             `json:"vote_average"`
-	VoteCount           int                 `json:"vote_count"`
-	Credits             *Credit             `json:"credits"`
-	FromCache           bool                `json:"from_cache"`
-}
-
-type BelongsToCollection struct {
-	Id           int    `json:"id"`
-	Name         string `json:"name"`
-	PosterPath   string `json:"poster_path"`
-	BackdropPath string `json:"backdrop_path"`
-}
-
 // GetMovieDetail 获取电影详情
 func GetMovieDetail(id int) (*MovieDetail, error) {
 	utils.Logger.DebugF("get movie detail from tmdb: %d", id)
