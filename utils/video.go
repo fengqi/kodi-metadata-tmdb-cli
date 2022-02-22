@@ -193,33 +193,33 @@ func IsStudio(name string) string {
 	return ""
 }
 
-// CleanTitle 名字清理，对于中英文混编的，只保留中文或者英文
-// BBC.行星.The.Planets.2019.Bluray.1080p.x265.10bit.2Audios.MNHD-FRDS
-// [机智的医生生活].A.Wise.Doctor's.Life.2020.S01.Complete.NF.WEB-DL.1080p.H264.AAC-CMCTV
-// 中国通史.2013.全100集.国语中字￡CMCT梦幻
-func CleanTitle(name string) string {
+// SplitChsEngTitle 分离中英文名字, 不兼容中英文混编,如: 我love你
+func SplitChsEngTitle(name string) (string, string) {
 	name = strings.Replace(name, "[", "", -1)
 	name = strings.Replace(name, "]", "", -1)
 	name = strings.Replace(name, "{", "", -1)
 	name = strings.Replace(name, "}", "", -1)
 	name = strings.Trim(name, " ")
 
-	newName := ""
+	//chsFind := false
+	chsName := ""
 	split := strings.Split(name, " ")
 	for _, item := range split {
 		r := []rune(item)
+		//if item == "" || unicode.Is(unicode.Han, r[0]) || (chsFind && unicode.IsDigit(r[0])) {
 		if item == "" || unicode.Is(unicode.Han, r[0]) {
-			newName = ""
+			//chsFind = true
+			chsName += item + " "
 			continue
+		} else {
+			break
 		}
-		newName += item + " "
 	}
 
-	if newName == "" {
-		newName = name
-	}
+	chsName = strings.TrimSpace(chsName)
+	engName := strings.TrimSpace(strings.Replace(name, chsName, "", 1))
 
-	return strings.TrimSpace(newName)
+	return chsName, engName
 }
 
 // MatchEpisode 匹配季和集
@@ -267,7 +267,7 @@ func FilterTmpSuffix(name string) string {
 
 // FilterOptionals 过滤掉可选的字符: 被中括号[]包围的
 func FilterOptionals(name string) string {
-	compile, err := regexp.Compile("\\[.*?\\]")
+	compile, err := regexp.Compile("\\[.*?\\](\\.)?")
 	if err != nil {
 		Logger.ErrorF("regexp compile err: %v", err)
 		return name

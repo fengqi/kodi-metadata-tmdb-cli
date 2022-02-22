@@ -115,3 +115,22 @@ func TestSplit(t *testing.T) {
 		}
 	}
 }
+
+func TestCleanTitle(t *testing.T) {
+	cases := map[string][]string{
+		"北区侦缉队 The Stronghold":   {"北区侦缉队", "The Stronghold"},
+		"兴风作浪2 Trouble Makers":   {"兴风作浪2", "Trouble Makers"},
+		"Tick Tick BOOM":         {"", "Tick Tick BOOM"},
+		"比得兔2：逃跑计划":              {"比得兔2：逃跑计划", ""},
+		"龙威山庄 99 Cycling Swords": {"龙威山庄", "99 Cycling Swords"},
+		"我love你":                 {"我love你", ""},
+		"我love 你":                {"我love 你", ""},
+	}
+
+	for title, want := range cases {
+		chs, eng := SplitChsEngTitle(title)
+		if chs != want[0] || eng != want[1] {
+			t.Errorf("CleanTitle(%s) = %s-%s; want %s", title, chs, eng, want)
+		}
+	}
+}

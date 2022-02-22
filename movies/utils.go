@@ -80,7 +80,7 @@ func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 		}
 	}
 
-	movieDir.Title = utils.CleanTitle(movieDir.Title)
+	movieDir.ChsTitle, movieDir.EngTitle = utils.SplitChsEngTitle(movieDir.Title)
 	if len(movieDir.Title) == 0 {
 		utils.Logger.WarningF("file: %s parse title empty: %v", file.Name(), movieDir)
 		return nil
@@ -109,7 +109,7 @@ func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 			videoTs := false
 			for _, item := range fileInfo {
 				if item.IsDir() && item.Name() == "BDMV" || item.Name() == "CERTIFICATE" {
-					movieDir.IsBluray = true
+					movieDir.IsBluRay = true
 					break
 				}
 
@@ -207,7 +207,7 @@ func (m *Movie) getNfoFile(mode int) string {
 		return m.Dir + "/" + strings.Replace(m.OriginTitle, "."+suffix, "", 1) + ".nfo"
 	}
 
-	if m.IsBluray {
+	if m.IsBluRay {
 		return m.GetFullDir() + "/BDMV/index.nfo"
 	}
 

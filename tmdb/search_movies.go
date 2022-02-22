@@ -2,8 +2,8 @@ package tmdb
 
 import (
 	"encoding/json"
+	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -33,58 +33,95 @@ type SearchMoviesResults struct {
 	VoteAverage      float32 `json:"vote_average"`
 }
 
-func SearchMovie(title string, year int) (*SearchMoviesResults, error) {
-	utils.Logger.InfoF("search: %s %d from tmdb", title, year)
+func SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesResults, error) {
+	utils.Logger.InfoF("search: %s or %s %d from tmdb", chsTitle, engTitle, year)
 
-	req := map[string]string{
-		"api_key":       getApiKey(),
-		"language":      getLanguage(),
-		"query":         title,
-		"page":          "1",
-		"include_adult": "true",
-		//"region": "US",
-	}
+	strYear := strconv.Itoa(year)
+	searchComb := make([]map[string]string, 0)
 
-	if year > 0 {
-		req["year"] = strconv.Itoa(year)
-		req["primary_release_year"] = strconv.Itoa(year)
-	}
-
-	api := host + apiSearchMovie + "?" + utils.StringMapToQuery(req)
-	utils.Logger.DebugF("request tmdb: %s", api)
-
-	resp, err := http.Get(api)
-	if err != nil {
-		utils.Logger.WarningF("search shows err: %v", err)
-		return nil, err
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
+	if chsTitle != "" {
+		// chs + year
+		if year > 0 {
+			searchComb = append(searchComb, map[string]string{
+				"api_key":       getApiKey(),
+				"language":      getLanguage(),
+				"query":         chsTitle,
+				"page":          "1",
+				"include_adult": "true",
+				//"region": "US",
+				"year":                 strYear,
+				"primary_release_year": strYear,
+			})
 		}
-	}(resp.Body)
+		// chs
+		searchComb = append(searchComb, map[string]string{
+			"api_key":       getApiKey(),
+			"language":      getLanguage(),
+			"query":         chsTitle,
+			"page":          "1",
+			"include_adult": "true",
+			//"region": "US",
+		})
+	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		utils.Logger.ErrorF("read tmdb response err: %v", err)
-		return nil, err
+	if engTitle != "" {
+		// eng + year
+		if year > 0 {
+			searchComb = append(searchComb, map[string]string{
+				"api_key":       getApiKey(),
+				"language":      getLanguage(),
+				"query":         engTitle,
+				"page":          "1",
+				"include_adult": "true",
+				//"region": "US",
+				"year":                 strYear,
+				"primary_release_year": strYear,
+			})
+		}
+		// eng
+		searchComb = append(searchComb, map[string]string{
+			"api_key":       getApiKey(),
+			"language":      getLanguage(),
+			"query":         engTitle,
+			"page":          "1",
+			"include_adult": "true",
+			//"region": "US",
+		})
+	}
+
+	if len(searchComb) == 0 {
+		return nil, errors.New("title empty")
 	}
 
 	moviesResp := &SearchMoviesResponse{}
-	err = json.Unmarshal(body, moviesResp)
-	if err != nil {
-		utils.Logger.ErrorF("parse tmdb response err: %v", err)
-		return nil, err
+	for _, req := range searchComb {
+		api := host + apiSearchMovie + "?" + utils.StringMapToQuery(req)
+		utils.Logger.DebugF("request tmdb: %s", api)
+
+		resp, err := http.Get(api)
+		if err != nil {
+			utils.Logger.WarningF("search shows err: %v", err)
+			continue
+		}
+
+		body, err := ioutil.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		if err != nil {
+			utils.Logger.ErrorF("read tmdb response err: %v", err)
+			continue
+		}
+
+		err = json.Unmarshal(body, moviesResp)
+		if err != nil {
+			utils.Logger.ErrorF("parse tmdb response err: %v", err)
+			continue
+		}
+
+		if len(moviesResp.Results) > 0 {
+			utils.Logger.InfoF("search movies: %s %d result count: %d, use: %v", chsTitle, year, len(moviesResp.Results), moviesResp.Results[0])
+			return moviesResp.Results[0], nil
+		}
 	}
 
-	if len(moviesResp.Results) == 0 {
-		return nil, nil
-	}
-
-	if len(moviesResp.Results) > 0 {
-		utils.Logger.InfoF("search movies: %s %d result count: %d, use: %v", title, year, len(moviesResp.Results), moviesResp.Results[0])
-	}
-
-	return moviesResp.Results[0], nil
+	return nil, errors.New("search not found")
 }
