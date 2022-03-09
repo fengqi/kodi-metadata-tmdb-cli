@@ -75,6 +75,7 @@ func NewVideoLibrary() *VideoLibrary {
 }
 
 // Scans the video sources for new library items
+// TODO 异步
 func (vl *VideoLibrary) Scan(req *ScanRequest) bool {
 	if !vl.scanLimiter.take() {
 		return false
