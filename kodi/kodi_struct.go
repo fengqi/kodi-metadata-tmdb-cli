@@ -1,5 +1,7 @@
 package kodi
 
+import "sync"
+
 // JsonRpcRequest JsonRpc 请求参数
 type JsonRpcRequest struct {
 	Id      string      `json:"id"`
@@ -36,4 +38,9 @@ type Filter struct {
 	Field    string `json:"field"`
 	Operator string `json:"operator"`
 	Value    string `json:"value"`
+}
+
+type RequestQueue struct {
+	queue map[string]*JsonRpcRequest
+	lock  *sync.RWMutex
 }

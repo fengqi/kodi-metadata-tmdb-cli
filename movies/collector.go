@@ -116,10 +116,7 @@ func (c *Collector) runMoviesProcess() {
 				}
 
 				kodiMoviesResp := videoLibrary.GetMovies(kodiMoviesReq)
-				if kodiMoviesResp.Limits.Total == 0 {
-					utils.Logger.DebugF("maybe new movies, scan video library")
-					videoLibrary.Scan(nil)
-				} else {
+				if kodiMoviesResp.Limits.Total > 0 {
 					utils.Logger.DebugF("maybe existing movies, refresh video library")
 					videoLibrary.RefreshMovie(&kodi.RefreshMovieRequest{MovieId: kodiMoviesResp.Movies[0].MovieId, IgnoreNfo: false})
 				}
@@ -146,6 +143,10 @@ func (c *Collector) runCronScan() {
 				c.channel <- movieDir
 			}
 		}
+
+		vl := kodi.NewVideoLibrary()
+		vl.Scan(nil)
+		vl.Clean(nil)
 	}
 
 	task()

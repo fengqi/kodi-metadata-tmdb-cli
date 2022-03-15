@@ -2,6 +2,7 @@ package kodi
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
 )
 
@@ -22,7 +23,6 @@ func NewVideoLibrary() *VideoLibrary {
 }
 
 // Scans the video sources for new library items
-// TODO 异步
 func (vl *VideoLibrary) Scan(req *ScanRequest) bool {
 	if !vl.scanLimiter.take() {
 		return false
@@ -31,11 +31,11 @@ func (vl *VideoLibrary) Scan(req *ScanRequest) bool {
 	if req == nil {
 		req = &ScanRequest{Directory: "", ShowDialogs: false}
 	}
-	_, err := request(&JsonRpcRequest{
+
+	return RpcQueue.addTask("scan video library", &JsonRpcRequest{
 		Method: "VideoLibrary.Scan",
 		Params: req,
 	})
-	return err == nil
 }
 
 // GetMovies Retrieve all movies
@@ -69,11 +69,10 @@ func (vl *VideoLibrary) RefreshMovie(req *RefreshMovieRequest) bool {
 		return false
 	}
 
-	_, err := request(&JsonRpcRequest{
+	return RpcQueue.addTask(fmt.Sprintf("refresh movie %d", req.MovieId), &JsonRpcRequest{
 		Method: "VideoLibrary.RefreshMovie",
 		Params: req,
 	})
-	return err == nil
 }
 
 // GetTVShows Retrieve all tv shows
@@ -107,25 +106,20 @@ func (vl *VideoLibrary) RefreshTVShow(req *RefreshTVShowRequest) bool {
 		return false
 	}
 
-	_, err := request(&JsonRpcRequest{
+	return RpcQueue.addTask(fmt.Sprintf("refresh tvshow %d", req.TvShowId), &JsonRpcRequest{
 		Method: "VideoLibrary.RefreshTVShow",
 		Params: req,
 	})
-	return err == nil
 }
 
 // Clean 清理资料库
 func (vl *VideoLibrary) Clean(req *CleanRequest) bool {
-	if !vl.scanLimiter.take() {
-		return false
-	}
-
 	if req == nil {
 		req = &CleanRequest{Directory: "", ShowDialogs: false, Content: "video"}
 	}
-	_, err := request(&JsonRpcRequest{
+
+	return RpcQueue.addTask("clean video library", &JsonRpcRequest{
 		Method: "VideoLibrary.Clean",
 		Params: req,
 	})
-	return err == nil
 }

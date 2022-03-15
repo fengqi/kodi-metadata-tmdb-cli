@@ -70,10 +70,7 @@ func (c *Collector) showsDirProcess() {
 							Properties: []string{"title", "originaltitle", "year"},
 						}
 						kodiShowsResp := videoLibrary.GetTVShows(kodiTvShowsReq)
-						if kodiShowsResp == nil || kodiShowsResp.Limits.Total == 0 {
-							utils.Logger.DebugF("maybe new shows, scan video library")
-							videoLibrary.Scan(nil)
-						} else {
+						if kodiShowsResp != nil && kodiShowsResp.Limits.Total > 0 {
 							utils.Logger.DebugF("maybe existing shows, refresh video library %s")
 							kodiRefreshReq := &kodi.RefreshTVShowRequest{
 								TvShowId:        kodiShowsResp.TvShows[0].TvShowId,
@@ -238,6 +235,10 @@ func (c *Collector) runCronScan() {
 				c.dirChan <- showDir
 			}
 		}
+
+		vl := kodi.NewVideoLibrary()
+		vl.Scan(nil)
+		vl.Clean(nil)
 	}
 
 	task()

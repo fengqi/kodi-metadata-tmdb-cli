@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -17,6 +18,7 @@ var (
 	timeout  = 1
 	username = "kodi"
 	password = ""
+	RpcQueue *RequestQueue
 )
 
 func InitKodi(c config.KodiConfig) {
@@ -24,10 +26,60 @@ func InitKodi(c config.KodiConfig) {
 	timeout = c.Timeout
 	username = c.Username
 	password = c.Password
+	RpcQueue = &RequestQueue{
+		queue: make(map[string]*JsonRpcRequest, 0),
+		lock:  &sync.RWMutex{},
+	}
+	go RpcQueue.notify()
+}
+
+func (q *RequestQueue) addTask(name string, req *JsonRpcRequest) bool {
+	q.lock.Lock()
+	defer q.lock.Unlock()
+
+	if _, ok := q.queue[name]; !ok {
+		q.queue[name] = req
+	}
+
+	return true
+}
+
+func (q *RequestQueue) notify() {
+	task := func() {
+		if len(q.queue) == 0 {
+			return
+		}
+
+		if !Ping() {
+			return
+		}
+
+		q.lock.RLock()
+		defer q.lock.RUnlock()
+
+		utils.Logger.DebugF("kodi request queue size: %d", len(q.queue))
+		for k, req := range q.queue {
+			resp, err := request(req)
+			if err != nil {
+				panic(err)
+			}
+
+			delete(q.queue, k)
+			utils.Logger.DebugF("req kodi: %s", resp)
+		}
+	}
+
+	ticker := time.NewTicker(time.Second * 60)
+	for {
+		select {
+		case <-ticker.C:
+			task()
+		}
+	}
 }
 
 func Ping() bool {
-	_, err := request(&JsonRpcRequest{})
+	_, err := request(&JsonRpcRequest{Method: "JSONRPC.Ping"})
 	if err != nil {
 		utils.Logger.WarningF("ping kodi err: %v", err)
 	}
@@ -81,8 +133,4 @@ func request(rpcReq *JsonRpcRequest) ([]byte, error) {
 	}
 
 	return ioutil.ReadAll(resp.Body)
-}
-
-func notify() {
-	// todo
 }
