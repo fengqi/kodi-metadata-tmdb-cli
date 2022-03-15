@@ -1,7 +1,7 @@
 name: Release
 
 on:
-  create:
+  push:
     tags:
       - v*
 
@@ -25,5 +25,6 @@ jobs:
         with:
           files: release/*
           draft: true
+          generate_release_notes: true
           body: |
             * 这是 GitHub Actions 自动化部署，更新日志应该很快会手动更新
