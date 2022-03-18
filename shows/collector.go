@@ -53,7 +53,7 @@ func (c *Collector) showsDirProcess() {
 				// 电视剧还要刷新分集信息，所以这里放到后台
 				// TODO 电影和电视剧的Kodi通知可以使用队列，等电视机开机时立即通知，然后可以关掉电视的开机刷新媒体库
 				go func() {
-					if kodi.Ping() {
+					if kodi.Rpc.Ping() {
 						utils.Logger.DebugF("ping kodi success, starting refresh shows of library")
 
 						videoLibrary := kodi.NewVideoLibrary()

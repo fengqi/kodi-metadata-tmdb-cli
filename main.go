@@ -27,7 +27,8 @@ func main() {
 	kodi.InitKodi(c.Kodi)
 
 	wg := &sync.WaitGroup{}
-	wg.Add(2)
+	wg.Add(3)
+	go kodi.Rpc.RunNotify()
 	go shows.RunCollector(c)
 	go movies.RunCollector(c)
 	wg.Wait()

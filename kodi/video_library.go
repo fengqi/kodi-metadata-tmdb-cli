@@ -32,7 +32,7 @@ func (vl *VideoLibrary) Scan(req *ScanRequest) bool {
 		req = &ScanRequest{Directory: "", ShowDialogs: false}
 	}
 
-	return RpcQueue.addTask("scan video library", &JsonRpcRequest{
+	return Rpc.AddTask("scan video library", &JsonRpcRequest{
 		Method: "VideoLibrary.Scan",
 		Params: req,
 	})
@@ -40,7 +40,7 @@ func (vl *VideoLibrary) Scan(req *ScanRequest) bool {
 
 // GetMovies Retrieve all movies
 func (vl *VideoLibrary) GetMovies(req *GetMoviesRequest) *GetMoviesResponse {
-	body, err := request(&JsonRpcRequest{Method: "VideoLibrary.GetMovies", Params: req})
+	body, err := Rpc.request(&JsonRpcRequest{Method: "VideoLibrary.GetMovies", Params: req})
 	if len(body) == 0 {
 		return nil
 	}
@@ -69,7 +69,7 @@ func (vl *VideoLibrary) RefreshMovie(req *RefreshMovieRequest) bool {
 		return false
 	}
 
-	return RpcQueue.addTask(fmt.Sprintf("refresh movie %d", req.MovieId), &JsonRpcRequest{
+	return Rpc.AddTask(fmt.Sprintf("refresh movie %d", req.MovieId), &JsonRpcRequest{
 		Method: "VideoLibrary.RefreshMovie",
 		Params: req,
 	})
@@ -77,7 +77,7 @@ func (vl *VideoLibrary) RefreshMovie(req *RefreshMovieRequest) bool {
 
 // GetTVShows Retrieve all tv shows
 func (vl *VideoLibrary) GetTVShows(req *GetTVShowsRequest) *GetTVShowsResponse {
-	body, err := request(&JsonRpcRequest{Method: "VideoLibrary.GetTVShows", Params: req})
+	body, err := Rpc.request(&JsonRpcRequest{Method: "VideoLibrary.GetTVShows", Params: req})
 	if len(body) == 0 {
 		return nil
 	}
@@ -106,7 +106,7 @@ func (vl *VideoLibrary) RefreshTVShow(req *RefreshTVShowRequest) bool {
 		return false
 	}
 
-	return RpcQueue.addTask(fmt.Sprintf("refresh tvshow %d", req.TvShowId), &JsonRpcRequest{
+	return Rpc.AddTask(fmt.Sprintf("refresh tvshow %d", req.TvShowId), &JsonRpcRequest{
 		Method: "VideoLibrary.RefreshTVShow",
 		Params: req,
 	})
@@ -118,7 +118,7 @@ func (vl *VideoLibrary) Clean(req *CleanRequest) bool {
 		req = &CleanRequest{Directory: "", ShowDialogs: false, Content: "video"}
 	}
 
-	return RpcQueue.addTask("clean video library", &JsonRpcRequest{
+	return Rpc.AddTask("clean video library", &JsonRpcRequest{
 		Method: "VideoLibrary.Clean",
 		Params: req,
 	})

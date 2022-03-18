@@ -53,6 +53,7 @@ type ScanRequest struct {
 	ShowDialogs bool   `json:"showdialogs"`
 }
 
+// CleanRequest 清理资料库
 type CleanRequest struct {
 	ShowDialogs bool   `json:"showdialogs"`
 	Content     string `json:"content"`

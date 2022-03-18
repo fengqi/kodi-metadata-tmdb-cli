@@ -99,7 +99,7 @@ func (c *Collector) runMoviesProcess() {
 			_ = dir.downloadImage(detail)
 
 			// 通知kodi刷新媒体库，电视可能没开机，所以先ping一下
-			if kodi.Ping() {
+			if kodi.Rpc.Ping() {
 				utils.Logger.DebugF("ping kodi success, starting refresh movies of library")
 				videoLibrary := kodi.NewVideoLibrary()
 				kodiMoviesReq := &kodi.GetMoviesRequest{

@@ -13,58 +13,59 @@ import (
 	"time"
 )
 
-var (
-	jsonRpc  = ""
-	timeout  = 1
-	username = "kodi"
-	password = ""
-	RpcQueue *RequestQueue
-)
+var Rpc *JsonRpc
 
 func InitKodi(c config.KodiConfig) {
-	jsonRpc = c.JsonRpc
-	timeout = c.Timeout
-	username = c.Username
-	password = c.Password
-	RpcQueue = &RequestQueue{
-		queue: make(map[string]*JsonRpcRequest, 0),
-		lock:  &sync.RWMutex{},
+	Rpc = &JsonRpc{
+		jsonRpc:  c.JsonRpc,
+		username: c.Username,
+		password: c.Password,
+		timeout:  c.Timeout,
+		queue:    make(map[string]*JsonRpcRequest, 0),
+		lock:     &sync.RWMutex{},
 	}
-	go RpcQueue.notify()
 }
 
-func (q *RequestQueue) addTask(name string, req *JsonRpcRequest) bool {
-	q.lock.Lock()
-	defer q.lock.Unlock()
+func (r *JsonRpc) AddTask(name string, req *JsonRpcRequest) bool {
+	if !r.enable {
+		return false
+	}
 
-	if _, ok := q.queue[name]; !ok {
-		q.queue[name] = req
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
+	if _, ok := r.queue[name]; !ok {
+		r.queue[name] = req
 	}
 
 	return true
 }
 
-func (q *RequestQueue) notify() {
+func (r *JsonRpc) RunNotify() {
+	if !r.enable {
+		return
+	}
+
 	task := func() {
-		if len(q.queue) == 0 {
+		if len(r.queue) == 0 {
 			return
 		}
 
-		if !Ping() {
+		if !r.Ping() {
 			return
 		}
 
-		q.lock.RLock()
-		defer q.lock.RUnlock()
+		r.lock.RLock()
+		defer r.lock.RUnlock()
 
-		utils.Logger.DebugF("kodi request queue size: %d", len(q.queue))
-		for k, req := range q.queue {
-			resp, err := request(req)
+		utils.Logger.DebugF("kodi request queue size: %d", len(r.queue))
+		for k, req := range r.queue {
+			resp, err := r.request(req)
 			if err != nil {
 				panic(err)
 			}
 
-			delete(q.queue, k)
+			delete(r.queue, k)
 			utils.Logger.DebugF("req kodi: %s", resp)
 		}
 	}
@@ -78,8 +79,8 @@ func (q *RequestQueue) notify() {
 	}
 }
 
-func Ping() bool {
-	_, err := request(&JsonRpcRequest{Method: "JSONRPC.Ping"})
+func (r *JsonRpc) Ping() bool {
+	_, err := r.request(&JsonRpcRequest{Method: "JSONRPC.Ping"})
 	if err != nil {
 		utils.Logger.WarningF("ping kodi err: %v", err)
 	}
@@ -87,7 +88,7 @@ func Ping() bool {
 }
 
 // 发送json rpc请求
-func request(rpcReq *JsonRpcRequest) ([]byte, error) {
+func (r *JsonRpc) request(rpcReq *JsonRpcRequest) ([]byte, error) {
 	utils.Logger.DebugF("request kodi: %s", rpcReq.Method)
 
 	if rpcReq.JsonRpc == "" {
@@ -103,16 +104,16 @@ func request(rpcReq *JsonRpcRequest) ([]byte, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, jsonRpc, bytes.NewReader(jsonBytes))
+	req, err := http.NewRequest(http.MethodPost, r.jsonRpc, bytes.NewReader(jsonBytes))
 	if err != nil {
 		return nil, err
 	}
 
-	req.SetBasicAuth(username, password)
+	req.SetBasicAuth(r.username, r.password)
 	req.Header.Set("Content-Type", "application/json")
 
 	client := http.Client{
-		Timeout:   time.Duration(timeout) * time.Second,
+		Timeout:   time.Duration(r.timeout) * time.Second,
 		Transport: http.DefaultTransport,
 	}
 
