@@ -29,6 +29,7 @@ type MovieDetail struct {
 	VoteCount           int                 `json:"vote_count"`
 	Credits             *Credit             `json:"credits"`
 	FromCache           bool                `json:"from_cache"`
+	Releases            MovieRelease        `json:"releases"`
 }
 
 type BelongsToCollection struct {
@@ -98,4 +99,16 @@ type SearchMoviesResults struct {
 	VoteCount        int     `json:"vote_count"`
 	Video            bool    `json:"video"`
 	VoteAverage      float32 `json:"vote_average"`
+}
+
+// MovieRelease 电影各国家上映时间和分级
+type MovieRelease struct {
+	Countries []ReleaseCountry `json:"countries"`
+}
+
+type ReleaseCountry struct {
+	Certification string `json:"certification"`
+	ISO31661      string `json:"iso_3166_1"`
+	Primary       bool   `json:"primary"`
+	ReleaseDate   string `json:"release_date"`
 }

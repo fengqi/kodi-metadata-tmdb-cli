@@ -14,13 +14,15 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
+var collector *Collector
+
 func RunCollector(config *config.Config) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		utils.Logger.FatalF("new movies watcher err: %v", err)
 	}
 
-	collector := &Collector{
+	collector = &Collector{
 		config:  config,
 		watcher: watcher,
 		channel: make(chan *Movie, 100),
