@@ -4,12 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
-	"io/ioutil"
-	"net/http"
 	"strconv"
 )
 
-func SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesResults, error) {
+func (t *tmdb) SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesResults, error) {
 	utils.Logger.InfoF("search: %s or %s %d from tmdb", chsTitle, engTitle, year)
 
 	strYear := strconv.Itoa(year)
@@ -19,8 +17,6 @@ func SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesResults, err
 		// chs + year
 		if year > 0 {
 			searchComb = append(searchComb, map[string]string{
-				"api_key":       getApiKey(),
-				"language":      getLanguage(),
 				"query":         chsTitle,
 				"page":          "1",
 				"include_adult": "true",
@@ -31,8 +27,6 @@ func SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesResults, err
 		}
 		// chs
 		searchComb = append(searchComb, map[string]string{
-			"api_key":       getApiKey(),
-			"language":      getLanguage(),
 			"query":         chsTitle,
 			"page":          "1",
 			"include_adult": "true",
@@ -44,8 +38,6 @@ func SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesResults, err
 		// eng + year
 		if year > 0 {
 			searchComb = append(searchComb, map[string]string{
-				"api_key":       getApiKey(),
-				"language":      getLanguage(),
 				"query":         engTitle,
 				"page":          "1",
 				"include_adult": "true",
@@ -56,8 +48,6 @@ func SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesResults, err
 		}
 		// eng
 		searchComb = append(searchComb, map[string]string{
-			"api_key":       getApiKey(),
-			"language":      getLanguage(),
 			"query":         engTitle,
 			"page":          "1",
 			"include_adult": "true",
@@ -71,17 +61,7 @@ func SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesResults, err
 
 	moviesResp := &SearchMoviesResponse{}
 	for _, req := range searchComb {
-		api := host + apiSearchMovie + "?" + utils.StringMapToQuery(req)
-		utils.Logger.DebugF("request tmdb: %s", api)
-
-		resp, err := http.Get(api)
-		if err != nil {
-			utils.Logger.WarningF("search shows err: %v", err)
-			continue
-		}
-
-		body, err := ioutil.ReadAll(resp.Body)
-		_ = resp.Body.Close()
+		body, err := t.request(ApiSearchMovie, req)
 		if err != nil {
 			utils.Logger.ErrorF("read tmdb response err: %v", err)
 			continue

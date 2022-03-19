@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
 )
 
 type TvAggregateCredits struct {
@@ -55,30 +52,13 @@ type TvCrew struct {
 	TotalEpisodeCount  int     `json:"total_episode_count"`
 }
 
-func GetTvAggregateCredits(tvId int) (*TvAggregateCredits, error) {
+func (t *tmdb) GetTvAggregateCredits(tvId int) (*TvAggregateCredits, error) {
 	utils.Logger.DebugF("get tv aggregate credits from tmdb: %d", tvId)
 
-	m := map[string]string{
-		"api_key":  getApiKey(),
-		"language": getLanguage(),
-	}
+	api := fmt.Sprintf(ApiTvAggregateCredits, tvId)
+	req := map[string]string{}
 
-	api := host + fmt.Sprintf(apiTvAggregateCredits, tvId) + "?" + utils.StringMapToQuery(m)
-	utils.Logger.DebugF("request tmdb: %s", api)
-
-	resp, err := http.Get(api)
-	if err != nil {
-		utils.Logger.ErrorF("request tmdb: %s err: %v", api, err)
-		return nil, err
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(resp.Body)
-
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := t.request(api, req)
 	if err != nil {
 		utils.Logger.ErrorF("read tmdb response: %s err: %v", api, err)
 		return nil, err

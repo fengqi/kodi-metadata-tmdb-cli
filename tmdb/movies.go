@@ -4,47 +4,28 @@ import (
 	"encoding/json"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
 	"os"
 )
 
 // GetMovieDetail 获取电影详情
-func GetMovieDetail(id int) (*MovieDetail, error) {
+func (t *tmdb) GetMovieDetail(id int) (*MovieDetail, error) {
 	utils.Logger.DebugF("get movie detail from tmdb: %d", id)
 
+	api := fmt.Sprintf(ApiMovieDetail, id)
 	req := map[string]string{
-		"api_key":            getApiKey(),
-		"language":           getLanguage(),
 		"append_to_response": "credits",
 	}
 
-	api := host + fmt.Sprintf(apiMovieDetail, id) + "?" + utils.StringMapToQuery(req)
-	utils.Logger.DebugF("request tmdb: %s", api)
-
-	resp, err := http.Get(api)
+	body, err := t.request(api, req)
 	if err != nil {
-		utils.Logger.ErrorF("request tmdb: %s err: %v", api, err)
-		return nil, err
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(resp.Body)
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		utils.Logger.ErrorF("read tmdb response: %s err: %v", api, err)
+		utils.Logger.ErrorF("get movie detail err: %d %v", id, err)
 		return nil, err
 	}
 
 	detail := &MovieDetail{}
 	err = json.Unmarshal(body, detail)
 	if err != nil {
-		utils.Logger.ErrorF("parse tmdb response: %s err: %v", api, err)
+		utils.Logger.ErrorF("parse movie detail err: %d %v", id, err)
 		return nil, err
 	}
 

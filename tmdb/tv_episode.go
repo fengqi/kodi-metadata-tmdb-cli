@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
 	"os"
 )
 
@@ -50,41 +47,19 @@ type GuestStars struct {
 	ProfilePath string `json:"profile_path"`
 }
 
-func GetTvEpisodeDetail(tvId, season, episode int) (*TvEpisodeDetail, error) {
+func (t *tmdb) GetTvEpisodeDetail(tvId, season, episode int) (*TvEpisodeDetail, error) {
 	utils.Logger.DebugF("get tv episode detail from tmdb: %d %d-%d", tvId, season, episode)
 
 	if tvId <= 0 || season <= 0 || episode <= 0 {
 		return nil, nil
 	}
 
-	req := &TvEpisodeRequest{
-		ApiKey:           getApiKey(),
-		Language:         getLanguage(),
-		AppendToResponse: "",
+	api := fmt.Sprintf(ApiTvEpisode, tvId, season, episode)
+	req := map[string]string{
+		"append_to_response": "",
 	}
 
-	api := fmt.Sprintf(host+apiTvEpisode, tvId, season, episode)
-	api = api + "?" + req.ToQuery()
-	utils.Logger.DebugF("request tmdb: %s", api)
-
-	resp, err := http.Get(api)
-	if err != nil {
-		utils.Logger.ErrorF("request tmdb: %s err: %v", api, err)
-		return nil, err
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(resp.Body)
-
-	if resp.StatusCode != 200 {
-		utils.Logger.ErrorF("request tmdb status failed: %d err: %v", resp.StatusCode, err)
-		return nil, nil
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := t.request(api, req)
 	if err != nil {
 		utils.Logger.ErrorF("read tmdb response: %s err: %v", api, err)
 		return nil, err

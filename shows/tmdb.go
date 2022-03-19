@@ -52,7 +52,7 @@ func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
 		}
 
 		if tvId == 0 {
-			SearchResults, err := tmdb.SearchShows(d.ChsTitle, d.EngTitle, d.Year)
+			SearchResults, err := tmdb.Api.SearchShows(d.ChsTitle, d.EngTitle, d.Year)
 			if err != nil || SearchResults == nil {
 				utils.Logger.ErrorF("search title: %s year: %d failed", d.Title, d.Year)
 				return detail, err
@@ -63,12 +63,12 @@ func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
 			// 保存tvId
 			err = ioutil.WriteFile(idFile, []byte(strconv.Itoa(tvId)), 0664)
 			if err != nil {
-				utils.Logger.ErrorF("save %d to %s err: %v", tvId, idFile, err)
+				utils.Logger.ErrorF("save tvId %d to %s err: %v", tvId, idFile, err)
 			}
 		}
 
 		// 获取详情
-		detail, err = tmdb.GetTvDetail(tvId)
+		detail, err = tmdb.Api.GetTvDetail(tvId)
 		if err != nil {
 			utils.Logger.ErrorF("get tv: %d detail err: %v", tvId, err)
 			return nil, err
@@ -113,7 +113,7 @@ func (f *File) getTvEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
 	// 请求tmdb
 	if detail == nil || detail.Id == 0 || cacheExpire {
 		detail.FromCache = false
-		detail, err = tmdb.GetTvEpisodeDetail(f.TvId, f.Season, f.Episode)
+		detail, err = tmdb.Api.GetTvEpisodeDetail(f.TvId, f.Season, f.Episode)
 		if err != nil {
 			utils.Logger.ErrorF("get tv episode error %v", err)
 			return nil, err

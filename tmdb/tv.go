@@ -4,11 +4,7 @@ import (
 	"encoding/json"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
 	"os"
-	"strconv"
 )
 
 // TvDetailsRequest
@@ -130,33 +126,15 @@ type SpokenLanguage struct {
 	Name        string `json:"name"`
 }
 
-func GetTvDetail(id int) (*TvDetail, error) {
+func (t *tmdb) GetTvDetail(id int) (*TvDetail, error) {
 	utils.Logger.DebugF("get tv detail from tmdb: %d", id)
 
-	// replace map
-	req := &TvDetailsRequest{
-		ApiKey:           getApiKey(),
-		TvId:             id,
-		Language:         getLanguage(),
-		AppendToResponse: "aggregate_credits",
+	api := fmt.Sprintf(ApiTvDetail, id)
+	req := map[string]string{
+		"append_to_response": "aggregate_credits",
 	}
 
-	api := host + apiTvDetail + "/" + strconv.Itoa(id) + "?" + req.ToQuery()
-	utils.Logger.DebugF("request tmdb: %s", api)
-
-	resp, err := http.Get(api)
-	if err != nil {
-		utils.Logger.ErrorF("request tmdb: %s err: %v", api, err)
-		return nil, err
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(resp.Body)
-
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := t.request(api, req)
 	if err != nil {
 		utils.Logger.ErrorF("read tmdb response err: %v", err)
 		return nil, err

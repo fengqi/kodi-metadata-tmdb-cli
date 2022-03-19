@@ -1,33 +1,57 @@
 package tmdb
 
-import "fengqi/kodi-metadata-tmdb-cli/config"
+import (
+	"fengqi/kodi-metadata-tmdb-cli/config"
+	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"io"
+	"io/ioutil"
+	"net/http"
+)
 
-var (
-	apiKey   = ""
-	language = "zh-CN"
-	host     = "https://api.themoviedb.org/3"
+var Api *tmdb
 
-	apiSearchTv           = "/search/tv"
-	apiSearchMovie        = "/search/movie"
-	apiTvDetail           = "/tv" // todo 改成下面那种的占位符
-	apiTvEpisode          = "/tv/%d/season/%d/episode/%d"
-	apiTvAggregateCredits = "/tv/%d/aggregate_credits"
-	apiTvContentRatings   = "/tv/%d/content_ratings"
-	apiMovieDetail        = "/movie/%d"
-
-	ImageW500     = "https://image.tmdb.org/t/p/w500"     // 压缩后的
-	ImageOriginal = "https://image.tmdb.org/t/p/original" // 原始文件
+const (
+	ApiSearchTv           = "/search/tv"
+	ApiSearchMovie        = "/search/movie"
+	ApiTvDetail           = "/tv/%d"
+	ApiTvEpisode          = "/tv/%d/season/%d/episode/%d"
+	ApiTvAggregateCredits = "/tv/%d/aggregate_credits"
+	ApiTvContentRatings   = "/tv/%d/content_ratings"
+	ApiMovieDetail        = "/movie/%d"
+	ImageW500             = "https://image.tmdb.org/t/p/w500"     // 压缩后的
+	ImageOriginal         = "https://image.tmdb.org/t/p/original" // 原始文件
 )
 
 func InitTmdb(config *config.Config) {
-	apiKey = config.ApiKey
-	language = config.Language
+	Api = &tmdb{
+		host:     "https://api.themoviedb.org/3",
+		key:      config.ApiKey,
+		language: config.Language,
+		rating:   "US",
+	}
 }
 
-func getApiKey() string {
-	return apiKey
-}
+func (t *tmdb) request(api string, args map[string]string) ([]byte, error) {
+	if args == nil {
+		args = make(map[string]string, 0)
+	}
 
-func getLanguage() string {
-	return language
+	args["api_key"] = t.key
+	args["language"] = t.language
+
+	api = t.host + api + "?" + utils.StringMapToQuery(args)
+	resp, err := http.Get(api)
+	if err != nil {
+		utils.Logger.ErrorF("request tmdb: %s err: %v", api, err)
+		return nil, err
+	}
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(resp.Body)
+
+	return ioutil.ReadAll(resp.Body)
 }

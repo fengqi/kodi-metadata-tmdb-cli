@@ -57,17 +57,23 @@ func (d *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 		}
 
 		if movieId == 0 {
-			SearchResults, err := tmdb.SearchMovie(d.ChsTitle, d.EngTitle, d.Year)
+			SearchResults, err := tmdb.Api.SearchMovie(d.ChsTitle, d.EngTitle, d.Year)
 			if err != nil || SearchResults == nil {
 				utils.Logger.ErrorF("search title: %s or, year: %d failed", d.ChsTitle, d.EngTitle, d.Year)
 				return detail, err
 			}
 
 			movieId = SearchResults.Id
+
+			// 保存movieId
+			err = ioutil.WriteFile(idFile, []byte(strconv.Itoa(movieId)), 0664)
+			if err != nil {
+				utils.Logger.ErrorF("save movieId %d to %s err: %v", movieId, idFile, err)
+			}
 		}
 
 		// 获取详情
-		detail, err = tmdb.GetMovieDetail(movieId)
+		detail, err = tmdb.Api.GetMovieDetail(movieId)
 		if err != nil {
 			utils.Logger.ErrorF("get movie: %d detail err: %v", movieId, err)
 			return nil, err

@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
-	"io/ioutil"
-	"net/http"
 	"strconv"
 )
 
@@ -39,7 +37,7 @@ type Response struct {
 }
 
 // SearchShows 搜索tmdb
-func SearchShows(chsTitle, engTitle string, year int) (*SearchResults, error) {
+func (t *tmdb) SearchShows(chsTitle, engTitle string, year int) (*SearchResults, error) {
 	utils.Logger.InfoF("search: %s or %s %d from tmdb", chsTitle, engTitle, year)
 
 	strYear := strconv.Itoa(year)
@@ -48,8 +46,6 @@ func SearchShows(chsTitle, engTitle string, year int) (*SearchResults, error) {
 	if chsTitle != "" {
 		if year > 0 {
 			searchComb = append(searchComb, map[string]string{
-				"api_key":             getApiKey(),
-				"language":            getLanguage(),
 				"query":               chsTitle,
 				"page":                "1",
 				"include_adult":       "true",
@@ -57,8 +53,6 @@ func SearchShows(chsTitle, engTitle string, year int) (*SearchResults, error) {
 			})
 		}
 		searchComb = append(searchComb, map[string]string{
-			"api_key":       getApiKey(),
-			"language":      getLanguage(),
 			"query":         chsTitle,
 			"page":          "1",
 			"include_adult": "true",
@@ -68,8 +62,6 @@ func SearchShows(chsTitle, engTitle string, year int) (*SearchResults, error) {
 	if engTitle != "" {
 		if year > 0 {
 			searchComb = append(searchComb, map[string]string{
-				"api_key":             getApiKey(),
-				"language":            getLanguage(),
 				"query":               engTitle,
 				"page":                "1",
 				"include_adult":       "true",
@@ -77,8 +69,6 @@ func SearchShows(chsTitle, engTitle string, year int) (*SearchResults, error) {
 			})
 		}
 		searchComb = append(searchComb, map[string]string{
-			"api_key":       getApiKey(),
-			"language":      getLanguage(),
 			"query":         engTitle,
 			"page":          "1",
 			"include_adult": "true",
@@ -91,17 +81,7 @@ func SearchShows(chsTitle, engTitle string, year int) (*SearchResults, error) {
 
 	tvResp := &SearchTvResponse{}
 	for _, req := range searchComb {
-		api := host + apiSearchTv + "?" + utils.StringMapToQuery(req)
-		utils.Logger.DebugF("request tmdb: %s", api)
-
-		resp, err := http.Get(api)
-		if err != nil {
-			utils.Logger.WarningF("search shows err: %v", err)
-			continue
-		}
-
-		body, err := ioutil.ReadAll(resp.Body)
-		_ = resp.Body.Close()
+		body, err := t.request(ApiSearchTv, req)
 		if err != nil {
 			utils.Logger.ErrorF("read tmdb response err: %v", err)
 			continue
