@@ -22,7 +22,7 @@ func init() {
 
 func main() {
 	c := config.LoadConfig(configFile)
-	utils.InitLogger(c.LogLevel, c.LogFile)
+	utils.InitLogger(c.LogMode, c.LogLevel, c.LogFile)
 	tmdb.InitTmdb(c)
 	kodi.InitKodi(c.Kodi)
 

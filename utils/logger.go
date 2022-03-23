@@ -18,6 +18,12 @@ const (
 	FATAL
 )
 
+const (
+	LogModeStdout  = 1
+	LogModeLogfile = 2
+	LogModeBoth    = 3
+)
+
 var (
 	Logger   *logger
 	levelMap = map[logLevel]string{
@@ -31,21 +37,26 @@ var (
 
 type logger struct {
 	level logLevel
-
-	lock *sync.Mutex
-	file *os.File
+	lock  *sync.Mutex
+	file  *os.File
+	mode  int
 }
 
-func InitLogger(level int, logFile string) {
-	file, err := os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("open log file:%s err: %v", logFile, err)
+func InitLogger(mode, level int, logFile string) {
+	var err error
+	var file *os.File
+	if mode != LogModeStdout {
+		file, err = os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatalf("open log file:%s err: %v", logFile, err)
+		}
 	}
 
 	Logger = &logger{
 		level: logLevel(level),
 		lock:  new(sync.Mutex),
 		file:  file,
+		mode:  mode,
 	}
 }
 
@@ -84,32 +95,44 @@ func (l *logger) ErrorF(format string, v ...interface{}) {
 func (l *logger) Fatal(v ...interface{}) {
 	if FATAL >= l.level {
 		l.write(FATAL, fmt.Sprint(v...))
-		log.Fatal(v...)
+		if l.mode != LogModeLogfile {
+			log.Fatal(v...)
+		}
 	}
 }
 
 func (l *logger) FatalF(format string, v ...interface{}) {
 	if FATAL >= l.level {
 		l.write(FATAL, fmt.Sprintf(format, v...))
-		log.Fatalf(format, v...)
+		if l.mode != LogModeLogfile {
+			log.Fatalf(format, v...)
+		}
 	}
 }
 
 func (l *logger) print(level logLevel, v ...interface{}) {
 	if level >= l.level {
 		l.write(level, fmt.Sprint(v...))
-		log.Print(v...)
+		if l.mode != LogModeLogfile {
+			log.Print(v...)
+		}
 	}
 }
 
 func (l *logger) printf(level logLevel, format string, v ...interface{}) {
 	if level >= l.level {
 		l.write(level, fmt.Sprintf(format, v...))
-		log.Printf(format, v...)
+		if l.mode != LogModeLogfile {
+			log.Printf(format, v...)
+		}
 	}
 }
 
 func (l *logger) write(level logLevel, str string) {
+	if l.file == nil || l.mode == LogModeStdout {
+		return
+	}
+
 	l.lock.Lock()
 	defer l.lock.Unlock()
 

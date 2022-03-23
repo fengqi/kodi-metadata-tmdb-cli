@@ -1,6 +1,7 @@
 package config
 
 type Config struct {
+	LogMode  int    `json:"log_mode"`
 	LogLevel int    `json:"log_level"`
 	LogFile  string `json:"log_file"`
 
