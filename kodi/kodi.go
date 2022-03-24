@@ -17,18 +17,14 @@ var Rpc *JsonRpc
 
 func InitKodi(c config.KodiConfig) {
 	Rpc = &JsonRpc{
-		enable:   c.Enable,
-		jsonRpc:  c.JsonRpc,
-		username: c.Username,
-		password: c.Password,
-		timeout:  c.Timeout,
-		queue:    make(map[string]*JsonRpcRequest, 0),
-		lock:     &sync.RWMutex{},
+		config: c,
+		queue:  make(map[string]*JsonRpcRequest, 0),
+		lock:   &sync.RWMutex{},
 	}
 }
 
 func (r *JsonRpc) AddTask(name string, req *JsonRpcRequest) bool {
-	if !r.enable {
+	if !r.config.Enable {
 		return false
 	}
 
@@ -43,7 +39,7 @@ func (r *JsonRpc) AddTask(name string, req *JsonRpcRequest) bool {
 }
 
 func (r *JsonRpc) RunNotify() {
-	if !r.enable {
+	if !r.config.Enable {
 		return
 	}
 
@@ -107,16 +103,16 @@ func (r *JsonRpc) request(rpcReq *JsonRpcRequest) ([]byte, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, r.jsonRpc, bytes.NewReader(jsonBytes))
+	req, err := http.NewRequest(http.MethodPost, r.config.JsonRpc, bytes.NewReader(jsonBytes))
 	if err != nil {
 		return nil, err
 	}
 
-	req.SetBasicAuth(r.username, r.password)
+	req.SetBasicAuth(r.config.Username, r.config.Password)
 	req.Header.Set("Content-Type", "application/json")
 
 	client := http.Client{
-		Timeout:   time.Duration(r.timeout) * time.Second,
+		Timeout:   time.Duration(r.config.Timeout) * time.Second,
 		Transport: http.DefaultTransport,
 	}
 

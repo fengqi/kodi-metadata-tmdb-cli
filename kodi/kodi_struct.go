@@ -1,15 +1,14 @@
 package kodi
 
-import "sync"
+import (
+	"fengqi/kodi-metadata-tmdb-cli/config"
+	"sync"
+)
 
 type JsonRpc struct {
-	enable   bool
-	jsonRpc  string
-	username string
-	password string
-	timeout  int
-	queue    map[string]*JsonRpcRequest
-	lock     *sync.RWMutex
+	config config.KodiConfig
+	queue  map[string]*JsonRpcRequest
+	lock   *sync.RWMutex
 }
 
 // JsonRpcRequest JsonRpc 请求参数
