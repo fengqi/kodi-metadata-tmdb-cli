@@ -99,30 +99,7 @@ func (c *Collector) runMoviesProcess() {
 
 			_ = dir.saveToNfo(detail, c.nfoMode)
 			_ = dir.downloadImage(detail)
-
-			// 通知kodi刷新媒体库，电视可能没开机，所以先ping一下
-			if kodi.Rpc.Ping() {
-				utils.Logger.DebugF("ping kodi success, starting refresh movies of library")
-				videoLibrary := kodi.NewVideoLibrary()
-				kodiMoviesReq := &kodi.GetMoviesRequest{
-					Filter: &kodi.Filter{
-						Field:    "originaltitle",
-						Operator: "is",
-						Value:    detail.OriginalTitle,
-					},
-					Limit: &kodi.Limits{
-						Start: 0,
-						End:   1,
-					},
-					Properties: []string{"title", "originaltitle", "year"},
-				}
-
-				kodiMoviesResp := videoLibrary.GetMovies(kodiMoviesReq)
-				if kodiMoviesResp.Limits.Total > 0 {
-					utils.Logger.DebugF("maybe existing movies, refresh video library")
-					videoLibrary.RefreshMovie(&kodi.RefreshMovieRequest{MovieId: kodiMoviesResp.Movies[0].MovieId, IgnoreNfo: false})
-				}
-			}
+			_ = kodi.Rpc.RefreshMovie(detail.OriginalTitle)
 		}
 	}
 }

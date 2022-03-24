@@ -86,6 +86,33 @@ func (r *JsonRpc) Ping() bool {
 	return err == nil
 }
 
+func (r *JsonRpc) RefreshMovie(name string) bool {
+	kodiMoviesReq := &GetMoviesRequest{
+		Filter: &Filter{
+			Field:    "originaltitle",
+			Operator: "is",
+			Value:    name,
+		},
+		Limit: &Limits{
+			Start: 0,
+			End:   5,
+		},
+		Properties: []string{"title", "originaltitle", "year"},
+	}
+
+	kodiMoviesResp := vl.GetMovies(kodiMoviesReq)
+	if kodiMoviesResp == nil || kodiMoviesResp.Limits.Total == 0 {
+		return false
+	}
+
+	for _, item := range kodiMoviesResp.Movies {
+		utils.Logger.DebugF("find movie by name: %s, refresh detail", item.Title)
+		vl.RefreshMovie(&RefreshMovieRequest{MovieId: item.MovieId, IgnoreNfo: false})
+	}
+
+	return false
+}
+
 // 发送json rpc请求
 func (r *JsonRpc) request(rpcReq *JsonRpcRequest) ([]byte, error) {
 	utils.Logger.InfoF("request kodi: %s", rpcReq.Method)
