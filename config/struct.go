@@ -19,6 +19,7 @@ type Config struct {
 }
 
 type KodiConfig struct {
+	Enable   bool   `json:"enable"`
 	JsonRpc  string `json:"json_rpc"`
 	Timeout  int    `json:"timeout"`
 	Username string `json:"username"`

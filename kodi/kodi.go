@@ -17,6 +17,7 @@ var Rpc *JsonRpc
 
 func InitKodi(c config.KodiConfig) {
 	Rpc = &JsonRpc{
+		enable:   c.Enable,
 		jsonRpc:  c.JsonRpc,
 		username: c.Username,
 		password: c.Password,
@@ -89,7 +90,7 @@ func (r *JsonRpc) Ping() bool {
 
 // 发送json rpc请求
 func (r *JsonRpc) request(rpcReq *JsonRpcRequest) ([]byte, error) {
-	utils.Logger.DebugF("request kodi: %s", rpcReq.Method)
+	utils.Logger.InfoF("request kodi: %s", rpcReq.Method)
 
 	if rpcReq.JsonRpc == "" {
 		rpcReq.JsonRpc = "2.0"
