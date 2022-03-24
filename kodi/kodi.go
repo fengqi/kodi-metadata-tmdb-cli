@@ -61,13 +61,15 @@ func (r *JsonRpc) RunNotify() {
 
 		utils.Logger.DebugF("kodi request queue size: %d", len(r.queue))
 		for k, req := range r.queue {
-			resp, err := r.request(req)
+			_, err := r.request(req)
 			if err != nil {
-				panic(err)
+				utils.Logger.ErrorF("request kodi %s err: %v", req.Method, err)
+				continue
 			}
 
 			delete(r.queue, k)
-			utils.Logger.DebugF("req kodi: %s", resp)
+
+			time.Sleep(time.Second * 30)
 		}
 	}
 
