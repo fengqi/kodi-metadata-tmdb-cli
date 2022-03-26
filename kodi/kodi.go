@@ -110,7 +110,35 @@ func (r *JsonRpc) RefreshMovie(name string) bool {
 		vl.RefreshMovie(&RefreshMovieRequest{MovieId: item.MovieId, IgnoreNfo: false})
 	}
 
-	return false
+	return true
+}
+
+func (r *JsonRpc) RefreshShows(name string) bool {
+	kodiTvShowsReq := &GetTVShowsRequest{
+		Filter: &Filter{
+			Field:    "originaltitle",
+			Operator: "is",
+			Value:    name,
+		},
+		Limit: &Limits{
+			Start: 0,
+			End:   5,
+		},
+		Properties: []string{"title", "originaltitle", "year"},
+	}
+
+	kodiShowsResp := vl.GetTVShows(kodiTvShowsReq)
+	if kodiShowsResp == nil || kodiShowsResp.Limits.Total == 0 {
+		return false
+	}
+
+	for _, item := range kodiShowsResp.TvShows {
+		utils.Logger.DebugF("find tv shows by name :%s, refresh detail", item.Title)
+		kodiRefreshReq := &RefreshTVShowRequest{TvShowId: item.TvShowId, IgnoreNfo: false, RefreshEpisodes: true}
+		vl.RefreshTVShow(kodiRefreshReq)
+	}
+
+	return true
 }
 
 // 发送json rpc请求

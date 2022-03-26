@@ -48,39 +48,7 @@ func (c *Collector) showsDirProcess() {
 			if !detail.FromCache {
 				_ = dir.saveToNfo(detail)
 				dir.downloadImage(detail)
-
-				// 通知kodi刷新媒体库，电视可能没开机，所以先ping一下
-				// 电视剧还要刷新分集信息，所以这里放到后台
-				// TODO 电影和电视剧的Kodi通知可以使用队列，等电视机开机时立即通知，然后可以关掉电视的开机刷新媒体库
-				go func() {
-					if kodi.Rpc.Ping() {
-						utils.Logger.DebugF("ping kodi success, starting refresh shows of library")
-
-						videoLibrary := kodi.NewVideoLibrary()
-						kodiTvShowsReq := &kodi.GetTVShowsRequest{
-							Filter: &kodi.Filter{
-								Field:    "originaltitle",
-								Operator: "is",
-								Value:    detail.OriginalName,
-							},
-							Limit: &kodi.Limits{
-								Start: 0,
-								End:   1,
-							},
-							Properties: []string{"title", "originaltitle", "year"},
-						}
-						kodiShowsResp := videoLibrary.GetTVShows(kodiTvShowsReq)
-						if kodiShowsResp != nil && kodiShowsResp.Limits.Total > 0 {
-							utils.Logger.DebugF("maybe existing shows, refresh video library %s")
-							kodiRefreshReq := &kodi.RefreshTVShowRequest{
-								TvShowId:        kodiShowsResp.TvShows[0].TvShowId,
-								IgnoreNfo:       false,
-								RefreshEpisodes: true,
-							}
-							videoLibrary.RefreshTVShow(kodiRefreshReq)
-						}
-					}
-				}()
+				kodi.Rpc.RefreshShows(detail.OriginalName)
 			}
 
 			files := make([]*File, 0)
