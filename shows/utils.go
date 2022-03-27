@@ -71,6 +71,9 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 	// 过滤可选字符
 	showName = utils.FilterOptionals(showName)
 
+	// 过滤掉或替换歧义的内容
+	showName = utils.FilterCorrecting(showName)
+
 	// 使用自定义方法切割
 	split := utils.Split(showName)
 
@@ -86,11 +89,6 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 		if year := utils.IsYear(item); year > 0 {
 			showsDir.Year = year
 			nameStop = true
-			continue
-		}
-
-		if seasonRange := utils.IsSeasonRange(item); len(seasonRange) > 0 {
-			showsDir.SeasonRange = seasonRange
 			continue
 		}
 

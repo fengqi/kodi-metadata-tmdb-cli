@@ -237,17 +237,6 @@ func (c *Collector) scanDir(dir string) ([]*Dir, error) {
 			continue
 		}
 
-		// 合集
-		if utils.IsSeasonRange(file.Name()) != "" || utils.IsYearRange(file.Name()) != "" {
-			movieDir, err := c.scanDir(dir + "/" + file.Name())
-			if err != nil {
-				utils.Logger.ErrorF("scan show dir: %s err: %v", dir+"/"+file.Name(), err)
-				continue
-			}
-			movieDirs = append(movieDirs, movieDir...)
-			continue
-		}
-
 		movieDir := parseShowsDir(dir, file)
 		if movieDir == nil {
 			continue
