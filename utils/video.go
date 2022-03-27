@@ -67,6 +67,26 @@ var (
 	sourceMap    = map[string]struct{}{}
 	studioMap    = map[string]struct{}{}
 	delimiterMap = map[string]struct{}{}
+
+	chsNumber = map[string]int{
+		"零": 0,
+		"一": 1,
+		"二": 2,
+		"三": 3,
+		"四": 4,
+		"五": 5,
+		"六": 6,
+		"七": 7,
+		"八": 8,
+		"九": 9,
+	}
+	chsNumberUnit = map[string]int{
+		"十": 10,
+		"百": 100,
+		"千": 1000,
+		"万": 10000,
+		"亿": 100000000,
+	}
 )
 
 func init() {
@@ -274,6 +294,93 @@ func FilterOptionals(name string) string {
 	}
 
 	return compile.ReplaceAllString(name, "")
+}
+
+// CoverChsNumber 中文数字替换为阿拉伯数字
+func CoverChsNumber(number string) int {
+	sum := 0
+	temp := 0
+	runes := []rune(number)
+	for i := 0; i < len(runes); i++ {
+		char := string(runes[i])
+		if char == "零" {
+			continue
+		}
+
+		if char == "亿" || char == "万" { // 特殊的权位数字，不会再累加了，其他的十、百、千可能会继续累加，比如八百一十二万
+			sum += temp * chsNumberUnit[char]
+			temp = 0
+		} else {
+			if i+1 < len(runes) { // 还没有到最后
+				nextChar := string(runes[i+1])
+				if unit, ok := chsNumberUnit[nextChar]; ok { // 下一位是权位数字
+					if nextChar != "亿" && nextChar != "万" {
+						temp += chsNumber[char] * unit
+						i++
+						continue
+					}
+				} else { // 还没有到最后，但是下一位却不是权位数字，那自己就是权位数字，比如十二
+					temp += 10
+					continue
+				}
+			}
+
+			temp += chsNumber[char]
+		}
+	}
+
+	return sum + temp
+}
+
+// ReplaceChsNumber 替换字符里面的中文数字为阿拉伯数字
+func ReplaceChsNumber(name string) string {
+	compile, err := regexp.Compile("([零一二三四五六七八九十百千万亿]+)")
+	if err != nil {
+		Logger.ErrorF("regexp compile err: %v", err)
+		return name
+	}
+
+	find := compile.FindStringSubmatch(name)
+	if len(find) == 2 {
+		number := strconv.Itoa(CoverChsNumber(find[1]))
+		name = strings.Replace(name, find[1], number, 1)
+	}
+
+	return name
+}
+
+// FilterCorrecting 特殊字符纠正为可是识别的字符，或者过滤掉
+func FilterCorrecting(name string) string {
+	name = ReplaceChsNumber(name)
+
+	compile, err := regexp.Compile("第([0-9]+)([-至到])?([0-9]+)?季")
+	if err != nil {
+		Logger.ErrorF("regexp compile err: %v", err)
+		return name
+	}
+
+	right := ""
+	find := compile.FindStringSubmatch(name)
+	if len(find) == 4 {
+		if find[2] == "" && find[3] == "" {
+			num, err := strconv.Atoi(find[1])
+			if err == nil && num > 0 {
+				right = fmt.Sprintf("S%.2d", num)
+			}
+		} else {
+			num1, err := strconv.Atoi(find[1])
+			num2, err := strconv.Atoi(find[3])
+			if err == nil && num1 > 0 && num2 > 0 {
+				right = fmt.Sprintf("S%.2d-S%.2d", num1, num2)
+			}
+		}
+	}
+
+	if right != "" {
+		return compile.ReplaceAllString(name, right)
+	}
+
+	return name
 }
 
 // IsResolution 分辨率

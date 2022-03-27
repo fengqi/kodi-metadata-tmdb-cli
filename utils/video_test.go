@@ -134,3 +134,65 @@ func TestCleanTitle(t *testing.T) {
 		}
 	}
 }
+
+func TestCoverChsNumber(t *testing.T) {
+	cases := map[string]int{
+		"零":          0,
+		"一":          1,
+		"二":          2,
+		"三":          3,
+		"四":          4,
+		"五":          5,
+		"六":          6,
+		"七":          7,
+		"八":          8,
+		"九":          9,
+		"十二":         12,
+		"一十二":        12,
+		"二十二":        22,
+		"九十二":        92,
+		"一百九十二":      192,
+		"三千一百一十二":    3112,
+		"三千一百九十二":    3192,
+		"五万三千一百九十二":  53192,
+		"五万零一百九十二":   50192,
+		"五十三万零一百九十二": 530192,
+		"五百万零一百九十二":  5000192,
+		"四十二亿九千四百九十六万七千二百九十五": 4294967295,
+	}
+	for number, want := range cases {
+		give := CoverChsNumber(number)
+		if give != want {
+			t.Errorf("CoverZhsNumber(%s) give %d, want %d", number, give, want)
+		}
+	}
+}
+
+func TestReplaceChsNumber(t *testing.T) {
+	cases := map[string]string{
+		"我零":      "我0",
+		"你一":      "你1",
+		"她二":      "她2",
+		"我一百九十二你": "我192你",
+	}
+	for number, want := range cases {
+		give := ReplaceChsNumber(number)
+		if give != want {
+			t.Errorf("ReplaceChsNumber(%s) give %s, want %s", number, give, want)
+		}
+	}
+}
+
+func TestFilterCorrecting(t *testing.T) {
+	cases := map[string]string{
+		"邪恶力量.第01-14季.Supernatural.S01-S14.1080p.Blu-Ray.AC3.x265.10bit-Yumi": "邪恶力量.S01-S14.Supernatural.S01-S14.1080p.Blu-Ray.AC3.x265.10bit-Yumi",
+		"堕落.第一季.2013.中英字幕￡CMCT无影":                                             "堕落.S01.2013.中英字幕￡CMCT无影",
+	}
+
+	for title, want := range cases {
+		give := FilterCorrecting(title)
+		if give != want {
+			t.Errorf("FilterAmbiguous(%s) give: %s, want %s", title, give, want)
+		}
+	}
+}
