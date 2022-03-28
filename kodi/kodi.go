@@ -20,6 +20,11 @@ func InitKodi(c config.KodiConfig) {
 		config: c,
 		queue:  make(map[string]*JsonRpcRequest, 0),
 		lock:   &sync.RWMutex{},
+		VideoLibrary: &VideoLibrary{
+			scanLimiter:   NewLimiter(300),
+			refreshMovie:  NewLimiter(300),
+			refreshTVShow: NewLimiter(300),
+		},
 	}
 }
 
@@ -100,14 +105,14 @@ func (r *JsonRpc) RefreshMovie(name string) bool {
 		Properties: []string{"title", "originaltitle", "year"},
 	}
 
-	kodiMoviesResp := vl.GetMovies(kodiMoviesReq)
+	kodiMoviesResp := r.VideoLibrary.GetMovies(kodiMoviesReq)
 	if kodiMoviesResp == nil || kodiMoviesResp.Limits.Total == 0 {
 		return false
 	}
 
 	for _, item := range kodiMoviesResp.Movies {
 		utils.Logger.DebugF("find movie by name: %s, refresh detail", item.Title)
-		vl.RefreshMovie(&RefreshMovieRequest{MovieId: item.MovieId, IgnoreNfo: false})
+		r.VideoLibrary.RefreshMovie(&RefreshMovieRequest{MovieId: item.MovieId, IgnoreNfo: false})
 	}
 
 	return true
@@ -127,7 +132,7 @@ func (r *JsonRpc) RefreshShows(name string) bool {
 		Properties: []string{"title", "originaltitle", "year"},
 	}
 
-	kodiShowsResp := vl.GetTVShows(kodiTvShowsReq)
+	kodiShowsResp := r.VideoLibrary.GetTVShows(kodiTvShowsReq)
 	if kodiShowsResp == nil || kodiShowsResp.Limits.Total == 0 {
 		return false
 	}
@@ -135,7 +140,7 @@ func (r *JsonRpc) RefreshShows(name string) bool {
 	for _, item := range kodiShowsResp.TvShows {
 		utils.Logger.DebugF("find tv shows by name :%s, refresh detail", item.Title)
 		kodiRefreshReq := &RefreshTVShowRequest{TvShowId: item.TvShowId, IgnoreNfo: false, RefreshEpisodes: true}
-		vl.RefreshTVShow(kodiRefreshReq)
+		r.VideoLibrary.RefreshTVShow(kodiRefreshReq)
 	}
 
 	return true

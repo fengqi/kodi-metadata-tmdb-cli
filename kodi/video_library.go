@@ -3,24 +3,7 @@ package kodi
 import (
 	"encoding/json"
 	"fmt"
-	"sync"
 )
-
-var (
-	vlOnce sync.Once
-	vl     *VideoLibrary
-)
-
-func NewVideoLibrary() *VideoLibrary {
-	vlOnce.Do(func() {
-		vl = &VideoLibrary{
-			scanLimiter:   NewLimiter(300),
-			refreshMovie:  NewLimiter(300),
-			refreshTVShow: NewLimiter(300),
-		}
-	})
-	return vl
-}
 
 // Scans the video sources for new library items
 func (vl *VideoLibrary) Scan(req *ScanRequest) bool {
