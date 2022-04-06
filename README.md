@@ -58,3 +58,7 @@
 - TMDB Api V3 https://developers.themoviedb.org/3/getting-started/introduction
 - File system notifications for Go https://github.com/fsnotify/fsnotify
 - tinyMediaManager https://gitlab.com/tinyMediaManager/tinyMediaManager
+
+# 感谢
+![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)
+
