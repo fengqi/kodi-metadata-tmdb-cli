@@ -123,6 +123,14 @@ func (c *Collector) runCronScan() {
 			}
 		}
 
+		// 等队列处理完成，最多等待5分钟
+		for i := 0; i < 300; i++ {
+			if len(c.channel) == 0 {
+				break
+			}
+			time.Sleep(time.Second * 1)
+		}
+
 		kodi.Rpc.VideoLibrary.Scan(nil)
 		kodi.Rpc.VideoLibrary.Clean(nil)
 	}
