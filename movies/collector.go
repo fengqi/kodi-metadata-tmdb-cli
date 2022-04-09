@@ -190,3 +190,21 @@ func (c *Collector) skipFolders(path, filename string) bool {
 	}
 	return false
 }
+
+func (c *Collector) listFilesAndFolders(path string) []os.FileInfo {
+	list := make([]os.FileInfo, 0)
+	pathInfo, err := ioutil.ReadDir(path)
+	if err != nil {
+		return list
+	}
+
+	for _, file := range pathInfo {
+		if c.skipFolders(path, file.Name()) {
+			continue
+		}
+
+		list = append(list, file)
+	}
+
+	return list
+}
