@@ -6,6 +6,9 @@
     "rating": "US",
     "api_key": "fetch at https://www.themoviedb.org/settings/api",
     "language": "zh-CN",
+    "movies_dir": [
+        "/volume1/down/movies"
+    ],
     "movies_nfo_mode": 2,
     "movies_skip_folders": [
         ".",
@@ -24,8 +27,11 @@
     "shows_dir": [
         "/volume1/down/shows"
     ],
-    "movies_dir": [
-        "/volume1/down/movies"
+    "shows_skip_folders": [
+        ".",
+        "..",
+        "tmdb",
+        "@eaDir"
     ],
     "kodi": {
         "enable": true,
