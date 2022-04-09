@@ -180,3 +180,13 @@ func (c *Collector) scanDir(dir string) ([]*Movie, error) {
 
 	return movieDirs, nil
 }
+
+func (c *Collector) skipFolders(path, filename string) bool {
+	base := filepath.Base(path)
+	for _, item := range c.config.MoviesSkipFolders {
+		if item == base || item == filename {
+			return true
+		}
+	}
+	return false
+}
