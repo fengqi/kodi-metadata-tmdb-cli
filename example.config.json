@@ -33,6 +33,16 @@
         "tmdb",
         "@eaDir"
     ],
+    "music_videos_dir": [
+        "/volume1/down/videos"
+    ],
+    "music_videos_skip_folders": [
+        ".",
+        "..",
+        "tmdb",
+        "@eaDir",
+        "gallery"
+    ],
     "kodi": {
         "enable": true,
         "json_rpc": "http://192.168.1.123:8080/jsonrpc",
