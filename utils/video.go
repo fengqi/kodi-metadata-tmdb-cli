@@ -24,6 +24,7 @@ var (
 		"3gpp",
 		"ts",
 		"iso",
+		"mov",
 	}
 	source = []string{
 		"web-dl",
