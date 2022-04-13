@@ -6,6 +6,8 @@
     "rating": "US",
     "api_key": "fetch at https://www.themoviedb.org/settings/api",
     "language": "zh-CN",
+    "ffmpeg_path": "/usr/local/ffmpeg-5.0.1-amd64-static/ffmpeg",
+    "ffprobe_path": "/usr/local/ffmpeg-5.0.1-amd64-static/ffprobe",
     "movies_dir": [
         "/volume1/down/movies"
     ],
