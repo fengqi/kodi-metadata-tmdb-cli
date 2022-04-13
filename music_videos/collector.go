@@ -2,7 +2,6 @@ package music_videos
 
 import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
-	"fengqi/kodi-metadata-tmdb-cli/ffmpeg"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"github.com/fsnotify/fsnotify"
 	"io/ioutil"
@@ -24,9 +23,6 @@ func RunCollector(config *config.Config) {
 		watcher: watcher,
 		channel: make(chan *MusicVideo, runtime.NumCPU()),
 	}
-
-	ffmpeg.SetFfmpeg(config.FfmpegPath)
-	ffmpeg.SetFfprobe(config.FfprobePath)
 
 	go collector.runWatcher()
 	go collector.runProcessor()
