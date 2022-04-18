@@ -175,7 +175,7 @@ func (d *TvDetail) SaveToCache(file string) {
 	defer func(f *os.File) {
 		err := f.Close()
 		if err != nil {
-			panic(err)
+			utils.Logger.WarningF("save tv to cache, close file err: %v", err)
 		}
 	}(f)
 

@@ -31,7 +31,7 @@ func (vl *VideoLibrary) GetMovies(req *GetMoviesRequest) *GetMoviesResponse {
 	resp := &JsonRpcResponse{}
 	err = json.Unmarshal(body, resp)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 
 	if resp != nil && resp.Result != nil {

@@ -160,11 +160,13 @@ func (r *JsonRpc) request(rpcReq *JsonRpcRequest) ([]byte, error) {
 
 	jsonBytes, err := json.Marshal(rpcReq)
 	if err != nil {
+		utils.Logger.WarningF("request kodi marshal err: %v", err)
 		return nil, err
 	}
 
 	req, err := http.NewRequest(http.MethodPost, r.config.JsonRpc, bytes.NewReader(jsonBytes))
 	if err != nil {
+		utils.Logger.WarningF("request kodi NewRequest err: %v", err)
 		return nil, err
 	}
 
@@ -178,13 +180,14 @@ func (r *JsonRpc) request(rpcReq *JsonRpcRequest) ([]byte, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
+		utils.Logger.WarningF("request kodi Do err: %v", err)
 		return nil, err
 	}
 
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			panic(err)
+			utils.Logger.WarningF("request kodi closeBody err: %v", err)
 		}
 	}(resp.Body)
 

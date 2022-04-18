@@ -49,7 +49,7 @@ func (t *tmdb) request(api string, args map[string]string) ([]byte, error) {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			panic(err)
+			utils.Logger.WarningF("request tmdb close body err: %v", err)
 		}
 	}(resp.Body)
 

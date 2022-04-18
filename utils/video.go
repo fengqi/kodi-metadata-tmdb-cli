@@ -88,6 +88,8 @@ var (
 		"万": 10000,
 		"亿": 100000000,
 	}
+
+	episodeMatch *regexp.Regexp
 )
 
 func init() {
@@ -106,6 +108,8 @@ func init() {
 	for _, item := range delimiter {
 		delimiterMap[item] = struct{}{}
 	}
+
+	episodeMatch, _ = regexp.Compile("([sS]([0-9]+))?[ ._x-]?([eEpP]([0-9]+))")
 }
 
 // IsCollection 是否是合集，如S01-S03季
@@ -245,12 +249,7 @@ func SplitChsEngTitle(name string) (string, string) {
 
 // MatchEpisode 匹配季和集
 func MatchEpisode(name string) (string, int, int) {
-	compile, err := regexp.Compile("([sS]([0-9]+))?[ ._x-]?([eEpP]([0-9]+))")
-	if err != nil {
-		panic(err)
-	}
-
-	find := compile.FindStringSubmatch(name)
+	find := episodeMatch.FindStringSubmatch(name)
 	if len(find) != 5 {
 		return "", 0, 0
 	}

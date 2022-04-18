@@ -64,7 +64,7 @@ func (c *Collector) runScanner() {
 		for _, item := range c.config.MusicVideosDir {
 			videos, err := c.scanDir(item)
 			if err != nil {
-				panic(err)
+				continue
 			}
 
 			for _, video := range videos {
@@ -89,6 +89,7 @@ func (c *Collector) scanDir(dir string) ([]*MusicVideo, error) {
 	videos := make([]*MusicVideo, 0)
 	dirInfo, err := ioutil.ReadDir(dir)
 	if err != nil {
+		utils.Logger.WarningF("scanDir %s err: %v", dir, err)
 		return nil, err
 	}
 
@@ -101,7 +102,7 @@ func (c *Collector) scanDir(dir string) ([]*MusicVideo, error) {
 
 			subVideos, err := c.scanDir(dir + "/" + file.Name())
 			if err != nil {
-				panic(err)
+				continue
 			}
 
 			if len(subVideos) > 0 {
