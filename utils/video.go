@@ -88,8 +88,20 @@ var (
 		"万": 10000,
 		"亿": 100000000,
 	}
+	chsMatch       *regexp.Regexp
+	chsSeasonMatch *regexp.Regexp
 
-	episodeMatch *regexp.Regexp
+	episodeMatch       *regexp.Regexp
+	collectionMatch    *regexp.Regexp
+	subEpisodesMatch   *regexp.Regexp
+	yearRangeLikeMatch *regexp.Regexp
+	yearRangeMatch     *regexp.Regexp
+	yearMatch          *regexp.Regexp
+	formatMatch        *regexp.Regexp
+	seasonMatch        *regexp.Regexp
+	optionsMatch       *regexp.Regexp
+	resolutionMatch    *regexp.Regexp
+	seasonRangeMatch   *regexp.Regexp
 )
 
 func init() {
@@ -110,19 +122,29 @@ func init() {
 	}
 
 	episodeMatch, _ = regexp.Compile("([sS]([0-9]+))?[ ._x-]?([eEpP]([0-9]+))")
+	collectionMatch, _ = regexp.Compile("[sS](0|)[0-9]+-[sS](0|)[0-9]+")
+	subEpisodesMatch, _ = regexp.Compile("[eE](0|)[0-9]+-[eE](0|)[0-9]+")
+	yearRangeLikeMatch, _ = regexp.Compile("[12][0-9]{3}-[12][0-9]{3}")
+	yearRangeMatch, _ = regexp.Compile("^[12][0-9]{3}-[12][0-9]{3}$")
+	yearMatch, _ = regexp.Compile("^[12][0-9]{3}$")
+	formatMatch, _ = regexp.Compile("([0-9]+[pPiI]|[24][kK])")
+	seasonMatch, _ = regexp.Compile("[sS](0|)[0-9]+")
+	optionsMatch, _ = regexp.Compile("\\[.*?\\](\\.)?")
+	chsMatch, _ = regexp.Compile("([零一二三四五六七八九十百千万亿]+)")
+	chsSeasonMatch, _ = regexp.Compile("第([0-9]+)([-至到])?([0-9]+)?季")
+	resolutionMatch, _ = regexp.Compile("[0-9]{3,4}Xx*[0-9]{3,4}")
+	seasonRangeMatch, _ = regexp.Compile("[sS](0|)[0-9]+-[sS](0|)[0-9]+")
 }
 
 // IsCollection 是否是合集，如S01-S03季
 func IsCollection(name string) bool {
-	ok, err := regexp.MatchString("[sS](0|)[0-9]+-[sS](0|)[0-9]+", name)
-	return ok && err == nil
+	return collectionMatch.MatchString(name)
 }
 
 // IsSubEpisodes 是否是分段集，如：World.Heritage.In.China.E01-E38.2008.CCTVHD.x264.AC3.720p-CMCT
 // 常见于持续更新中的
 func IsSubEpisodes(name string) bool {
-	ok, err := regexp.MatchString("[eE](0|)[0-9]+-[eE](0|)[0-9]+", name)
-	return ok && err == nil
+	return subEpisodesMatch.MatchString(name)
 }
 
 // IsVideo 是否是视频文件，根据后缀枚举
@@ -142,28 +164,17 @@ func IsVideo(name string) string {
 
 // IsYearRangeLike 判断并返回年范围，用于合集
 func IsYearRangeLike(name string) string {
-	compile, err := regexp.Compile("[12][0-9]{3}-[12][0-9]{3}")
-	if err != nil {
-		return ""
-	}
-
-	return compile.FindString(name)
+	return yearRangeLikeMatch.FindString(name)
 }
 
 // IsYearRange 判断并返回年范围，用于合集
 func IsYearRange(name string) string {
-	compile, err := regexp.Compile("^[12][0-9]{3}-[12][0-9]{3}$")
-	if err != nil {
-		return ""
-	}
-
-	return compile.FindString(name)
+	return yearRangeMatch.FindString(name)
 }
 
 // IsYear 判断是否是年份
 func IsYear(name string) int {
-	ok, err := regexp.MatchString("^[12][0-9]{3}$", name)
-	if !ok || err != nil {
+	if !yearMatch.MatchString(name) {
 		return 0
 	}
 
@@ -174,32 +185,17 @@ func IsYear(name string) int {
 
 // IsSeasonRange 判断并返回合集
 func IsSeasonRange(name string) string {
-	compile, err := regexp.Compile("[sS](0|)[0-9]+-[sS](0|)[0-9]+")
-	if err != nil {
-		return ""
-	}
-
-	return compile.FindString(name)
+	return seasonRangeMatch.FindString(name)
 }
 
 // IsSeason 判断并返回季，可能和名字写在一起，所以使用子串，如：黄石S01.Yellowstone.2018.1080p
 func IsSeason(name string) string {
-	compile, err := regexp.Compile("[sS](0|)[0-9]+")
-	if err != nil {
-		return ""
-	}
-
-	return compile.FindString(name)
+	return seasonMatch.FindString(name)
 }
 
 // IsFormat 判断并返回格式，可能放在结尾，所以使用子串，如：World.Heritage.In.China.E01-E38.2008.CCTVHD.x264.AC3.720p-CMCT
 func IsFormat(name string) string {
-	compile, err := regexp.Compile("([0-9]+[pPiI]|[24][kK])")
-	if err != nil {
-		return ""
-	}
-
-	return compile.FindString(name)
+	return formatMatch.FindString(name)
 }
 
 // IsSource 片源
@@ -287,13 +283,7 @@ func FilterTmpSuffix(name string) string {
 
 // FilterOptionals 过滤掉可选的字符: 被中括号[]包围的
 func FilterOptionals(name string) string {
-	compile, err := regexp.Compile("\\[.*?\\](\\.)?")
-	if err != nil {
-		Logger.ErrorF("regexp compile err: %v", err)
-		return name
-	}
-
-	return compile.ReplaceAllString(name, "")
+	return optionsMatch.ReplaceAllString(name, "")
 }
 
 // CoverChsNumber 中文数字替换为阿拉伯数字
@@ -334,13 +324,7 @@ func CoverChsNumber(number string) int {
 
 // ReplaceChsNumber 替换字符里面的中文数字为阿拉伯数字
 func ReplaceChsNumber(name string) string {
-	compile, err := regexp.Compile("([零一二三四五六七八九十百千万亿]+)")
-	if err != nil {
-		Logger.ErrorF("regexp compile err: %v", err)
-		return name
-	}
-
-	find := compile.FindStringSubmatch(name)
+	find := chsMatch.FindStringSubmatch(name)
 	if len(find) == 2 {
 		number := strconv.Itoa(CoverChsNumber(find[1]))
 		name = strings.Replace(name, find[1], number, 1)
@@ -352,15 +336,8 @@ func ReplaceChsNumber(name string) string {
 // FilterCorrecting 特殊字符纠正为可是识别的字符，或者过滤掉
 func FilterCorrecting(name string) string {
 	name = ReplaceChsNumber(name)
-
-	compile, err := regexp.Compile("第([0-9]+)([-至到])?([0-9]+)?季")
-	if err != nil {
-		Logger.ErrorF("regexp compile err: %v", err)
-		return name
-	}
-
 	right := ""
-	find := compile.FindStringSubmatch(name)
+	find := chsSeasonMatch.FindStringSubmatch(name)
 	if len(find) == 4 {
 		if find[2] == "" && find[3] == "" {
 			num, err := strconv.Atoi(find[1])
@@ -377,7 +354,7 @@ func FilterCorrecting(name string) string {
 	}
 
 	if right != "" {
-		return compile.ReplaceAllString(name, right)
+		return chsSeasonMatch.ReplaceAllString(name, right)
 	}
 
 	return name
@@ -385,12 +362,7 @@ func FilterCorrecting(name string) string {
 
 // IsResolution 分辨率
 func IsResolution(name string) string {
-	compile, err := regexp.Compile("[0-9]{3,4}Xx*[0-9]{3,4}")
-	if err != nil {
-		return ""
-	}
-
-	return compile.FindString(name)
+	return resolutionMatch.FindString(name)
 }
 
 // Split 影视目录或文件名切割
