@@ -37,6 +37,10 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 	actor := make([]Actor, 0)
 	if detail.Credits != nil {
 		for _, item := range detail.Credits.Cast {
+			if item.ProfilePath == "" {
+				continue
+			}
+
 			actor = append(actor, Actor{
 				Name:      item.Name,
 				Role:      item.Character,
@@ -56,6 +60,17 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 				mpaa = item.Certification
 				break
 			}
+		}
+	}
+
+	var fanArt *FanArt
+	if detail.BackdropPath != "" {
+		fanArt = &FanArt{
+			Thumb: []MovieThumb{
+				{
+					Preview: tmdb.ImageW500 + detail.BackdropPath,
+				},
+			},
 		}
 	}
 
@@ -79,13 +94,7 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 		Studio:     studio,
 		UserRating: detail.VoteAverage,
 		Actor:      actor,
-		FanArt: FanArt{
-			Thumb: []MovieThumb{
-				{
-					Preview: tmdb.ImageW500 + detail.BackdropPath,
-				},
-			},
-		},
+		FanArt:     fanArt,
 	}
 
 	return utils.SaveNfo(nfoFile, top)

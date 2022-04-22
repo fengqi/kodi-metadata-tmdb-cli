@@ -28,7 +28,7 @@ type TvShowNfo struct {
 	Tagline        string        `xml:"-"`
 	Runtime        int           `xml:"-"`
 	Thumb          []Thumb       `xml:"-"`
-	FanArt         FanArt        `xml:"fanart"`
+	FanArt         *FanArt       `xml:"fanart"`
 	MPaa           string        `xml:"mpaa"`
 	PlayCount      int           `xml:"-"`
 	LastPlayed     string        `xml:"-"`

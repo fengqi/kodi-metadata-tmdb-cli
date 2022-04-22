@@ -31,6 +31,10 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 	actor := make([]Actor, 0)
 	if detail.AggregateCredits != nil {
 		for _, item := range detail.AggregateCredits.Cast {
+			if item.ProfilePath == "" {
+				continue
+			}
+
 			actor = append(actor, Actor{
 				Name:  item.Name,
 				Role:  item.Roles[0].Character,
@@ -60,6 +64,17 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 		}
 	}
 
+	var fanArt *FanArt
+	if detail.BackdropPath != "" {
+		fanArt = &FanArt{
+			Thumb: []ShowThumb{
+				{
+					Preview: tmdb.ImageW500 + detail.BackdropPath,
+				},
+			},
+		}
+	}
+
 	top := &TvShowNfo{
 		Title:         detail.Name,
 		OriginalTitle: detail.OriginalName,
@@ -82,13 +97,7 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 		UserRating:  detail.VoteAverage,
 		Actor:       actor,
 		NamedSeason: namedSeason,
-		FanArt: FanArt{
-			Thumb: []ShowThumb{
-				{
-					Preview: tmdb.ImageW500 + detail.BackdropPath,
-				},
-			},
-		},
+		FanArt:      fanArt,
 	}
 
 	return utils.SaveNfo(d.getNfoFile(), top)
