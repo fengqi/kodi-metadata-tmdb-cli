@@ -122,7 +122,7 @@ func (f *File) saveToNfo(episode *tmdb.TvEpisodeDetail) error {
 		DisplayEpisode: episode.EpisodeNumber,
 		UserRating:     episode.VoteAverage,
 		//Tagline:        "111",
-		TmdbId:  "tmdm" + strconv.Itoa(episode.Id),
+		TmdbId:  "tmdb" + strconv.Itoa(episode.Id),
 		Runtime: 6,
 		Status:  "ok",
 		Actor:   actor,
