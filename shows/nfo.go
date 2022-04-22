@@ -4,6 +4,7 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"strconv"
+	"strings"
 )
 
 func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
@@ -47,6 +48,20 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 		})
 	}
 
+	mpaa := "NR"
+	contentRating := strings.ToUpper(collector.config.Rating)
+	if detail.ContentRatings != nil && len(detail.ContentRatings.Results) > 0 {
+		for _, item := range detail.ContentRatings.Results {
+			if strings.ToUpper(item.ISO31661) == contentRating {
+				mpaa = item.Rating
+				break
+			}
+		}
+		if mpaa == "NR" {
+			mpaa = detail.ContentRatings.Results[0].Rating
+		}
+	}
+
 	top := &TvShowNfo{
 		Title:         detail.Name,
 		OriginalTitle: detail.OriginalName,
@@ -60,7 +75,7 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 		Id:          detail.Id,
 		Premiered:   detail.FirstAirDate,
 		Ratings:     Ratings{Rating: rating},
-		MPaa:        "TV-14",
+		MPaa:        mpaa,
 		Status:      detail.Status,
 		Genre:       genre,
 		Studio:      studio,
@@ -115,17 +130,14 @@ func (f *File) saveToNfo(episode *tmdb.TvEpisodeDetail) error {
 			Default: true,
 		},
 		Premiered:      episode.AirDate,
-		MPaa:           "TV-14",
 		Season:         episode.SeasonNumber,
 		Episode:        episode.EpisodeNumber,
 		DisplaySeason:  episode.SeasonNumber,
 		DisplayEpisode: episode.EpisodeNumber,
 		UserRating:     episode.VoteAverage,
-		//Tagline:        "111",
-		TmdbId:  "tmdb" + strconv.Itoa(episode.Id),
-		Runtime: 6,
-		Status:  "ok",
-		Actor:   actor,
+		TmdbId:         "tmdb" + strconv.Itoa(episode.Id),
+		Runtime:        6,
+		Actor:          actor,
 		Thumb: Thumb{
 			Aspect:  "thumb",
 			Preview: tmdb.ImageOriginal + episode.StillPath,

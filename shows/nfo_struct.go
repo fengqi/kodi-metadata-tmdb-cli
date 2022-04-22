@@ -63,7 +63,7 @@ type TvEpisodeNfo struct {
 	DisplaySeason  int      `xml:"displayseason"`
 	Outline        string   `xml:"outline"`
 	Plot           string   `xml:"plot"`
-	Tagline        string   `xml:"tagline"`
+	Tagline        string   `xml:"-"`
 	Runtime        int      `xml:"runtime"`
 	Thumb          Thumb    `xml:"thumb"`
 
@@ -71,10 +71,10 @@ type TvEpisodeNfo struct {
 	Year     string   `xml:"year"`
 	TmdbId   string   `xml:"tmdbid"`
 
-	MPaa      string   `xml:"mpaa"`
+	MPaa      string   `xml:"-"`
 	Premiered string   `xml:"premiered"`
 	Actor     []Actor  `xml:"actor"`
-	Status    string   `xml:"status"`
+	Status    string   `xml:"-"`
 	Aired     string   `xml:"aired"`
 	Genre     []string `xml:"genre"`
 	Studio    []string `xml:"studio"`
@@ -130,7 +130,6 @@ type Subtitle struct {
 type Thumb struct {
 	Aspect  string `xml:"aspect,attr"`
 	Preview string `xml:"preview,attr"`
-	Season  int    `xml:"season"`
 }
 
 type UniqueId struct {

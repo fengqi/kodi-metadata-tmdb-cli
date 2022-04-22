@@ -13,13 +13,15 @@ import (
 	"time"
 )
 
+var collector *Collector
+
 func RunCollector(config *config.Config) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		utils.Logger.FatalF("new shows watcher err: %v", err)
 	}
 
-	collector := &Collector{
+	collector = &Collector{
 		config:   config,
 		watcher:  watcher,
 		dirChan:  make(chan *Dir, 100),

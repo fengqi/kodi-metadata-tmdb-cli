@@ -49,6 +49,7 @@ type TvDetail struct {
 	VoteAverage         float32             `json:"vote_average"`
 	VoteCount           int                 `json:"vote_count"`
 	AggregateCredits    *TvAggregateCredits `json:"aggregate_credits"`
+	ContentRatings      *TvContentRatings   `json:"content_ratings"`
 	FromCache           bool                `json:"from_cache"`
 }
 
@@ -131,7 +132,7 @@ func (t *tmdb) GetTvDetail(id int) (*TvDetail, error) {
 
 	api := fmt.Sprintf(ApiTvDetail, id)
 	req := map[string]string{
-		"append_to_response": "aggregate_credits",
+		"append_to_response": "aggregate_credits,content_ratings",
 	}
 
 	body, err := t.request(api, req)
