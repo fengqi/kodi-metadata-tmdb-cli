@@ -4,6 +4,7 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"strconv"
+	"strings"
 )
 
 func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
@@ -47,11 +48,13 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 	}
 
 	mpaa := "NR"
-	if detail.Releases.Countries != nil {
+	contentRating := strings.ToUpper(collector.config.Rating)
+	if detail.Releases.Countries != nil && len(detail.Releases.Countries) > 0 {
 		mpaa = detail.Releases.Countries[0].Certification
 		for _, item := range detail.Releases.Countries {
-			if item.ISO31661 == collector.config.Rating {
+			if strings.ToUpper(item.ISO31661) == contentRating {
 				mpaa = item.Certification
+				break
 			}
 		}
 	}
