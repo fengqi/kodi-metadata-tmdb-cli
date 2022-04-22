@@ -133,6 +133,7 @@ func (r *JsonRpc) RefreshShows(name string) bool {
 	}
 
 	kodiShowsResp := r.VideoLibrary.GetTVShows(kodiTvShowsReq)
+	// TODO kodi没开机导致搜索失败, 改完ping成功后在搜索然后刷新
 	if kodiShowsResp == nil || kodiShowsResp.Limits.Total == 0 {
 		return false
 	}
