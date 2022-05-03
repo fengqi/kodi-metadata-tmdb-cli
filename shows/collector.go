@@ -116,7 +116,19 @@ func (c *Collector) runWatcher() {
 			}
 
 			fileInfo, _ := os.Stat(event.Name)
-			if fileInfo == nil || (!fileInfo.IsDir() && utils.IsVideo(event.Name) == "") || event.Op&fsnotify.Create != fsnotify.Create {
+			if fileInfo == nil || (!fileInfo.IsDir() && utils.IsVideo(event.Name) == "") {
+				continue
+			}
+
+			if event.Op&fsnotify.Remove == fsnotify.Remove {
+				err := c.watcher.Remove(filepath.Dir(event.Name))
+				if err != nil {
+					utils.Logger.WarningF("remove shows watcher: %s error: %v", event.Name, err)
+				}
+				continue
+			}
+
+			if event.Op&fsnotify.Create != fsnotify.Create {
 				continue
 			}
 
