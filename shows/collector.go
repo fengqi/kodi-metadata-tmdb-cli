@@ -108,27 +108,6 @@ func (c *Collector) showsFileProcess() {
 func (c *Collector) runWatcher() {
 	utils.Logger.Debug("run shows watcher")
 
-	for _, item := range c.config.ShowsDir {
-		err := c.watcher.Add(item)
-		utils.Logger.DebugF("runWatcher add shows dir: %s to watcher", item)
-		if err != nil {
-			utils.Logger.FatalF("add shows dir: %s to watcher err :%v", item, err)
-		}
-
-		showDirs, err := c.scanDir(item)
-		if err != nil {
-			utils.Logger.FatalF("scan shows dir for watcher err :%v", err)
-		}
-
-		for _, showDir := range showDirs {
-			err := c.watcher.Add(showDir.Dir + "/" + showDir.OriginTitle)
-			utils.Logger.DebugF("runWatcher add shows dir: %s to watcher", showDir.Dir+"/"+showDir.OriginTitle)
-			if err != nil {
-				utils.Logger.FatalF("add shows dir: %s to watcher err :%v", showDir.Dir+"/"+showDir.OriginTitle, err)
-			}
-		}
-	}
-
 	for {
 		select {
 		case event, ok := <-c.watcher.Events:
