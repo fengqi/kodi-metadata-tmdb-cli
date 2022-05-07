@@ -3,24 +3,45 @@ package music_videos
 import (
 	"fengqi/kodi-metadata-tmdb-cli/ffmpeg"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
-	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
 func (m *MusicVideo) saveToNfo() error {
-	nfo := m.getNfoFile()
-
-	if info, err := os.Stat(nfo); err == nil && info.Size() > 0 {
+	if m.NfoExist() {
 		return nil
 	}
 
+	nfo := m.getNfoFile()
 	utils.Logger.InfoF("save %s to %s", m, nfo)
+
+	fileInfo := &FileInfo{
+		StreamDetails: StreamDetails{
+			Video: []Video{
+				{
+					Codec:             m.VideoStream.CodecName,
+					Aspect:            m.VideoStream.DisplayAspectRatio,
+					Width:             m.VideoStream.Width,
+					Height:            m.VideoStream.Height,
+					DurationInSeconds: m.VideoStream.Duration,
+					StereoMode:        "progressive",
+				},
+			},
+			Audio: []Audio{
+				{
+					Language: "zho",
+					Codec:    m.VideoStream.CodecName,
+					Channels: m.VideoStream.Channels,
+				},
+			},
+		},
+	}
 
 	top := MusicVideoNfo{
 		Title:     m.Title,
 		DateAdded: m.DateAdded,
-		FileInfo:  m.coverNfoFileInfo(),
+		FileInfo:  fileInfo,
 		Thumb: []Thumb{
 			{
 				Aspect:  "thumb",
@@ -30,59 +51,27 @@ func (m *MusicVideo) saveToNfo() error {
 		Poster: m.Title + ".jpg",
 	}
 
-	return utils.SaveNfo(m.getNfoFile(), top)
-}
-
-func (m *MusicVideo) coverNfoFileInfo() *FileInfo {
-	probe, err := ffmpeg.Probe(m.Dir + "/" + m.OriginTitle)
-	if err != nil {
-		utils.Logger.WarningF("parse %s probe err: %v", m.OriginTitle, err)
-		return nil
-	}
-
-	if probe == nil {
-		return nil
-	}
-
-	audio := probe.FirstAudioStream()
-	video := probe.FirstVideoStream()
-
-	return &FileInfo{
-		StreamDetails: StreamDetails{
-			Video: []Video{
-				{
-					Codec:             video.CodecName,
-					Aspect:            video.DisplayAspectRatio,
-					Width:             video.Width,
-					Height:            video.Height,
-					DurationInSeconds: video.Duration,
-					StereoMode:        "progressive",
-				},
-			},
-			Audio: []Audio{
-				{
-					Language: "zho",
-					Codec:    audio.CodecName,
-					Channels: audio.Channels,
-				},
-			},
-		},
-	}
+	return utils.SaveNfo(nfo, top)
 }
 
 func (m *MusicVideo) drawThumb() error {
-	thumb := m.getNfoThumb()
-	if info, err := os.Stat(thumb); err == nil && info.Size() > 0 {
+	if m.ThumbExist() {
 		return nil
 	}
 
+	ss := "00:00:00"
+	second, _ := strconv.ParseFloat(m.VideoStream.Duration, 10)
+	if m.VideoStream != nil && second > 30 {
+		ss = "00:00:30"
+	}
+
 	filename := m.getFullPath()
-	ss := "00:00:30"
 	base := filepath.Base(filename)
 	if (len(base) > 2 && base[0:2] == "03") || (len(base) > 5 && strings.ToLower(base[0:5]) == "heyzo") {
 		ss = "00:01:10"
 	}
 
+	thumb := m.getNfoThumb()
 	utils.Logger.InfoF("draw thumb start: %s, %s to %s", ss, m, thumb)
 
 	err := ffmpeg.Frame(filename, thumb, "-ss", ss)

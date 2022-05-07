@@ -2,6 +2,7 @@ package music_videos
 
 import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
+	"fengqi/kodi-metadata-tmdb-cli/ffmpeg"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"github.com/fsnotify/fsnotify"
 	"io/ioutil"
@@ -44,6 +45,10 @@ func (c *Collector) runProcessor() {
 		case video := <-c.channel:
 			utils.Logger.DebugF("receive music video task: %v", video)
 
+			if video.NfoExist() && video.ThumbExist() {
+				continue
+			}
+
 			limiter <- struct{}{}
 			go func() {
 				err := video.drawThumb()
@@ -68,6 +73,15 @@ func (c *Collector) runScanner() {
 			}
 
 			for _, video := range videos {
+				probe, err := ffmpeg.Probe(video.Dir + "/" + video.OriginTitle)
+				if probe != nil && err == nil {
+					video.VideoStream = probe.FirstVideoStream()
+					video.AudioStream = probe.FirstAudioStream()
+				} else {
+					utils.Logger.WarningF("parse video %s probe err: %v", video.Dir+"/"+video.OriginTitle, err)
+					continue
+				}
+
 				c.channel <- video
 			}
 		}

@@ -2,7 +2,9 @@ package music_videos
 
 import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
+	"fengqi/kodi-metadata-tmdb-cli/ffmpeg"
 	"github.com/fsnotify/fsnotify"
+	"os"
 )
 
 type Collector struct {
@@ -16,6 +18,8 @@ type MusicVideo struct {
 	Title       string
 	OriginTitle string
 	DateAdded   string
+	VideoStream *ffmpeg.Stream
+	AudioStream *ffmpeg.Stream
 }
 
 func (m *MusicVideo) getFullPath() string {
@@ -28,4 +32,23 @@ func (m *MusicVideo) getNfoThumb() string {
 
 func (m *MusicVideo) getNfoFile() string {
 	return m.Dir + "/" + m.Title + ".nfo"
+}
+
+func (m *MusicVideo) NfoExist() bool {
+	nfo := m.getNfoFile()
+
+	if info, err := os.Stat(nfo); err == nil && info.Size() > 0 {
+		return true
+	}
+
+	return false
+}
+
+func (m *MusicVideo) ThumbExist() bool {
+	thumb := m.getNfoThumb()
+	if info, err := os.Stat(thumb); err == nil && info.Size() > 0 {
+		return true
+	}
+
+	return false
 }
