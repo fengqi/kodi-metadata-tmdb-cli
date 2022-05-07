@@ -144,14 +144,15 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 
 	if showsDir.Season == 0 && len(showsDir.YearRange) == 0 {
 		showsDir.Season = 1
-		seasonFile := baseDir + "/" + file.Name() + "/tmdb/season.txt"
-		if _, err := os.Stat(seasonFile); err == nil {
-			bytes, err := ioutil.ReadFile(seasonFile)
-			if err == nil {
-				showsDir.Season, _ = strconv.Atoi(strings.Trim(string(bytes), "\r\n "))
-			} else {
-				utils.Logger.WarningF("read season specially file: %s err: %v", seasonFile, err)
-			}
+	}
+
+	seasonFile := baseDir + "/" + file.Name() + "/tmdb/season.txt"
+	if _, err := os.Stat(seasonFile); err == nil {
+		bytes, err := ioutil.ReadFile(seasonFile)
+		if err == nil {
+			showsDir.Season, _ = strconv.Atoi(strings.Trim(string(bytes), "\r\n "))
+		} else {
+			utils.Logger.WarningF("read season specially file: %s err: %v", seasonFile, err)
 		}
 	}
 
