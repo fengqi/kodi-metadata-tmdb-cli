@@ -74,6 +74,11 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 	// 过滤掉或替换歧义的内容
 	showName = utils.FilterCorrecting(showName)
 
+	// 过滤掉分段的干扰
+	if subEpisodes := utils.IsSubEpisodes(showName); subEpisodes != "" {
+		showName = strings.Replace(showName, subEpisodes, "", 1)
+	}
+
 	// 使用自定义方法切割
 	split := utils.Split(showName)
 
@@ -104,11 +109,6 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 
 		if format := utils.IsFormat(item); len(format) > 0 {
 			showsDir.Format = format
-			nameStop = true
-			continue
-		}
-
-		if utils.IsSubEpisodes(item) {
 			nameStop = true
 			continue
 		}

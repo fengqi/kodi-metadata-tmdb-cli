@@ -143,8 +143,8 @@ func IsCollection(name string) bool {
 
 // IsSubEpisodes 是否是分段集，如：World.Heritage.In.China.E01-E38.2008.CCTVHD.x264.AC3.720p-CMCT
 // 常见于持续更新中的
-func IsSubEpisodes(name string) bool {
-	return subEpisodesMatch.MatchString(name)
+func IsSubEpisodes(name string) string {
+	return subEpisodesMatch.FindString(name)
 }
 
 // IsVideo 是否是视频文件，根据后缀枚举
