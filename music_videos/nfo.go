@@ -14,7 +14,7 @@ func (m *MusicVideo) saveToNfo() error {
 	}
 
 	nfo := m.getNfoFile()
-	utils.Logger.InfoF("save %s to %s", m, nfo)
+	utils.Logger.InfoF("save %s to %s", m.OriginTitle, nfo)
 
 	fileInfo := &FileInfo{
 		StreamDetails: StreamDetails{
@@ -72,7 +72,7 @@ func (m *MusicVideo) drawThumb() error {
 	}
 
 	thumb := m.getNfoThumb()
-	utils.Logger.InfoF("draw thumb start: %s, %s to %s", ss, m, thumb)
+	utils.Logger.InfoF("draw thumb start: %s, %s to %s", ss, m.OriginTitle, thumb)
 
 	err := ffmpeg.Frame(filename, thumb, "-ss", ss)
 	if err != nil {
