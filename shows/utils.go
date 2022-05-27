@@ -98,13 +98,15 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 		}
 
 		if season := utils.IsSeason(item); len(season) > 0 {
-			s := season[1:]
-			i, err := strconv.Atoi(s)
-			if err == nil {
-				showsDir.Season = i
-				nameStop = true
-				continue
+			if !showsDir.IsCollection {
+				s := season[1:]
+				i, err := strconv.Atoi(s)
+				if err == nil {
+					showsDir.Season = i
+					nameStop = true
+				}
 			}
+			continue
 		}
 
 		if format := utils.IsFormat(item); len(format) > 0 {
