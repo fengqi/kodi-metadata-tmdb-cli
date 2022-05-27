@@ -125,7 +125,7 @@ func init() {
 	collectionMatch, _ = regexp.Compile("[sS](0|)[0-9]+-[sS](0|)[0-9]+")
 	subEpisodesMatch, _ = regexp.Compile("[eE](0|)[0-9]+-[eE](0|)[0-9]+")
 	yearRangeLikeMatch, _ = regexp.Compile("[12][0-9]{3}-[12][0-9]{3}")
-	yearRangeMatch, _ = regexp.Compile("^[12][0-9]{3}-[12][0-9]{3}$")
+	yearRangeMatch, _ = regexp.Compile("[12][0-9]{3}-[12][0-9]{3}")
 	yearMatch, _ = regexp.Compile("^[12][0-9]{3}$")
 	formatMatch, _ = regexp.Compile("([0-9]+[pPiI]|[24][kK])")
 	seasonMatch, _ = regexp.Compile("[sS](0|)[0-9]+")
