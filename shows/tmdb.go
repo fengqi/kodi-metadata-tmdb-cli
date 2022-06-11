@@ -83,6 +83,14 @@ func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
 		return nil, err
 	}
 
+	// 剧集分组：不同的季版本
+	if d.GroupId != "" {
+		groupDetail, err := d.getTvEpisodeGroupDetail()
+		if err == nil {
+			detail.TvEpisodeGroupDetail = groupDetail
+		}
+	}
+
 	return detail, err
 }
 
@@ -133,4 +141,50 @@ func (f *File) getTvEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
 	}
 
 	return detail, err
+}
+
+func (d *Dir) getTvEpisodeGroupDetail() (*tmdb.TvEpisodeGroupDetail, error) {
+	if d.GroupId == "" {
+		return nil, nil
+	}
+
+	var err error
+	var detail = new(tmdb.TvEpisodeGroupDetail)
+
+	// 从缓存读取
+	cacheFile := d.GetCacheDir() + "/group.json"
+	cacheExpire := false
+	if cf, err := os.Stat(cacheFile); err == nil {
+		utils.Logger.DebugF("get tv episode group detail from cache: %s", cacheFile)
+
+		bytes, err := ioutil.ReadFile(cacheFile)
+		if err != nil {
+			utils.Logger.WarningF("read group.json cache: %s err: %v", cacheFile, err)
+		}
+
+		err = json.Unmarshal(bytes, detail)
+		if err != nil {
+			utils.Logger.WarningF("parse group.json file: %s err: %v", cacheFile, err)
+		}
+
+		airTime, _ := time.Parse("2006-01-02", detail.Groups[len(detail.Groups)-1].Episodes[0].AirDate)
+		cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
+		detail.FromCache = true
+	}
+
+	// 缓存失效，重新搜索
+	if detail == nil || detail.Id == "" || cacheExpire {
+		detail.FromCache = false
+		detail, err = tmdb.Api.GetTvEpisodeGroupDetail(d.GroupId)
+		if err != nil {
+			utils.Logger.ErrorF("get tv episode group: %s detail err: %v", d.GroupId)
+			return nil, err
+		}
+
+		// 保存到缓存
+		d.checkCacheDir()
+		detail.SaveToCache(cacheFile)
+	}
+
+	return detail, nil
 }
