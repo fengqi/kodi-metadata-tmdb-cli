@@ -100,6 +100,21 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 		FanArt:      fanArt,
 	}
 
+	// 使用分组信息
+	if d.GroupId != "" && detail.TvEpisodeGroupDetail != nil {
+		top.Season = detail.TvEpisodeGroupDetail.GroupCount
+		top.Episode = detail.TvEpisodeGroupDetail.EpisodeCount
+
+		namedSeason = make([]NamedSeason, 0)
+		for _, item := range detail.TvEpisodeGroupDetail.Groups {
+			namedSeason = append(namedSeason, NamedSeason{
+				Number: item.Order,
+				Value:  item.Name,
+			})
+		}
+		top.NamedSeason = namedSeason
+	}
+
 	return utils.SaveNfo(d.getNfoFile(), top)
 }
 
