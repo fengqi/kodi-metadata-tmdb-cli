@@ -17,6 +17,7 @@ const (
 	ApiTvEpisode          = "/tv/%d/season/%d/episode/%d"
 	ApiTvAggregateCredits = "/tv/%d/aggregate_credits"
 	ApiTvContentRatings   = "/tv/%d/content_ratings"
+	ApiTvEpisodeGroup     = "/tv/episode_group/%s"
 	ApiMovieDetail        = "/movie/%d"
 	ImageW500             = "https://image.tmdb.org/t/p/w500"     // 压缩后的
 	ImageOriginal         = "https://image.tmdb.org/t/p/original" // 原始文件
