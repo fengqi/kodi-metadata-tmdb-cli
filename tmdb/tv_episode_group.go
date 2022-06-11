@@ -5,6 +5,7 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
 	"os"
+	"sort"
 )
 
 type TvEpisodeGroupDetail struct {
@@ -40,6 +41,27 @@ type TvEpisodeGroupEpisode struct {
 	VoteAverage    float32 `json:"vote_average"`
 	VoteCount      int     `json:"vote_count"`
 	Order          int     `json:"order"`
+}
+
+type TvEpisodeGroupEpisodeWrapper struct {
+	episodes []TvEpisodeGroupEpisode
+	by       func(l, r *TvEpisodeGroupEpisode) bool
+}
+
+func (ew TvEpisodeGroupEpisodeWrapper) Len() int {
+	return len(ew.episodes)
+}
+func (ew TvEpisodeGroupEpisodeWrapper) Swap(i, j int) {
+	ew.episodes[i], ew.episodes[j] = ew.episodes[j], ew.episodes[i]
+}
+func (ew TvEpisodeGroupEpisodeWrapper) Less(i, j int) bool {
+	return ew.by(&ew.episodes[i], &ew.episodes[j])
+}
+
+func (d TvEpisodeGroup) SortEpisode() {
+	sort.Sort(TvEpisodeGroupEpisodeWrapper{d.Episodes, func(l, r *TvEpisodeGroupEpisode) bool {
+		return l.Order < r.Order
+	}})
 }
 
 func (t *tmdb) GetTvEpisodeGroupDetail(groupId string) (*TvEpisodeGroupDetail, error) {

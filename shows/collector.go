@@ -89,8 +89,9 @@ func (c *Collector) showsDirProcess() {
 			// 剧集组的分集信息写入缓存, 供后面处理分集信息使用
 			if dir.GroupId != "" && detail.TvEpisodeGroupDetail != nil {
 				for _, group := range detail.TvEpisodeGroupDetail.Groups {
-					for _, episode := range group.Episodes {
-						se := fmt.Sprintf("s%02de%02d", group.Order, episode.EpisodeNumber)
+					group.SortEpisode()
+					for k, episode := range group.Episodes {
+						se := fmt.Sprintf("s%02de%02d", group.Order, k+1)
 						file, ok := files[group.Order][se]
 						if !ok {
 							continue
@@ -103,6 +104,7 @@ func (c *Collector) showsDirProcess() {
 							return
 						}
 
+						episode.EpisodeNumber = k + 1
 						episode.SeasonNumber = group.Order
 						bytes, err := json.MarshalIndent(episode, "", "    ")
 						if err != nil {
