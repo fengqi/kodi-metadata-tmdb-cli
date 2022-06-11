@@ -1,6 +1,7 @@
 package shows
 
 import (
+	"encoding/json"
 	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
@@ -53,7 +54,7 @@ func (c *Collector) showsDirProcess() {
 				kodi.Rpc.RefreshShows(detail.OriginalName)
 			}
 
-			files := make([]*File, 0)
+			files := make(map[int]map[string]*File, 0)
 			if dir.IsCollection {
 				subDir, err := c.scanDir(dir.GetFullDir())
 				if err != nil {
@@ -68,19 +69,59 @@ func (c *Collector) showsDirProcess() {
 						utils.Logger.ErrorF("scan collection sub dir: %s err: %v", item.OriginTitle, err)
 						continue
 					}
-					files = append(files, subFiles...)
+
+					if len(subFiles) > 0 {
+						files[item.Season] = subFiles
+					}
 				}
 			} else {
-				files, err = dir.scanShowsFile()
+				subFiles, err := dir.scanShowsFile()
+				if err != nil && len(subFiles) > 0 {
+					files[dir.Season] = subFiles
+				}
 			}
 
 			if err != nil || len(files) == 0 {
+				utils.Logger.WarningF("scan shows file: %s err: %v", dir.OriginTitle, err)
 				continue
 			}
 
+			// 剧集组的分集信息写入缓存, 供后面处理分集信息使用
+			if dir.GroupId != "" && detail.TvEpisodeGroupDetail != nil {
+				for _, group := range detail.TvEpisodeGroupDetail.Groups {
+					for _, episode := range group.Episodes {
+						se := fmt.Sprintf("s%02de%02d", group.Order, episode.EpisodeNumber)
+						file, ok := files[group.Order][se]
+						if !ok {
+							continue
+						}
+
+						cacheFile := fmt.Sprintf("%s/tmdb/%s.json", file.Dir, se)
+						f, err := os.OpenFile(cacheFile, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
+						if err != nil {
+							utils.Logger.ErrorF("save tv to cache, open_file err: %v", err)
+							return
+						}
+
+						episode.SeasonNumber = group.Order
+						bytes, err := json.MarshalIndent(episode, "", "    ")
+						if err != nil {
+							utils.Logger.ErrorF("save tv to cache, marshal struct errr: %v", err)
+							return
+						}
+
+						_, err = f.Write(bytes)
+						_ = f.Close()
+					}
+				}
+			}
+
+			// TODO 这里其实不需要开一个channel, 直接处理就可以省掉上面的缓存写入了
 			for _, file := range files {
-				file.TvId = detail.Id
-				c.fileChan <- file
+				for _, subFile := range file {
+					subFile.TvId = detail.Id
+					c.fileChan <- subFile
+				}
 			}
 		}
 	}
@@ -94,7 +135,11 @@ func (c *Collector) showsFileProcess() {
 		select {
 		case file := <-c.fileChan:
 			detail, err := file.getTvEpisodeDetail()
-			if err != nil || detail == nil || detail.FromCache {
+			if err != nil || detail == nil {
+				continue
+			}
+
+			if detail.FromCache && file.NfoExist() {
 				continue
 			}
 
@@ -241,20 +286,20 @@ func (c *Collector) scanDir(dir string) ([]*Dir, error) {
 }
 
 // ScanMovieFile 扫描可以确定的单个电影、电视机目录，返回其中的视频文件信息
-func (d *Dir) scanShowsFile() ([]*File, error) {
+func (d *Dir) scanShowsFile() (map[string]*File, error) {
 	fileInfo, err := ioutil.ReadDir(d.Dir + "/" + d.OriginTitle)
 	if err != nil {
 		return nil, err
 	}
 
-	movieFiles := make([]*File, 0)
+	movieFiles := make(map[string]*File, 0)
 	for _, file := range fileInfo {
 		movieFile := parseShowsFile(d, file)
 		if movieFile == nil {
 			continue
 		}
 
-		movieFiles = append(movieFiles, movieFile)
+		movieFiles[movieFile.SeasonEpisode] = movieFile
 	}
 
 	return movieFiles, nil

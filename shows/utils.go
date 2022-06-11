@@ -171,11 +171,31 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 		}
 	}
 
+	groupFile := baseDir + "/" + file.Name() + "/tmdb/group.txt"
+	if _, err := os.Stat(groupFile); err == nil {
+		bytes, err := ioutil.ReadFile(groupFile)
+		if err == nil {
+			showsDir.GroupId = strings.Trim(string(bytes), "\r\n ")
+		} else {
+			utils.Logger.WarningF("read group id specially file: %s err: %v", groupFile, err)
+		}
+	}
+
 	return showsDir
 }
 
 func (f *File) getNfoFile() string {
 	return f.Dir + "/" + f.getTitleWithoutSuffix() + ".nfo"
+}
+
+func (f *File) NfoExist() bool {
+	nfo := f.getNfoFile()
+
+	if info, err := os.Stat(nfo); err == nil && info.Size() > 0 {
+		return true
+	}
+
+	return false
 }
 
 func (d *Dir) getNfoFile() string {
@@ -221,6 +241,7 @@ func (d *Dir) downloadImage(detail *tmdb.TvDetail) {
 		_ = utils.DownloadFile(tmdb.ImageOriginal+detail.BackdropPath, d.GetFullDir()+"/fanart.jpg")
 	}
 
+	// TODO group的信息里可能 season poster不全
 	if len(detail.Seasons) > 0 {
 		for _, item := range detail.Seasons {
 			seasonPoster := fmt.Sprintf("season%02d-poster.jpg", item.SeasonNumber)
