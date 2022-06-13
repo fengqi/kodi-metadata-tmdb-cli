@@ -76,7 +76,12 @@ func (c *Collector) showsDirProcess() {
 				}
 			} else {
 				subFiles, err := dir.scanShowsFile()
-				if err != nil && len(subFiles) > 0 {
+				if err != nil {
+					utils.Logger.ErrorF("scan shows dir: %s err: %v", dir.OriginTitle, err)
+					continue
+				}
+
+				if len(subFiles) > 0 {
 					files[dir.Season] = subFiles
 				}
 			}
