@@ -44,12 +44,17 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 		}
 	}
 
+	episodeCount := 0
 	namedSeason := make([]NamedSeason, 0)
 	for _, item := range detail.Seasons {
+		if !d.IsCollection && item.SeasonNumber != d.Season {
+			continue
+		}
 		namedSeason = append(namedSeason, NamedSeason{
 			Number: item.SeasonNumber,
 			Value:  item.Name,
 		})
+		episodeCount = item.EpisodeCount
 	}
 
 	mpaa := "NR"
@@ -92,8 +97,8 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 		Status:      detail.Status,
 		Genre:       genre,
 		Studio:      studio,
-		Season:      detail.NumberOfSeasons,
-		Episode:     detail.NumberOfEpisodes,
+		Season:      d.Season,
+		Episode:     episodeCount,
 		UserRating:  detail.VoteAverage,
 		Actor:       actor,
 		NamedSeason: namedSeason,
