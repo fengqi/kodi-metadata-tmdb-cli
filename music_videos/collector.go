@@ -73,6 +73,7 @@ func (c *Collector) runScanner() {
 			}
 
 			for _, video := range videos {
+				// TODO 缓存ffprobe的信息
 				probe, err := ffmpeg.Probe(video.Dir + "/" + video.OriginTitle)
 				if probe != nil && err == nil {
 					video.VideoStream = probe.FirstVideoStream()
