@@ -1,6 +1,12 @@
 package music_videos
 
-import "os"
+import (
+	"encoding/json"
+	"fengqi/kodi-metadata-tmdb-cli/ffmpeg"
+	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"io/ioutil"
+	"os"
+)
 
 func (m *MusicVideo) getFullPath() string {
 	return m.Dir + "/" + m.OriginTitle
@@ -31,4 +37,32 @@ func (m *MusicVideo) ThumbExist() bool {
 	}
 
 	return false
+}
+
+func (m *MusicVideo) getProbe() (*ffmpeg.ProbeData, error) {
+	// 读取缓存
+	var probe = new(ffmpeg.ProbeData)
+	cacheFile := m.BaseDir + "/tmdb/" + m.Title + ".json"
+	if _, err := os.Stat(cacheFile); err == nil {
+		utils.Logger.DebugF("get video probe from cache: %s", cacheFile)
+		if bytes, err := ioutil.ReadFile(cacheFile); err == nil {
+			if err = json.Unmarshal(bytes, probe); err == nil {
+				return probe, nil
+			}
+		}
+	}
+
+	// 保存缓存
+	probe, err := ffmpeg.Probe(m.Dir + "/" + m.OriginTitle)
+	if err == nil {
+		utils.Logger.DebugF("save video probe to cache: %s", cacheFile)
+		f, err := os.OpenFile(cacheFile, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
+		if err == nil {
+			bytes, _ := json.MarshalIndent(probe, "", "    ")
+			_, err = f.Write(bytes)
+			_ = f.Close()
+		}
+	}
+
+	return probe, err
 }

@@ -2,10 +2,10 @@ package music_videos
 
 import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
-	"fengqi/kodi-metadata-tmdb-cli/ffmpeg"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"github.com/fsnotify/fsnotify"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -74,13 +74,21 @@ func (c *Collector) runScanner() {
 	task := func() {
 		for _, item := range c.config.MusicVideosDir {
 			videos, err := c.scanDir(item)
-			if err != nil {
+			if len(videos) == 0 || err != nil {
 				continue
 			}
 
+			// 刮削信息缓存目录
+			cacheDir := item + "/tmdb"
+			if _, err := os.Stat(cacheDir); err != nil && os.IsNotExist(err) {
+				err := os.Mkdir(cacheDir, 0755)
+				if err != nil {
+					utils.Logger.ErrorF("create probe cache: %s dir err: %v", cacheDir, err)
+				}
+			}
+
 			for _, video := range videos {
-				// TODO 缓存ffprobe的信息
-				probe, err := ffmpeg.Probe(video.Dir + "/" + video.OriginTitle)
+				probe, err := video.getProbe()
 				if probe != nil && err == nil {
 					video.VideoStream = probe.FirstVideoStream()
 					video.AudioStream = probe.FirstAudioStream()

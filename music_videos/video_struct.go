@@ -6,6 +6,7 @@ import (
 
 type MusicVideo struct {
 	Dir         string
+	BaseDir     string
 	Title       string
 	OriginTitle string
 	DateAdded   string
