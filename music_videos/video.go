@@ -1,26 +1,6 @@
 package music_videos
 
-import (
-	"fengqi/kodi-metadata-tmdb-cli/config"
-	"fengqi/kodi-metadata-tmdb-cli/ffmpeg"
-	"github.com/fsnotify/fsnotify"
-	"os"
-)
-
-type Collector struct {
-	config  *config.Config
-	watcher *fsnotify.Watcher
-	channel chan *MusicVideo
-}
-
-type MusicVideo struct {
-	Dir         string
-	Title       string
-	OriginTitle string
-	DateAdded   string
-	VideoStream *ffmpeg.Stream
-	AudioStream *ffmpeg.Stream
-}
+import "os"
 
 func (m *MusicVideo) getFullPath() string {
 	return m.Dir + "/" + m.OriginTitle

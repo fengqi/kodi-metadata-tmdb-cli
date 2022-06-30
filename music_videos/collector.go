@@ -11,6 +11,12 @@ import (
 	"time"
 )
 
+type Collector struct {
+	config  *config.Config
+	watcher *fsnotify.Watcher
+	channel chan *MusicVideo
+}
+
 var collector *Collector
 
 func RunCollector(config *config.Config) {
