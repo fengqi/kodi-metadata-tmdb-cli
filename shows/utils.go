@@ -93,10 +93,14 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 	nameStop := false
 	for _, item := range split {
 		if year := utils.IsYear(item); year > 0 {
+			// 名字带年的，比如 reply 1994
 			if showsDir.Year == 0 {
 				showsDir.Year = year
-				nameStop = true
+			} else {
+				showsDir.Title += strconv.Itoa(showsDir.Year)
+				showsDir.Year = year
 			}
+			nameStop = true
 			continue
 		}
 
