@@ -6,6 +6,7 @@
     "rating": "US",
     "api_key": "fetch at https://www.themoviedb.org/settings/api",
     "language": "zh-CN",
+    "proxy": "(support: socks5h|socks5|https|http)://user@password@127.0.0.1:1080",
     "ffmpeg_path": "/usr/local/ffmpeg-5.0.1-amd64-static/ffmpeg",
     "ffprobe_path": "/usr/local/ffmpeg-5.0.1-amd64-static/ffprobe",
     "movies_dir": [

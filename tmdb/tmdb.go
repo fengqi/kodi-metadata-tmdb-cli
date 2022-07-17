@@ -1,14 +1,21 @@
 package tmdb
 
 import (
+	"context"
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"golang.org/x/net/proxy"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
+	"net/url"
+	"os"
+	"time"
 )
 
 var Api *tmdb
+var HttpClient *http.Client
 
 const (
 	ApiSearchTv           = "/search/tv"
@@ -24,6 +31,7 @@ const (
 )
 
 func InitTmdb(config *config.Config) {
+	HttpClient = getHttpClient(config.Proxy)
 	Api = &tmdb{
 		host:     "https://api.themoviedb.org/3",
 		key:      config.ApiKey,
@@ -41,7 +49,7 @@ func (t *tmdb) request(api string, args map[string]string) ([]byte, error) {
 	args["language"] = t.language
 
 	api = t.host + api + "?" + utils.StringMapToQuery(args)
-	resp, err := http.Get(api)
+	resp, err := HttpClient.Get(api)
 	if err != nil {
 		utils.Logger.ErrorF("request tmdb: %s err: %v", api, err)
 		return nil, err
@@ -55,4 +63,44 @@ func (t *tmdb) request(api string, args map[string]string) ([]byte, error) {
 	}(resp.Body)
 
 	return ioutil.ReadAll(resp.Body)
+}
+
+// 支持 http 和 socks5 代理
+func getHttpClient(proxyConnect string) *http.Client {
+	proxyUrl, err := url.Parse(proxyConnect)
+	if err != nil || proxyConnect == "" {
+		return http.DefaultClient
+	}
+
+	if proxyUrl.Scheme == "http" || proxyUrl.Scheme == "https" {
+		_ = os.Setenv("HTTP_PROXY", proxyConnect)
+		_ = os.Setenv("HTTPS_PROXY", proxyConnect)
+
+		return http.DefaultClient
+	}
+
+	if proxyUrl.Scheme == "socks5" || proxyUrl.Scheme == "socks5h" {
+		dialContext := func(ctx context.Context, network, addr string) (net.Conn, error) {
+			dialer := &net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}
+
+			proxyDialer, err := proxy.FromURL(proxyUrl, dialer)
+			if err != nil {
+				utils.Logger.WarningF("tmdb new proxy dialer err: %v\n", err)
+				return dialer.Dial(network, addr)
+			}
+
+			return proxyDialer.Dial(network, addr)
+		}
+
+		transport := http.DefaultTransport.(*http.Transport)
+		transport.DialContext = dialContext
+		return &http.Client{
+			Transport: transport,
+		}
+	}
+
+	return http.DefaultClient
 }

@@ -10,9 +10,10 @@ type Config struct {
 	Language    string `json:"language"` // 语言
 	FfmpegPath  string `json:"ffmpeg_path"`
 	FfprobePath string `json:"ffprobe_path"`
+	Proxy       string `json:"proxy"` // 请求TMDB经过代理，支持 http、https、socks5、socks5h
 
 	CronSeconds            int      `json:"cron_seconds"`    // todo、shows、movies 分别设置
-	MoviesNfoMode          int      `json:"movies_nfo_mode"` // 电影NFO写入模式：1 movie.nfo， 2 <VideoFileName>.nfo
+	MoviesNfoMode          int      `json:"movies_nfo_mode"` // 电影NFO写入模式：1 movie.nfo，2 <VideoFileName>.nfo
 	MoviesDir              []string `json:"movies_dir"`
 	MoviesSkipFolders      []string `json:"movies_skip_folders"`
 	ShowsDir               []string `json:"shows_dir"`
