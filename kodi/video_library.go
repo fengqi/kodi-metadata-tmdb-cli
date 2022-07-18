@@ -3,24 +3,7 @@ package kodi
 import (
 	"encoding/json"
 	"fmt"
-	"sync"
 )
-
-var (
-	vlOnce sync.Once
-	vl     *VideoLibrary
-)
-
-func NewVideoLibrary() *VideoLibrary {
-	vlOnce.Do(func() {
-		vl = &VideoLibrary{
-			scanLimiter:   NewLimiter(300),
-			refreshMovie:  NewLimiter(300),
-			refreshTVShow: NewLimiter(300),
-		}
-	})
-	return vl
-}
 
 // Scans the video sources for new library items
 func (vl *VideoLibrary) Scan(req *ScanRequest) bool {
@@ -48,7 +31,7 @@ func (vl *VideoLibrary) GetMovies(req *GetMoviesRequest) *GetMoviesResponse {
 	resp := &JsonRpcResponse{}
 	err = json.Unmarshal(body, resp)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 
 	if resp != nil && resp.Result != nil {

@@ -14,7 +14,7 @@ type TvContentRatings struct {
 }
 
 type TvContentRatingsResult struct {
-	Iso31661 string `json:"iso_3166_1"`
+	ISO31661 string `json:"iso_3166_1"`
 	Rating   string `json:"rating"`
 }
 

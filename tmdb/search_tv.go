@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"sort"
 	"strconv"
 )
 
@@ -34,6 +35,30 @@ type Response struct {
 	Success       bool   `json:"success"`
 	StatusCode    int    `json:"status_code"`
 	StatusMessage string `json:"status_message"`
+}
+
+// SearchTvResultsSortWrapper 自定义排序
+type SearchTvResultsSortWrapper struct {
+	results []*SearchResults
+	by      func(l, r *SearchResults) bool
+}
+
+func (rw SearchTvResultsSortWrapper) Len() int {
+	return len(rw.results)
+}
+func (rw SearchTvResultsSortWrapper) Swap(i, j int) {
+	rw.results[i], rw.results[j] = rw.results[j], rw.results[i]
+}
+func (rw SearchTvResultsSortWrapper) Less(i, j int) bool {
+	return rw.by(rw.results[i], rw.results[j])
+}
+
+// SortResults 按流行度排序
+// TODO 是否有点太粗暴了，考虑多维度：内容完整性、年份、中英文等
+func (d SearchTvResponse) SortResults() {
+	sort.Sort(SearchTvResultsSortWrapper{d.Results, func(l, r *SearchResults) bool {
+		return l.Popularity > r.Popularity
+	}})
 }
 
 // SearchShows 搜索tmdb
@@ -94,6 +119,7 @@ func (t *tmdb) SearchShows(chsTitle, engTitle string, year int) (*SearchResults,
 		}
 
 		if len(tvResp.Results) > 0 {
+			tvResp.SortResults()
 			utils.Logger.InfoF("search tv: %s %d result count: %d, use: %v", chsTitle, year, len(tvResp.Results), tvResp.Results[0])
 			return tvResp.Results[0], nil
 		}

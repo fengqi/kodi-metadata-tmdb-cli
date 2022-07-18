@@ -5,17 +5,22 @@ type Config struct {
 	LogLevel int    `json:"log_level"`
 	LogFile  string `json:"log_file"`
 
-	Rating   string `json:"rating"`   // 内容分级
-	ApiKey   string `json:"api_key"`  // api key
-	Language string `json:"language"` // 语言
+	Rating      string `json:"rating"`   // 内容分级
+	ApiKey      string `json:"api_key"`  // api key
+	Language    string `json:"language"` // 语言
+	FfmpegPath  string `json:"ffmpeg_path"`
+	FfprobePath string `json:"ffprobe_path"`
+	Proxy       string `json:"proxy"` // 请求TMDB经过代理，支持 http、https、socks5、socks5h
 
-	MoviesNfoMode int      `json:"movies_nfo_mode"` // 电影NFO写入模式：1 movie.nfo， 2 <VideoFileName>.nfo
-	ShowsDir      []string `json:"shows_dir"`
-	MoviesDir     []string `json:"movies_dir"`
-	CronSeconds   int      `json:"cron_seconds"` // todo、shows、movies 分别设置
+	CronSeconds            int      `json:"cron_seconds"`    // todo、shows、movies 分别设置
+	MoviesNfoMode          int      `json:"movies_nfo_mode"` // 电影NFO写入模式：1 movie.nfo，2 <VideoFileName>.nfo
+	MoviesDir              []string `json:"movies_dir"`
+	MoviesSkipFolders      []string `json:"movies_skip_folders"`
+	ShowsDir               []string `json:"shows_dir"`
+	MusicVideosDir         []string `json:"music_videos_dir"`
+	MusicVideosSkipFolders []string `json:"music_videos_skip_folders"`
 
-	Kodi    KodiConfig `json:"kodi"`
-	Exclude []string   `json:"exclude`
+	Kodi KodiConfig `json:"kodi"`
 }
 
 type KodiConfig struct {

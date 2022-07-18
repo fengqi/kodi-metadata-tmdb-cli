@@ -196,3 +196,17 @@ func TestFilterCorrecting(t *testing.T) {
 		}
 	}
 }
+
+func TestIsCollection(t *testing.T) {
+	cases := map[string]bool{
+		"邪恶力量.第01-14季.Supernatural.S01-S14.1080p.Blu-Ray.AC3.x265.10bit-Yumi": true,
+		"外星也难民S01.Solar.Opposites.2020.1080p.WEB-DL.x265.AC3￡cXcY@FRDS":       false,
+	}
+
+	for title, want := range cases {
+		give := IsCollection(title)
+		if give != want {
+			t.Errorf("IsCollection(%s) give: %v, want %v", title, give, want)
+		}
+	}
+}

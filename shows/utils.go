@@ -74,41 +74,50 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 	// 过滤掉或替换歧义的内容
 	showName = utils.FilterCorrecting(showName)
 
+	// 过滤掉分段的干扰
+	if subEpisodes := utils.IsSubEpisodes(showName); subEpisodes != "" {
+		showName = strings.Replace(showName, subEpisodes, "", 1)
+	}
+
 	// 使用自定义方法切割
 	split := utils.Split(showName)
 
 	showsDir := &Dir{Dir: baseDir, OriginTitle: file.Name(), IsCollection: utils.IsCollection(file.Name())}
+
+	// 年份范围
+	if yearRange := utils.IsYearRange(showName); len(yearRange) > 0 {
+		showsDir.YearRange = yearRange
+	}
+
 	nameStart := false
 	nameStop := false
 	for _, item := range split {
-		if yearRange := utils.IsYearRange(item); len(yearRange) > 0 {
-			showsDir.YearRange = yearRange
-			continue
-		}
-
 		if year := utils.IsYear(item); year > 0 {
-			showsDir.Year = year
+			// 名字带年的，比如 reply 1994
+			if showsDir.Year == 0 {
+				showsDir.Year = year
+			} else {
+				showsDir.Title += strconv.Itoa(showsDir.Year)
+				showsDir.Year = year
+			}
 			nameStop = true
 			continue
 		}
 
 		if season := utils.IsSeason(item); len(season) > 0 {
-			s := season[1:]
-			i, err := strconv.Atoi(s)
-			if err == nil {
-				showsDir.Season = i
-				nameStop = true
-				continue
+			if !showsDir.IsCollection {
+				s := season[1:]
+				i, err := strconv.Atoi(s)
+				if err == nil {
+					showsDir.Season = i
+					nameStop = true
+				}
 			}
+			continue
 		}
 
 		if format := utils.IsFormat(item); len(format) > 0 {
 			showsDir.Format = format
-			nameStop = true
-			continue
-		}
-
-		if utils.IsSubEpisodes(item) {
 			nameStop = true
 			continue
 		}
@@ -144,14 +153,15 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 
 	if showsDir.Season == 0 && len(showsDir.YearRange) == 0 {
 		showsDir.Season = 1
-		seasonFile := baseDir + "/" + file.Name() + "/tmdb/season.txt"
-		if _, err := os.Stat(seasonFile); err == nil {
-			bytes, err := ioutil.ReadFile(seasonFile)
-			if err == nil {
-				showsDir.Season, _ = strconv.Atoi(strings.Trim(string(bytes), "\r\n "))
-			} else {
-				utils.Logger.WarningF("read season specially file: %s err: %v", seasonFile, err)
-			}
+	}
+
+	seasonFile := baseDir + "/" + file.Name() + "/tmdb/season.txt"
+	if _, err := os.Stat(seasonFile); err == nil {
+		bytes, err := ioutil.ReadFile(seasonFile)
+		if err == nil {
+			showsDir.Season, _ = strconv.Atoi(strings.Trim(string(bytes), "\r\n "))
+		} else {
+			utils.Logger.WarningF("read season specially file: %s err: %v", seasonFile, err)
 		}
 	}
 
@@ -165,11 +175,31 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 		}
 	}
 
+	groupFile := baseDir + "/" + file.Name() + "/tmdb/group.txt"
+	if _, err := os.Stat(groupFile); err == nil {
+		bytes, err := ioutil.ReadFile(groupFile)
+		if err == nil {
+			showsDir.GroupId = strings.Trim(string(bytes), "\r\n ")
+		} else {
+			utils.Logger.WarningF("read group id specially file: %s err: %v", groupFile, err)
+		}
+	}
+
 	return showsDir
 }
 
 func (f *File) getNfoFile() string {
 	return f.Dir + "/" + f.getTitleWithoutSuffix() + ".nfo"
+}
+
+func (f *File) NfoExist() bool {
+	nfo := f.getNfoFile()
+
+	if info, err := os.Stat(nfo); err == nil && info.Size() > 0 {
+		return true
+	}
+
+	return false
 }
 
 func (d *Dir) getNfoFile() string {
@@ -215,8 +245,12 @@ func (d *Dir) downloadImage(detail *tmdb.TvDetail) {
 		_ = utils.DownloadFile(tmdb.ImageOriginal+detail.BackdropPath, d.GetFullDir()+"/fanart.jpg")
 	}
 
+	// TODO group的信息里可能 season poster不全
 	if len(detail.Seasons) > 0 {
 		for _, item := range detail.Seasons {
+			if !d.IsCollection && item.SeasonNumber != d.Season {
+				continue
+			}
 			seasonPoster := fmt.Sprintf("season%02d-poster.jpg", item.SeasonNumber)
 			_ = utils.DownloadFile(tmdb.ImageOriginal+item.PosterPath, d.GetFullDir()+"/"+seasonPoster)
 		}

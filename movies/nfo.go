@@ -4,6 +4,7 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"strconv"
+	"strings"
 )
 
 func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
@@ -36,6 +37,10 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 	actor := make([]Actor, 0)
 	if detail.Credits != nil {
 		for _, item := range detail.Credits.Cast {
+			if item.ProfilePath == "" {
+				continue
+			}
+
 			actor = append(actor, Actor{
 				Name:      item.Name,
 				Role:      item.Character,
@@ -47,12 +52,25 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 	}
 
 	mpaa := "NR"
-	if detail.Releases.Countries != nil {
+	contentRating := strings.ToUpper(collector.config.Rating)
+	if detail.Releases.Countries != nil && len(detail.Releases.Countries) > 0 {
 		mpaa = detail.Releases.Countries[0].Certification
 		for _, item := range detail.Releases.Countries {
-			if item.ISO31661 == collector.config.Rating {
+			if strings.ToUpper(item.ISO31661) == contentRating {
 				mpaa = item.Certification
+				break
 			}
+		}
+	}
+
+	var fanArt *FanArt
+	if detail.BackdropPath != "" {
+		fanArt = &FanArt{
+			Thumb: []MovieThumb{
+				{
+					Preview: tmdb.ImageW500 + detail.BackdropPath,
+				},
+			},
 		}
 	}
 
@@ -76,13 +94,7 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 		Studio:     studio,
 		UserRating: detail.VoteAverage,
 		Actor:      actor,
-		FanArt: FanArt{
-			Thumb: []MovieThumb{
-				{
-					Preview: tmdb.ImageW500 + detail.BackdropPath,
-				},
-			},
-		},
+		FanArt:     fanArt,
 	}
 
 	return utils.SaveNfo(nfoFile, top)

@@ -48,7 +48,7 @@ func (d *MovieDetail) SaveToCache(file string) {
 	defer func(f *os.File) {
 		err := f.Close()
 		if err != nil {
-			panic(err)
+			utils.Logger.WarningF("save movie to cache, close file err: %v", err)
 		}
 	}(f)
 

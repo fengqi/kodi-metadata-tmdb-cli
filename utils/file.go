@@ -38,7 +38,7 @@ func DownloadFile(url string, filename string) error {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			panic(err)
+			Logger.WarningF("download file, close body err: %v", err)
 		}
 	}(resp.Body)
 
@@ -55,7 +55,7 @@ func DownloadFile(url string, filename string) error {
 	defer func(f *os.File) {
 		err := f.Close()
 		if err != nil {
-			panic(err)
+			Logger.WarningF("download file, close file err: %v", err)
 		}
 	}(f)
 

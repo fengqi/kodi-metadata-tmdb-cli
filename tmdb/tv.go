@@ -17,39 +17,41 @@ type TvDetailsRequest struct {
 }
 
 type TvDetail struct {
-	Id                  int                 `json:"id"`
-	Name                string              `json:"name"`
-	BackdropPath        string              `json:"backdrop_path"`
-	CreatedBy           []CreatedBy         `json:"created_by"`
-	EpisodeRunTime      []int               `json:"episode_run_time"`
-	FirstAirDate        string              `json:"first_air_date"`
-	LastAirDate         string              `json:"last_air_date"`
-	Genres              []Genre             `json:"genres"`
-	Homepage            string              `json:"homepage"`
-	InProduction        bool                `json:"in_production"`
-	Languages           []string            `json:"languages"`
-	LastEpisodeToAir    LastEpisodeToAir    `json:"last_episode_to_air"`
-	NextEpisodeToAir    NextEpisodeToAir    `json:"next_episode_to_air"`
-	Networks            []Network           `json:"networks"`
-	NumberOfEpisodes    int                 `json:"number_of_episodes"`
-	NumberOfSeasons     int                 `json:"number_of_seasons"`
-	OriginCountry       []string            `json:"origin_country"`
-	OriginalLanguage    string              `json:"original_language"`
-	OriginalName        string              `json:"original_name"`
-	Overview            string              `json:"overview"`
-	Popularity          float32             `json:"popularity"`
-	PosterPath          string              `json:"poster_path"`
-	ProductionCompanies []ProductionCompany `json:"production_companies"`
-	ProductionCountries []ProductionCountry `json:"production_countries"`
-	Seasons             []Season            `json:"seasons"`
-	SpokenLanguages     []SpokenLanguage    `json:"spoken_languages"`
-	Status              string              `json:"status"`
-	Tagline             string              `json:"tagline"`
-	Type                string              `json:"type"`
-	VoteAverage         float32             `json:"vote_average"`
-	VoteCount           int                 `json:"vote_count"`
-	AggregateCredits    *TvAggregateCredits `json:"aggregate_credits"`
-	FromCache           bool                `json:"from_cache"`
+	Id                   int                   `json:"id"`
+	Name                 string                `json:"name"`
+	BackdropPath         string                `json:"backdrop_path"`
+	CreatedBy            []CreatedBy           `json:"created_by"`
+	EpisodeRunTime       []int                 `json:"episode_run_time"`
+	FirstAirDate         string                `json:"first_air_date"`
+	LastAirDate          string                `json:"last_air_date"`
+	Genres               []Genre               `json:"genres"`
+	Homepage             string                `json:"homepage"`
+	InProduction         bool                  `json:"in_production"`
+	Languages            []string              `json:"languages"`
+	LastEpisodeToAir     LastEpisodeToAir      `json:"last_episode_to_air"`
+	NextEpisodeToAir     NextEpisodeToAir      `json:"next_episode_to_air"`
+	Networks             []Network             `json:"networks"`
+	NumberOfEpisodes     int                   `json:"number_of_episodes"`
+	NumberOfSeasons      int                   `json:"number_of_seasons"`
+	OriginCountry        []string              `json:"origin_country"`
+	OriginalLanguage     string                `json:"original_language"`
+	OriginalName         string                `json:"original_name"`
+	Overview             string                `json:"overview"`
+	Popularity           float32               `json:"popularity"`
+	PosterPath           string                `json:"poster_path"`
+	ProductionCompanies  []ProductionCompany   `json:"production_companies"`
+	ProductionCountries  []ProductionCountry   `json:"production_countries"`
+	Seasons              []Season              `json:"seasons"`
+	SpokenLanguages      []SpokenLanguage      `json:"spoken_languages"`
+	Status               string                `json:"status"`
+	Tagline              string                `json:"tagline"`
+	Type                 string                `json:"type"`
+	VoteAverage          float32               `json:"vote_average"`
+	VoteCount            int                   `json:"vote_count"`
+	AggregateCredits     *TvAggregateCredits   `json:"aggregate_credits"`
+	ContentRatings       *TvContentRatings     `json:"content_ratings"`
+	TvEpisodeGroupDetail *TvEpisodeGroupDetail `json:"tv_episode_group_detail"`
+	FromCache            bool                  `json:"from_cache"`
 }
 
 type Genre struct {
@@ -131,7 +133,7 @@ func (t *tmdb) GetTvDetail(id int) (*TvDetail, error) {
 
 	api := fmt.Sprintf(ApiTvDetail, id)
 	req := map[string]string{
-		"append_to_response": "aggregate_credits",
+		"append_to_response": "aggregate_credits,content_ratings",
 	}
 
 	body, err := t.request(api, req)
@@ -175,7 +177,7 @@ func (d *TvDetail) SaveToCache(file string) {
 	defer func(f *os.File) {
 		err := f.Close()
 		if err != nil {
-			panic(err)
+			utils.Logger.WarningF("save tv to cache, close file err: %v", err)
 		}
 	}(f)
 

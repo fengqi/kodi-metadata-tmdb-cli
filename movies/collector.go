@@ -123,9 +123,16 @@ func (c *Collector) runCronScan() {
 			}
 		}
 
-		vl := kodi.NewVideoLibrary()
-		vl.Scan(nil)
-		vl.Clean(nil)
+		// 等队列处理完成，最多等待5分钟
+		for i := 0; i < 300; i++ {
+			if len(c.channel) == 0 {
+				break
+			}
+			time.Sleep(time.Second * 1)
+		}
+
+		kodi.Rpc.VideoLibrary.Scan(nil)
+		kodi.Rpc.VideoLibrary.Clean(nil)
 	}
 
 	task()
@@ -172,4 +179,32 @@ func (c *Collector) scanDir(dir string) ([]*Movie, error) {
 	}
 
 	return movieDirs, nil
+}
+
+func (c *Collector) skipFolders(path, filename string) bool {
+	base := filepath.Base(path)
+	for _, item := range c.config.MoviesSkipFolders {
+		if item == base || item == filename {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *Collector) listFilesAndFolders(path string) []os.FileInfo {
+	list := make([]os.FileInfo, 0)
+	pathInfo, err := ioutil.ReadDir(path)
+	if err != nil {
+		return list
+	}
+
+	for _, file := range pathInfo {
+		if c.skipFolders(path, file.Name()) {
+			continue
+		}
+
+		list = append(list, file)
+	}
+
+	return list
 }
