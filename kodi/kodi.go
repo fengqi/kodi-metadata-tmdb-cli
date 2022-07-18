@@ -14,6 +14,7 @@ import (
 )
 
 var Rpc *JsonRpc
+var httpClient *http.Client
 
 func InitKodi(c config.KodiConfig) {
 	Rpc = &JsonRpc{
@@ -25,6 +26,11 @@ func InitKodi(c config.KodiConfig) {
 			refreshMovie:  NewLimiter(300),
 			refreshTVShow: NewLimiter(300),
 		},
+	}
+
+	httpClient = &http.Client{
+		Timeout:   time.Duration(c.Timeout) * time.Second,
+		Transport: &http.Transport{},
 	}
 }
 
@@ -174,12 +180,7 @@ func (r *JsonRpc) request(rpcReq *JsonRpcRequest) ([]byte, error) {
 	req.SetBasicAuth(r.config.Username, r.config.Password)
 	req.Header.Set("Content-Type", "application/json")
 
-	client := http.Client{
-		Timeout:   time.Duration(r.config.Timeout) * time.Second,
-		Transport: http.DefaultTransport,
-	}
-
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		utils.Logger.WarningF("request kodi Do err: %v", err)
 		return nil, err
