@@ -6,9 +6,10 @@ import (
 )
 
 type JsonRpc struct {
-	config config.KodiConfig
-	queue  map[string]*JsonRpcRequest
-	lock   *sync.RWMutex
+	config       config.KodiConfig
+	queue        map[string]*JsonRpcRequest
+	lock         *sync.RWMutex
+	VideoLibrary *VideoLibrary
 }
 
 // JsonRpcRequest JsonRpc 请求参数

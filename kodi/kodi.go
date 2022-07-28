@@ -14,12 +14,23 @@ import (
 )
 
 var Rpc *JsonRpc
+var httpClient *http.Client
 
 func InitKodi(c config.KodiConfig) {
 	Rpc = &JsonRpc{
 		config: c,
 		queue:  make(map[string]*JsonRpcRequest, 0),
 		lock:   &sync.RWMutex{},
+		VideoLibrary: &VideoLibrary{
+			scanLimiter:   NewLimiter(300),
+			refreshMovie:  NewLimiter(300),
+			refreshTVShow: NewLimiter(300),
+		},
+	}
+
+	httpClient = &http.Client{
+		Timeout:   time.Duration(c.Timeout) * time.Second,
+		Transport: &http.Transport{},
 	}
 }
 
@@ -100,14 +111,14 @@ func (r *JsonRpc) RefreshMovie(name string) bool {
 		Properties: []string{"title", "originaltitle", "year"},
 	}
 
-	kodiMoviesResp := vl.GetMovies(kodiMoviesReq)
+	kodiMoviesResp := r.VideoLibrary.GetMovies(kodiMoviesReq)
 	if kodiMoviesResp == nil || kodiMoviesResp.Limits.Total == 0 {
 		return false
 	}
 
 	for _, item := range kodiMoviesResp.Movies {
 		utils.Logger.DebugF("find movie by name: %s, refresh detail", item.Title)
-		vl.RefreshMovie(&RefreshMovieRequest{MovieId: item.MovieId, IgnoreNfo: false})
+		r.VideoLibrary.RefreshMovie(&RefreshMovieRequest{MovieId: item.MovieId, IgnoreNfo: false})
 	}
 
 	return true
@@ -127,7 +138,8 @@ func (r *JsonRpc) RefreshShows(name string) bool {
 		Properties: []string{"title", "originaltitle", "year"},
 	}
 
-	kodiShowsResp := vl.GetTVShows(kodiTvShowsReq)
+	kodiShowsResp := r.VideoLibrary.GetTVShows(kodiTvShowsReq)
+	// TODO kodi没开机导致搜索失败, 改完ping成功后在搜索然后刷新
 	if kodiShowsResp == nil || kodiShowsResp.Limits.Total == 0 {
 		return false
 	}
@@ -135,7 +147,7 @@ func (r *JsonRpc) RefreshShows(name string) bool {
 	for _, item := range kodiShowsResp.TvShows {
 		utils.Logger.DebugF("find tv shows by name :%s, refresh detail", item.Title)
 		kodiRefreshReq := &RefreshTVShowRequest{TvShowId: item.TvShowId, IgnoreNfo: false, RefreshEpisodes: true}
-		vl.RefreshTVShow(kodiRefreshReq)
+		r.VideoLibrary.RefreshTVShow(kodiRefreshReq)
 	}
 
 	return true
@@ -155,31 +167,29 @@ func (r *JsonRpc) request(rpcReq *JsonRpcRequest) ([]byte, error) {
 
 	jsonBytes, err := json.Marshal(rpcReq)
 	if err != nil {
+		utils.Logger.WarningF("request kodi marshal err: %v", err)
 		return nil, err
 	}
 
 	req, err := http.NewRequest(http.MethodPost, r.config.JsonRpc, bytes.NewReader(jsonBytes))
 	if err != nil {
+		utils.Logger.WarningF("request kodi NewRequest err: %v", err)
 		return nil, err
 	}
 
 	req.SetBasicAuth(r.config.Username, r.config.Password)
 	req.Header.Set("Content-Type", "application/json")
 
-	client := http.Client{
-		Timeout:   time.Duration(r.config.Timeout) * time.Second,
-		Transport: http.DefaultTransport,
-	}
-
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
+		utils.Logger.WarningF("request kodi Do err: %v", err)
 		return nil, err
 	}
 
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			panic(err)
+			utils.Logger.WarningF("request kodi closeBody err: %v", err)
 		}
 	}(resp.Body)
 

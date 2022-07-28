@@ -36,17 +36,16 @@
 - [x] 实时监听新添加的电影、电视剧
 - [x] 命名不规范或有歧义的电影、电视剧支持手动指定id
 - [x] 命名不规范的电视剧支持指定season
-- [ ] 命名不规范的电视剧支持指定season和episode的对应，如：E21-34其实是第2季
 - [x] 从TMDB获取电影内容分级信息
-- [ ] 从TMDB获取电视剧内容分级信息
+- [x] 从TMDB获取电视剧内容分级信息
 - [ ] 多个搜索结果尝试根据特征信息确定
-- [ ] 适配其他数据源，如：imdb、tvdb等以补全部分tmdb没有的数据
 - [x] 支持电影合集
 - [x] 支持电视剧合集
 - [x] 更新NFO文件后触发Kodi更新数据
 - [x] 支持单个电影文件和目录
 - [x] 识别蓝光电影目录
 - [x] 支持 .part 和 .!qb 文件
+- [x] 支持 TMDB 剧集组
 
 # 参考
 
@@ -58,3 +57,7 @@
 - TMDB Api V3 https://developers.themoviedb.org/3/getting-started/introduction
 - File system notifications for Go https://github.com/fsnotify/fsnotify
 - tinyMediaManager https://gitlab.com/tinyMediaManager/tinyMediaManager
+
+# 感谢
+![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)
+
