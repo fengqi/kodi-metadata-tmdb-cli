@@ -58,7 +58,7 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 	}
 
 	mpaa := "NR"
-	contentRating := strings.ToUpper(collector.config.Rating)
+	contentRating := strings.ToUpper(collector.config.Tmdb.Rating)
 	if detail.ContentRatings != nil && len(detail.ContentRatings.Results) > 0 {
 		mpaa = detail.ContentRatings.Results[0].Rating
 		for _, item := range detail.ContentRatings.Results {

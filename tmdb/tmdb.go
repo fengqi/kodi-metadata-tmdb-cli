@@ -30,13 +30,13 @@ const (
 	ImageOriginal         = "https://image.tmdb.org/t/p/original" // 原始文件
 )
 
-func InitTmdb(config *config.Config) {
+func InitTmdb(config *config.TmdbConfig) {
 	HttpClient = getHttpClient(config.Proxy)
 	Api = &tmdb{
-		host:     "https://api.themoviedb.org/3",
+		host:     config.Host,
 		key:      config.ApiKey,
 		language: config.Language,
-		rating:   "US",
+		rating:   config.Rating,
 	}
 }
 

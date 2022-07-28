@@ -6,7 +6,7 @@ import (
 )
 
 type JsonRpc struct {
-	config       config.KodiConfig
+	config       *config.KodiConfig
 	queue        map[string]*JsonRpcRequest
 	lock         *sync.RWMutex
 	VideoLibrary *VideoLibrary

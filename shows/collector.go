@@ -158,6 +158,10 @@ func (c *Collector) showsFileProcess() {
 
 // 目录监听，新增的增加到队列，删除的移除监听
 func (c *Collector) runWatcher() {
+	if !c.config.Collector.Watcher {
+		return
+	}
+
 	utils.Logger.Debug("run shows watcher")
 
 	for {
@@ -222,10 +226,10 @@ func (c *Collector) runWatcher() {
 
 // 目录扫描，定时任务，扫描到的目录和文件增加到队列
 func (c *Collector) runCronScan() {
-	utils.Logger.DebugF("run shows scan cron_seconds: %d", c.config.CronSeconds)
+	utils.Logger.DebugF("run shows scan cron_seconds: %d", c.config.Collector.CronSeconds)
 
 	task := func() {
-		for _, item := range c.config.ShowsDir {
+		for _, item := range c.config.Collector.ShowsDir {
 			// 扫描到的每个目录都添加到watcher，因为还不能只监听根目录
 			err := c.watcher.Add(item)
 			utils.Logger.DebugF("runCronScan add shows dir: %s to watcher", item)
@@ -254,7 +258,7 @@ func (c *Collector) runCronScan() {
 	}
 
 	task()
-	ticker := time.NewTicker(time.Second * time.Duration(c.config.CronSeconds))
+	ticker := time.NewTicker(time.Second * time.Duration(c.config.Collector.CronSeconds))
 	for {
 		select {
 		case <-ticker.C:

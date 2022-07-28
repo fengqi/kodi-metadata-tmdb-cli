@@ -16,9 +16,9 @@ import (
 var Rpc *JsonRpc
 var httpClient *http.Client
 
-func InitKodi(c config.KodiConfig) {
+func InitKodi(config *config.KodiConfig) {
 	Rpc = &JsonRpc{
-		config: c,
+		config: config,
 		queue:  make(map[string]*JsonRpcRequest, 0),
 		lock:   &sync.RWMutex{},
 		VideoLibrary: &VideoLibrary{
@@ -29,7 +29,7 @@ func InitKodi(c config.KodiConfig) {
 	}
 
 	httpClient = &http.Client{
-		Timeout:   time.Duration(c.Timeout) * time.Second,
+		Timeout:   time.Duration(config.Timeout) * time.Second,
 		Transport: &http.Transport{},
 	}
 }

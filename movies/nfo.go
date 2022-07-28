@@ -52,7 +52,7 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 	}
 
 	mpaa := "NR"
-	contentRating := strings.ToUpper(collector.config.Rating)
+	contentRating := strings.ToUpper(collector.config.Tmdb.Rating)
 	if detail.Releases.Countries != nil && len(detail.Releases.Countries) > 0 {
 		mpaa = detail.Releases.Countries[0].Certification
 		for _, item := range detail.Releases.Countries {

@@ -69,10 +69,10 @@ func (c *Collector) runProcessor() {
 
 // 运行扫描器
 func (c *Collector) runScanner() {
-	utils.Logger.DebugF("run music video scanner cron_seconds: %d", c.config.CronSeconds)
+	utils.Logger.DebugF("run music video scanner cron_seconds: %d", c.config.Collector.CronSeconds)
 
 	task := func() {
-		for _, item := range c.config.MusicVideosDir {
+		for _, item := range c.config.Collector.MusicVideosDir {
 			videos, err := c.scanDir(item)
 			if len(videos) == 0 || err != nil {
 				continue
@@ -103,7 +103,7 @@ func (c *Collector) runScanner() {
 	}
 
 	task()
-	ticker := time.NewTicker(time.Second * time.Duration(c.config.CronSeconds))
+	ticker := time.NewTicker(time.Second * time.Duration(c.config.Collector.CronSeconds))
 	for {
 		select {
 		case <-ticker.C:
@@ -152,7 +152,7 @@ func (c *Collector) scanDir(dir string) ([]*MusicVideo, error) {
 
 func (c *Collector) skipFolders(path, filename string) bool {
 	base := filepath.Base(path)
-	for _, item := range c.config.MusicVideosSkipFolders {
+	for _, item := range c.config.Collector.SkipFolders {
 		if item == base || item == filename {
 			return true
 		}

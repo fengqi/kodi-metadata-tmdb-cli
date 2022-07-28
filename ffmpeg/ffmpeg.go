@@ -2,7 +2,7 @@ package ffmpeg
 
 import "fengqi/kodi-metadata-tmdb-cli/config"
 
-func InitFfmpeg(config *config.Config) {
+func InitFfmpeg(config *config.FfmpegConfig) {
 	SetFfmpeg(config.FfmpegPath)
 	SetFfprobe(config.FfprobePath)
 }
