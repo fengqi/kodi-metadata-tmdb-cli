@@ -45,7 +45,7 @@ func (c *Collector) runWatcher() {
 func (c *Collector) runProcessor() {
 	utils.Logger.Debug("run music videos processor")
 
-	limiter := make(chan struct{}, runtime.NumCPU())
+	limiter := make(chan struct{}, c.config.Ffmpeg.MaxWorker)
 	for {
 		select {
 		case video := <-c.channel:
