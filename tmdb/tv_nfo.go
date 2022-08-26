@@ -130,7 +130,7 @@ func (d *TvDetail) SaveToNfo(nfo string) error {
 				Name:  item.Name,
 				Role:  item.Roles[0].Character,
 				Order: item.Order,
-				Thumb: ImageW500 + item.ProfilePath,
+				Thumb: Api.GetImageOriginal(item.ProfilePath),
 			})
 		}
 	}
@@ -164,7 +164,7 @@ func (d *TvDetail) SaveToNfo(nfo string) error {
 		FanArt: FanArt{
 			Thumb: []ShowThumb{
 				{
-					Preview: ImageOriginal + d.BackdropPath,
+					Preview: Api.GetImageOriginal(d.BackdropPath),
 				},
 			},
 		},

@@ -45,7 +45,7 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 				Name:      item.Name,
 				Role:      item.Character,
 				Order:     item.Order,
-				Thumb:     tmdb.ImageW500 + item.ProfilePath,
+				Thumb:     tmdb.Api.GetImageW500(item.ProfilePath),
 				SortOrder: item.CastId,
 			})
 		}
@@ -68,7 +68,7 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 		fanArt = &FanArt{
 			Thumb: []MovieThumb{
 				{
-					Preview: tmdb.ImageW500 + detail.BackdropPath,
+					Preview: tmdb.Api.GetImageW500(detail.BackdropPath),
 				},
 			},
 		}

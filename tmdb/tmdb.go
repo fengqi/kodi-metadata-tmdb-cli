@@ -18,26 +18,35 @@ var Api *tmdb
 var HttpClient *http.Client
 
 const (
-	ApiSearchTv           = "/search/tv"
-	ApiSearchMovie        = "/search/movie"
-	ApiTvDetail           = "/tv/%d"
-	ApiTvEpisode          = "/tv/%d/season/%d/episode/%d"
-	ApiTvAggregateCredits = "/tv/%d/aggregate_credits"
-	ApiTvContentRatings   = "/tv/%d/content_ratings"
-	ApiTvEpisodeGroup     = "/tv/episode_group/%s"
-	ApiMovieDetail        = "/movie/%d"
-	ImageW500             = "https://image.tmdb.org/t/p/w500"     // 压缩后的
-	ImageOriginal         = "https://image.tmdb.org/t/p/original" // 原始文件
+	ApiSearchTv           = "/3/search/tv"
+	ApiSearchMovie        = "/3/search/movie"
+	ApiTvDetail           = "/3/tv/%d"
+	ApiTvEpisode          = "/3/tv/%d/season/%d/episode/%d"
+	ApiTvAggregateCredits = "/3/tv/%d/aggregate_credits"
+	ApiTvContentRatings   = "/3/tv/%d/content_ratings"
+	ApiTvEpisodeGroup     = "/3/tv/episode_group/%s"
+	ApiMovieDetail        = "/3/movie/%d"
 )
 
 func InitTmdb(config *config.TmdbConfig) {
 	HttpClient = getHttpClient(config.Proxy)
 	Api = &tmdb{
-		host:     config.Host,
-		key:      config.ApiKey,
-		language: config.Language,
-		rating:   config.Rating,
+		apiHost:   config.ApiHost,
+		apiKey:    config.ApiKey,
+		imageHost: config.ImageHost,
+		language:  config.Language,
+		rating:    config.Rating,
 	}
+}
+
+// GetImageW500 压缩后的图片
+func (t *tmdb) GetImageW500(path string) string {
+	return Api.imageHost + "/t/p/w500" + path
+}
+
+// GetImageOriginal 原始图片
+func (t *tmdb) GetImageOriginal(path string) string {
+	return Api.imageHost + "/t/p/original" + path
 }
 
 func (t *tmdb) request(api string, args map[string]string) ([]byte, error) {
@@ -45,10 +54,10 @@ func (t *tmdb) request(api string, args map[string]string) ([]byte, error) {
 		args = make(map[string]string, 0)
 	}
 
-	args["api_key"] = t.key
+	args["api_key"] = t.apiKey
 	args["language"] = t.language
 
-	api = t.host + api + "?" + utils.StringMapToQuery(args)
+	api = t.apiHost + api + "?" + utils.StringMapToQuery(args)
 	resp, err := HttpClient.Get(api)
 	if err != nil {
 		utils.Logger.ErrorF("request tmdb: %s err: %v", api, err)

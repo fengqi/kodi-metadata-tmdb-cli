@@ -180,7 +180,7 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 		} else if name := d.VideoFileNameWithoutSuffix(); name != "" {
 			posterFile = name + "-poster.jpg"
 		}
-		err = utils.DownloadFile(tmdb.ImageOriginal+detail.PosterPath, posterFile)
+		err = utils.DownloadFile(tmdb.Api.GetImageOriginal(detail.PosterPath), posterFile)
 	}
 
 	if len(detail.BackdropPath) > 0 {
@@ -189,9 +189,9 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 			suffix := utils.IsVideo(d.OriginTitle)
 			fanArtFile = d.Dir + "/" + strings.Replace(d.OriginTitle, "."+suffix, "", 1) + "-fanart.jpg"
 		} else if name := d.VideoFileNameWithoutSuffix(); name != "" {
-			fanArtFile = name + "-poster.jpg"
+			fanArtFile = name + "-fanart.jpg"
 		}
-		err = utils.DownloadFile(tmdb.ImageOriginal+detail.BackdropPath, fanArtFile)
+		err = utils.DownloadFile(tmdb.Api.GetImageOriginal(detail.BackdropPath), fanArtFile)
 	}
 
 	return err

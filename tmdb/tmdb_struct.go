@@ -1,8 +1,9 @@
 package tmdb
 
 type tmdb struct {
-	host     string
-	key      string
-	language string
-	rating   string
+	apiHost   string
+	apiKey    string
+	imageHost string
+	language  string
+	rating    string
 }

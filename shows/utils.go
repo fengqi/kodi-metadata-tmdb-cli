@@ -238,11 +238,11 @@ func (d *Dir) downloadImage(detail *tmdb.TvDetail) {
 	utils.Logger.DebugF("download %s images", d.Title)
 
 	if len(detail.PosterPath) > 0 {
-		_ = utils.DownloadFile(tmdb.ImageOriginal+detail.PosterPath, d.GetFullDir()+"/poster.jpg")
+		_ = utils.DownloadFile(tmdb.Api.GetImageOriginal(detail.PosterPath), d.GetFullDir()+"/poster.jpg")
 	}
 
 	if len(detail.BackdropPath) > 0 {
-		_ = utils.DownloadFile(tmdb.ImageOriginal+detail.BackdropPath, d.GetFullDir()+"/fanart.jpg")
+		_ = utils.DownloadFile(tmdb.Api.GetImageOriginal(detail.BackdropPath), d.GetFullDir()+"/fanart.jpg")
 	}
 
 	// TODO group的信息里可能 season poster不全
@@ -252,7 +252,7 @@ func (d *Dir) downloadImage(detail *tmdb.TvDetail) {
 				continue
 			}
 			seasonPoster := fmt.Sprintf("season%02d-poster.jpg", item.SeasonNumber)
-			_ = utils.DownloadFile(tmdb.ImageOriginal+item.PosterPath, d.GetFullDir()+"/"+seasonPoster)
+			_ = utils.DownloadFile(tmdb.Api.GetImageOriginal(item.PosterPath), d.GetFullDir()+"/"+seasonPoster)
 		}
 	}
 }
@@ -261,6 +261,6 @@ func (d *Dir) downloadImage(detail *tmdb.TvDetail) {
 func (f *File) downloadImage(d *tmdb.TvEpisodeDetail) {
 	file := f.getTitleWithoutSuffix()
 	if len(d.StillPath) > 0 {
-		_ = utils.DownloadFile(tmdb.ImageOriginal+d.StillPath, f.Dir+"/"+file+"-thumb.jpg")
+		_ = utils.DownloadFile(tmdb.Api.GetImageOriginal(d.StillPath), f.Dir+"/"+file+"-thumb.jpg")
 	}
 }

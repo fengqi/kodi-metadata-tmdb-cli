@@ -29,11 +29,12 @@ type FfmpegConfig struct {
 }
 
 type TmdbConfig struct {
-	Host     string `json:"host"`     // TMDB 接口地址
-	ApiKey   string `json:"api_key"`  // api key
-	Language string `json:"language"` // 语言
-	Rating   string `json:"rating"`   // 内容分级
-	Proxy    string `json:"proxy"`    // 请求TMDB经过代理，支持 http、https、socks5、socks5h
+	ApiHost   string `json:"api_host"`   // TMDB 接口地址
+	ApiKey    string `json:"api_key"`    // api key
+	ImageHost string `json:"image_host"` // 图片地址
+	Language  string `json:"language"`   // 语言
+	Rating    string `json:"rating"`     // 内容分级
+	Proxy     string `json:"proxy"`      // 请求TMDB经过代理，支持 http、https、socks5、socks5h
 }
 
 type CollectorConfig struct {

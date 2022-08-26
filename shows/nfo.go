@@ -39,7 +39,7 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 				Name:  item.Name,
 				Role:  item.Roles[0].Character,
 				Order: item.Order,
-				Thumb: tmdb.ImageW500 + item.ProfilePath,
+				Thumb: tmdb.Api.GetImageW500(item.ProfilePath),
 			})
 		}
 	}
@@ -74,7 +74,7 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 		fanArt = &FanArt{
 			Thumb: []ShowThumb{
 				{
-					Preview: tmdb.ImageW500 + detail.BackdropPath,
+					Preview: tmdb.Api.GetImageW500(detail.BackdropPath),
 				},
 			},
 		}
@@ -133,7 +133,7 @@ func (f *File) saveToNfo(episode *tmdb.TvEpisodeDetail) error {
 			Name:      item.Name,
 			Role:      item.Character,
 			Order:     item.Order,
-			Thumb:     tmdb.ImageW500 + item.ProfilePath,
+			Thumb:     tmdb.Api.GetImageW500(item.ProfilePath),
 			SortOrder: item.Order,
 		})
 	}
@@ -167,7 +167,7 @@ func (f *File) saveToNfo(episode *tmdb.TvEpisodeDetail) error {
 		Actor:          actor,
 		Thumb: Thumb{
 			Aspect:  "thumb",
-			Preview: tmdb.ImageOriginal + episode.StillPath,
+			Preview: tmdb.Api.GetImageOriginal(episode.StillPath),
 		},
 		Ratings: rating,
 		Aired:   episode.AirDate,
