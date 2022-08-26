@@ -19,6 +19,10 @@ func IsFile(file string) bool {
 }
 
 func FileExist(file string) bool {
+	if _, err := os.Stat(file); err == nil {
+		return true
+	}
+
 	return false
 }
 

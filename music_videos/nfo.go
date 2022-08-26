@@ -54,6 +54,8 @@ func (m *MusicVideo) saveToNfo() error {
 	return utils.SaveNfo(nfo, top)
 }
 
+// 缩略图提取
+// TODO 截取开始位置可配置
 func (m *MusicVideo) drawThumb() error {
 	if m.ThumbExist() {
 		return nil

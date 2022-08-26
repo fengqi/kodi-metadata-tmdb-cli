@@ -14,7 +14,7 @@ func (c *Collector) parseVideoFile(dir string, file fs.FileInfo) *MusicVideo {
 	}
 
 	baseDir := ""
-	for _, base := range c.config.MusicVideosDir {
+	for _, base := range c.config.Collector.MusicVideosDir {
 		if dir == baseDir || strings.Contains(dir, base) {
 			baseDir = base
 			break

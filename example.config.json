@@ -1,56 +1,55 @@
 {
-    "log_mode": 1,
-    "log_level": 0,
-    "log_file": "/tmp/tmdb-collector.log",
-    "cron_seconds": 3600,
-    "rating": "US",
-    "api_key": "fetch at https://www.themoviedb.org/settings/api",
-    "language": "zh-CN",
-    "proxy": "(support: socks5h|socks5|https|http)://user@password@127.0.0.1:1080",
-    "ffmpeg_path": "/usr/local/ffmpeg-5.0.1-amd64-static/ffmpeg",
-    "ffprobe_path": "/usr/local/ffmpeg-5.0.1-amd64-static/ffprobe",
-    "movies_dir": [
-        "/volume1/down/movies"
-    ],
-    "movies_nfo_mode": 2,
-    "movies_skip_folders": [
-        ".",
-        "..",
-        "tmdb",
-        "@eaDir",
-        "CERTIFICATE",
-        "$RECYCLE.BIN",
-        "RECYCLER",
-        "SYSTEM VOLUME INFORMATION",
-        "@EADIR",
-        "ADV_OBJ",
-        "PLEX VERSIONS",
-        "Sample"
-    ],
-    "shows_dir": [
-        "/volume1/down/shows"
-    ],
-    "shows_skip_folders": [
-        ".",
-        "..",
-        "tmdb",
-        "@eaDir"
-    ],
-    "music_videos_dir": [
-        "/volume1/down/videos"
-    ],
-    "music_videos_skip_folders": [
-        ".",
-        "..",
-        "tmdb",
-        "@eaDir",
-        "gallery"
-    ],
+    "log": {
+        "mode": 1,
+        "level": 2,
+        "file": "/tmp/tmdb-collector.log"
+    },
+    "tmdb": {
+        "host": "https://api.themoviedb.org/3",
+        "api_key": "a52fb1bab999ef3918b3e2864d584cb6",
+        "language": "zh-CN",
+        "proxy": "",
+        "rating": "US"
+    },
+    "collector": {
+        "watcher": true,
+        "cron_seconds": 3600,
+        "skip_folders": [
+            ".",
+            "..",
+            "tmdb",
+            "@eaDir",
+            "CERTIFICATE",
+            "$RECYCLE.BIN",
+            "RECYCLER",
+            "SYSTEM VOLUME INFORMATION",
+            "@EADIR",
+            "ADV_OBJ",
+            "PLEX VERSIONS",
+            "Sample",
+            "gallery"
+        ],
+        "movies_nfo_mode": 2,
+        "movies_dir": [
+            "/volume1/down/movies"
+        ],
+        "shows_dir": [
+            "/volume1/down/shows"
+        ],
+        "music_videos_dir": [
+            "/volume1/down/videos"
+        ]
+    },
     "kodi": {
         "enable": true,
         "json_rpc": "http://192.168.1.123:8080/jsonrpc",
         "timeout": 1,
         "username": "kodi",
-        "password": ""
+        "password": "123456"
+    },
+    "ffmpeg": {
+        "max_worker": 4,
+        "ffmpeg": "/usr/local/ffmpeg-5.0.1-amd64-static/ffmpeg",
+        "ffprobe": "/usr/local/ffmpeg-5.0.1-amd64-static/ffprobe"
     }
 }

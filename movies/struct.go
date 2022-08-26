@@ -7,9 +7,9 @@ import (
 
 type Collector struct {
 	config  *config.Config
+	tmdb    *config.TmdbConfig
 	watcher *fsnotify.Watcher
 	channel chan *Movie
-	nfoMode int
 }
 
 // Movie 电影目录详情，从名字分析

@@ -26,7 +26,6 @@ func RunCollector(config *config.Config) {
 		config:  config,
 		watcher: watcher,
 		channel: make(chan *Movie, 100),
-		nfoMode: config.MoviesNfoMode,
 	}
 
 	go collector.runWatcher()
@@ -36,10 +35,14 @@ func RunCollector(config *config.Config) {
 
 // 开启文件夹监听
 func (c *Collector) runWatcher() {
+	if !c.config.Collector.Watcher {
+		return
+	}
+
 	utils.Logger.Debug("run movies watcher")
 
 	// 监听顶级目录
-	for _, item := range c.config.MoviesDir {
+	for _, item := range c.config.Collector.MoviesDir {
 		utils.Logger.DebugF("add movies dir: %s to watcher", item)
 
 		err := c.watcher.Add(item)
@@ -97,7 +100,7 @@ func (c *Collector) runMoviesProcess() {
 				continue
 			}
 
-			_ = dir.saveToNfo(detail, c.nfoMode)
+			_ = dir.saveToNfo(detail, c.config.Collector.MoviesNfoMode)
 			_ = dir.downloadImage(detail)
 			_ = kodi.Rpc.RefreshMovie(detail.OriginalTitle)
 		}
@@ -106,10 +109,10 @@ func (c *Collector) runMoviesProcess() {
 
 // 运行定时扫描
 func (c *Collector) runCronScan() {
-	utils.Logger.DebugF("run movies scan cron_seconds: %d", c.config.CronSeconds)
+	utils.Logger.DebugF("run movies scan cron_seconds: %d", c.config.Collector.CronSeconds)
 
 	task := func() {
-		for _, item := range c.config.MoviesDir {
+		for _, item := range c.config.Collector.MoviesDir {
 			utils.Logger.DebugF("movies scan ticker trigger")
 
 			movieDirs, err := c.scanDir(item)
@@ -136,7 +139,7 @@ func (c *Collector) runCronScan() {
 	}
 
 	task()
-	ticker := time.NewTicker(time.Second * time.Duration(c.config.CronSeconds))
+	ticker := time.NewTicker(time.Second * time.Duration(c.config.Collector.CronSeconds))
 	for {
 		select {
 		case <-ticker.C:
@@ -183,7 +186,7 @@ func (c *Collector) scanDir(dir string) ([]*Movie, error) {
 
 func (c *Collector) skipFolders(path, filename string) bool {
 	base := filepath.Base(path)
-	for _, item := range c.config.MoviesSkipFolders {
+	for _, item := range c.config.Collector.SkipFolders {
 		if item == base || item == filename {
 			return true
 		}

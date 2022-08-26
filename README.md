@@ -10,42 +10,21 @@
 2. 根据平台[下载](https://github.com/fengqi/kodi-metadata-tmdb-cli/releases)对应的文件，配置 `config.json`并后台运行。
 
 > 本程序必须和下载软件（如Transmission、µTorrent等）运行在同一个环境，不然实时监听模式不生效。
-
-# 配置字段说明
-
-- log_level 日志等级，0-4分别对应：DEBUG、INFO、WARNING、ERROR、FATAL
-- log_file 日志文件路径
-- cron_seconds 定时扫描间隔，单位（秒）
-- rating 内容分级国家
-- api_key TMDB 开发者token，请参考[Wiki](https://github.com/fengqi/kodi-metadata-tmdb-cli/wiki)申请
-- language 刮削语言，中文可以填：zh-CN
-- movies_nfo_mode 电影NFO写入模式：1 movie.nfo、2 \<VideoFileName\>.nfo，媒体库如果勾选“电影在以片名命名的单独目录中”填1否则填2，建议使用1。
-- shows_dir 电视剧、电视节目目录，可以多个
-- movies_dir 电影目录，可以多个
-- kodi.json_rpc kodi rpc地址
-- kodi.timeout 调用kodi超时时间，单位秒
-- kodi.username kodi rpc认证用户名
-- kodi.password kodi rpc认证用密码
+> 详细配置参考 [配置总览](https://github.com/fengqi/kodi-metadata-tmdb-cli/wiki/%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6)
 
 # 功能列表
 
-- [x] 从TMDB获取电影、电视剧、电视剧分集信息
-- [x] 从TMDB获取电影、电视剧演员列表信息
-- [x] 从TMDB下载封面、海报等图片
-- [x] 定时扫描电影、电视剧
-- [x] 实时监听新添加的电影、电视剧
+- [x] 从TMDB获取电视剧、电视剧分集、电视剧合集、电视剧剧集组、电影、电影合集信息
+- [x] 从TMDB获取演员列表、封面图片、海报图片、内容分级
+- [x] 定时扫描电影、电视剧、音乐视频文件和目录
+- [x] 实时监听新添加的电影、电视剧、音乐视频文件和目录
 - [x] 命名不规范或有歧义的电影、电视剧支持手动指定id
 - [x] 命名不规范的电视剧支持指定season
-- [x] 从TMDB获取电影内容分级信息
-- [x] 从TMDB获取电视剧内容分级信息
+- [x] 多个电视剧剧集组支持指定分组id
 - [ ] 多个搜索结果尝试根据特征信息确定
-- [x] 支持电影合集
-- [x] 支持电视剧合集
 - [x] 更新NFO文件后触发Kodi更新数据
-- [x] 支持单个电影文件和目录
-- [x] 识别蓝光电影目录
 - [x] 支持 .part 和 .!qb 文件
-- [x] 支持 TMDB 剧集组
+- [x] 音乐视频文件使用ffmpeg提取缩略图和视频音频信息
 
 # 参考
 
@@ -60,4 +39,3 @@
 
 # 感谢
 ![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)
-

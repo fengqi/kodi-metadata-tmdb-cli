@@ -25,10 +25,10 @@ func init() {
 func main() {
 	c := config.LoadConfig(configFile)
 
-	utils.InitLogger(c.LogMode, c.LogLevel, c.LogFile)
-	tmdb.InitTmdb(c)
+	utils.InitLogger(c.Log.Mode, c.Log.Level, c.Log.File)
+	tmdb.InitTmdb(c.Tmdb)
 	kodi.InitKodi(c.Kodi)
-	ffmpeg.InitFfmpeg(c)
+	ffmpeg.InitFfmpeg(c.Ffmpeg)
 
 	wg := &sync.WaitGroup{}
 	wg.Add(4)
