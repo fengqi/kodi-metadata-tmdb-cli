@@ -5,7 +5,7 @@
         "file": "/tmp/tmdb-collector.log"
     },
     "tmdb": {
-        "api_host": "https://api.themoviedb.org/3",
+        "api_host": "https://api.themoviedb.org",
         "image_host": "https://image.tmdb.org",
         "api_key": "a52fb1bab999ef3918b3e2864d584cb6",
         "language": "zh-CN",
