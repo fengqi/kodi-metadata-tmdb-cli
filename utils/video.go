@@ -121,7 +121,7 @@ func init() {
 		delimiterMap[item] = struct{}{}
 	}
 
-	episodeMatch, _ = regexp.Compile("([sS]([0-9]+))?[ ._x-]?([eEpP]([0-9]+))")
+	episodeMatch, _ = regexp.Compile("([sS]([0-9]+))?[ ._x-]?([eEpP ]([0-9]+))")
 	collectionMatch, _ = regexp.Compile("[sS](0|)[0-9]+-[sS](0|)[0-9]+")
 	subEpisodesMatch, _ = regexp.Compile("[eE](0|)[0-9]+-[eE](0|)[0-9]+")
 	yearRangeLikeMatch, _ = regexp.Compile("[12][0-9]{3}-[12][0-9]{3}")
