@@ -45,6 +45,7 @@ var (
 	}
 	tmpSuffix = []string{
 		".part",
+		".!qB",
 		".!qb",
 		".!ut",
 	}
