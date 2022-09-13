@@ -177,7 +177,7 @@ func (d *Dir) getTvEpisodeGroupDetail() (*tmdb.TvEpisodeGroupDetail, error) {
 		detail.FromCache = false
 		detail, err = tmdb.Api.GetTvEpisodeGroupDetail(d.GroupId)
 		if err != nil {
-			utils.Logger.ErrorF("get tv episode group: %s detail err: %v", d.GroupId)
+			utils.Logger.ErrorF("get tv episode group: %s detail err: %v", d.GroupId, err)
 			return nil, err
 		}
 
