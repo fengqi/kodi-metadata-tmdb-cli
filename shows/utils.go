@@ -234,6 +234,7 @@ func (f *File) getCacheDir() string {
 }
 
 // 下载电视剧的相关图片
+// TODO 下载失败后，没有重复以及很长一段时间都不会再触发下载
 func (d *Dir) downloadImage(detail *tmdb.TvDetail) {
 	utils.Logger.DebugF("download %s images", d.Title)
 
