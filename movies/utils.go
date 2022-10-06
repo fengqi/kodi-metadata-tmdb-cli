@@ -209,6 +209,9 @@ func (m *Movie) getNfoFile(mode int) string {
 	}
 
 	if m.IsBluRay {
+		if utils.FileExist(m.GetFullDir() + "/BDMV/MovieObject.bdmv") {
+			return m.GetFullDir() + "/BDMV/MovieObject.nfo"
+		}
 		return m.GetFullDir() + "/BDMV/index.nfo"
 	}
 
