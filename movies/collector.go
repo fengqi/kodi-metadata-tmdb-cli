@@ -96,13 +96,16 @@ func (c *Collector) runMoviesProcess() {
 
 			dir.checkCacheDir()
 			detail, err := dir.getMovieDetail()
-			if err != nil || detail == nil || detail.FromCache {
+			if err != nil || detail == nil {
 				continue
 			}
 
-			_ = dir.saveToNfo(detail, c.config.Collector.MoviesNfoMode)
+			if !detail.FromCache {
+				_ = dir.saveToNfo(detail, c.config.Collector.MoviesNfoMode)
+				_ = kodi.Rpc.RefreshMovie(detail.OriginalTitle)
+			}
+
 			_ = dir.downloadImage(detail)
-			_ = kodi.Rpc.RefreshMovie(detail.OriginalTitle)
 		}
 	}
 }

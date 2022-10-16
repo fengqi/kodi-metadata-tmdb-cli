@@ -50,9 +50,10 @@ func (c *Collector) showsDirProcess() {
 
 			if !detail.FromCache {
 				_ = dir.saveToNfo(detail)
-				dir.downloadImage(detail)
 				kodi.Rpc.RefreshShows(detail.OriginalName)
 			}
+
+			dir.downloadImage(detail)
 
 			files := make(map[int]map[string]*File, 0)
 			if dir.IsCollection {
