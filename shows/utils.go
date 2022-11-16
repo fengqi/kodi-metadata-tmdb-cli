@@ -79,15 +79,20 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 		showName = strings.Replace(showName, subEpisodes, "", 1)
 	}
 
-	// 使用自定义方法切割
-	split := utils.Split(showName)
-
-	showsDir := &Dir{Dir: baseDir, OriginTitle: file.Name(), IsCollection: utils.IsCollection(file.Name())}
+	showsDir := &Dir{
+		Dir:          baseDir,
+		OriginTitle:  file.Name(),
+		IsCollection: utils.IsCollection(file.Name()),
+	}
 
 	// 年份范围
 	if yearRange := utils.IsYearRange(showName); len(yearRange) > 0 {
 		showsDir.YearRange = yearRange
+		showName = strings.Replace(showName, yearRange, "", 1)
 	}
+
+	// 使用自定义方法切割
+	split := utils.Split(showName)
 
 	nameStart := false
 	nameStop := false
