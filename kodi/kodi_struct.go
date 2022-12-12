@@ -17,7 +17,7 @@ type JsonRpcRequest struct {
 	Id      string      `json:"id"`
 	JsonRpc string      `json:"jsonrpc"`
 	Method  string      `json:"method"`
-	Params  interface{} `json:"params"`
+	Params  interface{} `json:"params,omitempty"`
 }
 
 // JsonRpcResponse JsonRpc 返回参数
