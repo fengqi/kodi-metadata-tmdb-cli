@@ -139,7 +139,7 @@ func init() {
 
 // IsCollection 是否是合集，如S01-S03季
 func IsCollection(name string) bool {
-	return collectionMatch.MatchString(name)
+	return collectionMatch.MatchString(name) || yearRangeMatch.MatchString(name)
 }
 
 // IsSubEpisodes 是否是分段集，如：World.Heritage.In.China.E01-E38.2008.CCTVHD.x264.AC3.720p-CMCT
