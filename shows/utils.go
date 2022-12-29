@@ -43,7 +43,7 @@ func parseShowsFile(dir *Dir, file fs.FileInfo) *File {
 	}
 	utils.Logger.InfoF("find season: %d episode: %d %s", snum, enum, fileName)
 	if len(se) == 0 || snum == 0 || enum == 0 {
-		utils.Logger.WarningF("seaon or episode not find")
+		utils.Logger.WarningF("seaon or episode not find: %s", fileName)
 		return nil
 	}
 

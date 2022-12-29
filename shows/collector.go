@@ -2,7 +2,6 @@ package shows
 
 import (
 	"encoding/json"
-	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
@@ -272,11 +271,12 @@ func (c *Collector) runCronScan() {
 
 // 扫描普通目录，返回其中的电视剧
 func (c *Collector) scanDir(dir string) ([]*Dir, error) {
+	movieDirs := make([]*Dir, 0)
+
 	if f, err := os.Stat(dir); err != nil || !f.IsDir() {
-		return nil, errors.New(fmt.Sprintf("scan err: %v or %s is not dir", err, dir))
+		return movieDirs, nil
 	}
 
-	movieDirs := make([]*Dir, 0)
 	fileInfo, err := ioutil.ReadDir(dir)
 	if err != nil {
 		utils.Logger.ErrorF("scan dir: %s err: %v", dir, err)
