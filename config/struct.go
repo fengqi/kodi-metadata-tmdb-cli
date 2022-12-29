@@ -9,11 +9,12 @@ type Config struct {
 }
 
 type KodiConfig struct {
-	Enable   bool   `json:"enable"`   // 是否开启 kodi 通知
-	JsonRpc  string `json:"json_rpc"` // kodi rpc 路径
-	Timeout  int    `json:"timeout"`  // 连接kodi超时时间
-	Username string `json:"username"` // rpc 用户名
-	Password string `json:"password"` // rpc 密码
+	Enable       bool   `json:"enable"`        // 是否开启 kodi 通知
+	CleanLibrary bool   `json:"clean_library"` // 是否清理媒体库
+	JsonRpc      string `json:"json_rpc"`      // kodi rpc 路径
+	Timeout      int    `json:"timeout"`       // 连接kodi超时时间
+	Username     string `json:"username"`      // rpc 用户名
+	Password     string `json:"password"`      // rpc 密码
 }
 
 type LogConfig struct {

@@ -43,6 +43,7 @@
     },
     "kodi": {
         "enable": true,
+        "clean_library": false,
         "json_rpc": "http://192.168.1.123:8080/jsonrpc",
         "timeout": 1,
         "username": "kodi",

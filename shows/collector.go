@@ -255,7 +255,9 @@ func (c *Collector) runCronScan() {
 		}
 
 		kodi.Rpc.VideoLibrary.Scan(nil)
-		kodi.Rpc.VideoLibrary.Clean(nil)
+		if c.config.Kodi.CleanLibrary {
+			kodi.Rpc.VideoLibrary.Clean(nil)
+		}
 	}
 
 	task()
