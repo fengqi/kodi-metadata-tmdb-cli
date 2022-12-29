@@ -123,7 +123,7 @@ func (l *logger) printf(level logLevel, format string, v ...interface{}) {
 	if level >= l.level {
 		l.write(level, fmt.Sprintf(format, v...))
 		if l.mode != LogModeLogfile {
-			log.Printf(format, v...)
+			log.Printf(levelMap[level]+" "+format, v...)
 		}
 	}
 }
