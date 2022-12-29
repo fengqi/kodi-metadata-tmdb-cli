@@ -254,7 +254,7 @@ func (d *Dir) downloadImage(detail *tmdb.TvDetail) {
 	// TODO group的信息里可能 season poster不全
 	if len(detail.Seasons) > 0 {
 		for _, item := range detail.Seasons {
-			if !d.IsCollection && item.SeasonNumber != d.Season {
+			if !d.IsCollection && item.SeasonNumber != d.Season || item.PosterPath == "" {
 				continue
 			}
 			seasonPoster := fmt.Sprintf("season%02d-poster.jpg", item.SeasonNumber)
