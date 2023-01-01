@@ -2,6 +2,14 @@ package music_videos
 
 import "encoding/xml"
 
+var ThumbImagesFormat = []string{
+	"jpg",
+	"jpeg",
+	"gif",
+	"png",
+	"bmp",
+}
+
 type MusicVideoNfo struct {
 	XMLName    xml.Name  `xml:"musicvideo"`
 	Title      string    `xml:"title"`
