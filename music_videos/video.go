@@ -1,9 +1,12 @@
 package music_videos
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"fengqi/kodi-metadata-tmdb-cli/ffmpeg"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 )
@@ -42,7 +45,9 @@ func (m *MusicVideo) ThumbExist() bool {
 func (m *MusicVideo) getProbe() (*ffmpeg.ProbeData, error) {
 	// 读取缓存
 	var probe = new(ffmpeg.ProbeData)
-	cacheFile := m.BaseDir + "/tmdb/" + m.Title + ".json"
+
+	fileMd5 := m.GetNameMd5()
+	cacheFile := m.BaseDir + "/tmdb/" + fileMd5 + ".json"
 	if _, err := os.Stat(cacheFile); err == nil {
 		utils.Logger.DebugF("get video probe from cache: %s", cacheFile)
 		if bytes, err := ioutil.ReadFile(cacheFile); err == nil {
@@ -65,4 +70,11 @@ func (m *MusicVideo) getProbe() (*ffmpeg.ProbeData, error) {
 	}
 
 	return probe, err
+}
+
+func (m *MusicVideo) GetNameMd5() string {
+	h := md5.New()
+	_, _ = io.WriteString(h, m.getFullPath())
+	sum := fmt.Sprintf("%x", h.Sum(nil))
+	return sum
 }
