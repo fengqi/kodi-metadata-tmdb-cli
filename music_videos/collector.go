@@ -51,10 +51,6 @@ func (c *Collector) runProcessor() {
 		case video := <-c.channel:
 			utils.Logger.DebugF("receive music video task: %v", video)
 
-			if video.NfoExist() && video.ThumbExist() {
-				continue
-			}
-
 			limiter <- struct{}{}
 			go func() {
 				err := video.drawThumb()
@@ -88,12 +84,19 @@ func (c *Collector) runScanner() {
 			}
 
 			for _, video := range videos {
+				if video.NfoExist() && video.ThumbExist() {
+					continue
+				}
+
 				probe, err := video.getProbe()
-				if probe != nil && err == nil {
-					video.VideoStream = probe.FirstVideoStream()
-					video.AudioStream = probe.FirstAudioStream()
-				} else {
+				if err != nil {
 					utils.Logger.WarningF("parse video %s probe err: %v", video.Dir+"/"+video.OriginTitle, err)
+					continue
+				}
+
+				video.VideoStream = probe.FirstVideoStream()
+				video.AudioStream = probe.FirstAudioStream()
+				if video.VideoStream == nil || video.AudioStream == nil {
 					continue
 				}
 
