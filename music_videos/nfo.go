@@ -45,10 +45,10 @@ func (m *MusicVideo) saveToNfo() error {
 		Thumb: []Thumb{
 			{
 				Aspect:  "thumb",
-				Preview: m.Title + ".jpg",
+				Preview: m.Title + "-thumb.jpg",
 			},
 		},
-		Poster: m.Title + ".jpg",
+		Poster: m.Title + "-thumb.jpg",
 	}
 
 	return utils.SaveNfo(nfo, top)
@@ -61,21 +61,32 @@ func (m *MusicVideo) drawThumb() error {
 		return nil
 	}
 
+	// 如果有视频文件同名后缀的图片，尝试直接使用
+	filename := m.getFullPath()
+	thumb := m.getNfoThumb()
+	for _, i := range ThumbImagesFormat {
+		check := m.Dir + "/" + m.Title + "." + i
+		if utils.FileExist(check) {
+			n, err := utils.CopyFile(check, thumb)
+			if n > 0 && err == nil {
+				return nil
+			}
+		}
+	}
+
+	// 对于大文件，尝试偏移30秒，防止读到的是黑屏白屏或者logo
 	ss := "00:00:00"
 	second, _ := strconv.ParseFloat(m.VideoStream.Duration, 10)
 	if m.VideoStream != nil && second > 30 {
 		ss = "00:00:30"
 	}
 
-	filename := m.getFullPath()
 	base := filepath.Base(filename)
 	if (len(base) > 2 && base[0:2] == "03") || (len(base) > 5 && strings.ToLower(base[0:5]) == "heyzo") {
 		ss = "00:01:10"
 	}
 
-	thumb := m.getNfoThumb()
 	utils.Logger.InfoF("draw thumb start: %s, %s to %s", ss, m.OriginTitle, thumb)
-
 	err := ffmpeg.Frame(filename, thumb, "-ss", ss)
 	if err != nil {
 		utils.Logger.WarningF("draw thumb err: %v", err)
