@@ -13,7 +13,7 @@ import (
 // 解析目录, 返回详情
 // TODO 跳过电视剧，放错目录了
 func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
-	movieName := file.Name()
+	movieName := utils.FilterTmpSuffix(file.Name())
 
 	// 过滤无用文件
 	if movieName == "@eaDir" || movieName == "tmdb" || movieName == "metadata" || movieName[0:1] == "." {
