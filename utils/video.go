@@ -155,7 +155,7 @@ func IsVideo(name string) string {
 		return ""
 	}
 
-	suffix := split[len(split)-1]
+	suffix := strings.ToLower(split[len(split)-1])
 	if _, ok := videoMap[suffix]; ok {
 		return suffix
 	}
