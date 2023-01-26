@@ -65,10 +65,18 @@ var (
 		":",
 		"：",
 	}
+	channel = []string{
+		"OAD",
+		"OVA",
+		"BD",
+		"DVD",
+		"SP",
+	}
 	videoMap     = map[string]struct{}{}
 	sourceMap    = map[string]struct{}{}
 	studioMap    = map[string]struct{}{}
 	delimiterMap = map[string]struct{}{}
+	channelMap   = map[string]struct{}{}
 
 	chsNumber = map[string]int{
 		"零": 0,
@@ -120,6 +128,10 @@ func init() {
 
 	for _, item := range delimiter {
 		delimiterMap[item] = struct{}{}
+	}
+
+	for _, item := range channel {
+		channelMap[item] = struct{}{}
 	}
 
 	episodeMatch, _ = regexp.Compile("([sS]([0-9]+))?[ ._x-]?([eEpP ]([0-9]+))")
@@ -210,6 +222,14 @@ func IsSource(name string) string {
 // IsStudio 发行公司
 func IsStudio(name string) string {
 	if _, ok := studioMap[strings.ToLower(name)]; ok {
+		return name
+	}
+	return ""
+}
+
+// IsChannel 发行渠道
+func IsChannel(name string) string {
+	if _, ok := channelMap[strings.ToUpper(name)]; ok {
 		return name
 	}
 	return ""

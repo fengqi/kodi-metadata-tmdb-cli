@@ -35,6 +35,7 @@ func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 
 	// 使用自定义方法切割
 	split := utils.Split(movieName)
+
 	// 文件名识别
 	nameStart := false
 	nameStop := false
@@ -66,6 +67,11 @@ func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 		}
 
 		if studio := utils.IsStudio(item); len(studio) > 0 {
+			nameStop = true
+			continue
+		}
+
+		if channel := utils.IsChannel(item); len(channel) > 0 {
 			nameStop = true
 			continue
 		}

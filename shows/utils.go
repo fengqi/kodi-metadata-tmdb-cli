@@ -139,6 +139,11 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 			continue
 		}
 
+		if channel := utils.IsChannel(item); len(channel) > 0 {
+			nameStop = true
+			continue
+		}
+
 		if !nameStart {
 			nameStart = true
 			nameStop = false
