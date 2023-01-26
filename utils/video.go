@@ -387,7 +387,7 @@ func IsResolution(name string) string {
 }
 
 // Split 影视目录或文件名切割
-// TODO 对于web-dl, h.264, blu-ray这样的可以不切割
+// TODO 对于web-dl、h.264、blu-ray、5.1、DTS-HD这样的可以不切割
 func Split(name string) []string {
 	runeStr := []rune(name)
 	split := make([]string, 0)
