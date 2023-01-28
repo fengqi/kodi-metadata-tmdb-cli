@@ -10,6 +10,7 @@ type JsonRpc struct {
 	queue        map[string]*JsonRpcRequest
 	lock         *sync.RWMutex
 	VideoLibrary *VideoLibrary
+	Files        *Files
 }
 
 // JsonRpcRequest JsonRpc 请求参数

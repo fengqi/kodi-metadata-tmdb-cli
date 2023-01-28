@@ -26,6 +26,7 @@ func InitKodi(config *config.KodiConfig) {
 			refreshMovie:  NewLimiter(300),
 			refreshTVShow: NewLimiter(300),
 		},
+		Files: &Files{},
 	}
 
 	httpClient = &http.Client{
