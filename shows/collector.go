@@ -41,6 +41,8 @@ func (c *Collector) showsDirProcess() {
 	for {
 		select {
 		case dir := <-c.dirChan:
+			utils.Logger.DebugF("shows dir process receive task: %v", dir.OriginTitle)
+
 			dir.checkCacheDir()
 			detail, err := dir.getTvDetail()
 			if err != nil || detail == nil {
@@ -259,7 +261,7 @@ func (c *Collector) runCronScan() {
 		}
 	}
 
-	task()
+	task() // TODO 启动后立即运行可控
 	ticker := time.NewTicker(time.Second * time.Duration(c.config.Collector.CronSeconds))
 	for {
 		select {
