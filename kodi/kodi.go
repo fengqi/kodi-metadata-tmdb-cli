@@ -125,21 +125,8 @@ func (r *JsonRpc) RefreshMovie(name string) bool {
 }
 
 func (r *JsonRpc) RefreshShows(name string) bool {
-	kodiTvShowsReq := &GetTVShowsRequest{
-		Filter: &Filter{
-			Field:    "originaltitle",
-			Operator: "is",
-			Value:    name,
-		},
-		Limit: &Limits{
-			Start: 0,
-			End:   5,
-		},
-		Properties: []string{"title", "originaltitle", "year"},
-	}
-
-	kodiShowsResp := r.VideoLibrary.GetTVShows(kodiTvShowsReq)
-	// TODO kodi没开机导致搜索失败, 改完ping成功后在搜索然后刷新
+	// TODO kodi没开机导致搜索失败, 改完ping成功后再搜索然后刷新
+	kodiShowsResp := r.VideoLibrary.GetTVShowsByField("originaltitle", "is", name)
 	if kodiShowsResp == nil || kodiShowsResp.Limits.Total == 0 {
 		return false
 	}

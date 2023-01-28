@@ -2,6 +2,7 @@ package kodi
 
 import (
 	"encoding/json"
+	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
 )
 
@@ -56,6 +57,41 @@ func (vl *VideoLibrary) RefreshMovie(req *RefreshMovieRequest) bool {
 		Method: "VideoLibrary.RefreshMovie",
 		Params: req,
 	})
+}
+
+// GetTVShowsByField 自定义根据字段搜索，例如：GetTVShowsByField("title", "is", "去有风的地方")
+func (vl *VideoLibrary) GetTVShowsByField(field, operator, value string) *GetTVShowsResponse {
+	req := &GetTVShowsRequest{
+		Filter: &Filter{
+			Field:    field,
+			Operator: operator,
+			Value:    value,
+		},
+		Limit: &Limits{
+			Start: 0,
+			End:   5,
+		},
+		Properties: []string{"title", "originaltitle", "year", "file"},
+	}
+
+	body, err := Rpc.request(&JsonRpcRequest{Method: "VideoLibrary.GetTVShows", Params: req})
+	if err != nil {
+		utils.Logger.WarningF("GetTVShowsByField(%s, %s, %s) err: %v", field, operator, value, err)
+		return nil
+	}
+
+	resp := &JsonRpcResponse{}
+	_ = json.Unmarshal(body, resp)
+	if resp != nil && resp.Result != nil {
+		jsonBytes, _ := json.Marshal(resp.Result)
+
+		moviesResp := &GetTVShowsResponse{}
+		_ = json.Unmarshal(jsonBytes, moviesResp)
+
+		return moviesResp
+	}
+
+	return nil
 }
 
 // GetTVShows Retrieve all tv shows
