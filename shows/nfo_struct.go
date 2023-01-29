@@ -136,6 +136,7 @@ type UniqueId struct {
 	XMLName xml.Name `xml:"uniqueid"`
 	Type    string   `xml:"type,attr"`
 	Default bool     `xml:"default,attr"`
+	Value   string   `xml:",chardata"`
 }
 
 type Actor struct {

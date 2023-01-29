@@ -87,8 +87,9 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 		SortTitle:     detail.Name,
 		Plot:          detail.Overview,
 		UniqueId: UniqueId{
-			Type:    strconv.Itoa(detail.Id),
+			Type:    "tmdb",
 			Default: true,
+			Value:   strconv.Itoa(detail.Id),
 		},
 		Id:          detail.Id,
 		Premiered:   detail.FirstAirDate,
