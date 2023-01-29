@@ -131,6 +131,19 @@ func (vl *VideoLibrary) RefreshTVShow(req *RefreshTVShowRequest) bool {
 	})
 }
 
+// RefreshEpisode 刷新剧集信息
+// https://kodi.wiki/view/JSON-RPC_API/v13#VideoLibrary.RefreshEpisode
+func (vl *VideoLibrary) RefreshEpisode(episodeId int) bool {
+	_, err := Rpc.request(&JsonRpcRequest{
+		Method: "VideoLibrary.RefreshEpisode",
+		Params: &RefreshEpisodeRequest{
+			EpisodeId: episodeId,
+		},
+	})
+
+	return err == nil
+}
+
 // Clean 清理资料库
 func (vl *VideoLibrary) Clean(req *CleanRequest) bool {
 	if req == nil {
@@ -141,4 +154,31 @@ func (vl *VideoLibrary) Clean(req *CleanRequest) bool {
 		Method: "VideoLibrary.Clean",
 		Params: req,
 	})
+}
+
+// GetEpisodes 获取电视剧剧集列表
+func (vl *VideoLibrary) GetEpisodes(tvShowId, season int, filter *Filter) ([]*Episode, error) {
+	bytes, err := Rpc.request(&JsonRpcRequest{
+		Method: "VideoLibrary.GetEpisodes",
+		Params: &GetEpisodesRequest{
+			TvShowId: tvShowId,
+			Season:   season,
+			Filter:   filter,
+		},
+	})
+
+	resp := &JsonRpcResponse{}
+	err = json.Unmarshal(bytes, resp)
+	if err != nil || resp.Result == nil {
+		return nil, err
+	}
+
+	jsonBytes, _ := json.Marshal(resp.Result)
+	episodesResp := &GetEpisodesResponse{}
+	err = json.Unmarshal(jsonBytes, episodesResp)
+	if err != nil {
+		return nil, err
+	}
+
+	return episodesResp.Episodes, nil
 }

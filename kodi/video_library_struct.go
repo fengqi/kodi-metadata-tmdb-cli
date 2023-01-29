@@ -73,3 +73,23 @@ type MovieDetails struct {
 	Label         string `json:"label"`
 	Year          int    `json:"year"`
 }
+
+type GetEpisodesRequest struct {
+	TvShowId int     `json:"tvshowid"`
+	Season   int     `json:"season"`
+	Filter   *Filter `json:"filter"`
+}
+
+type GetEpisodesResponse struct {
+	Limits   LimitsResult `json:"limits"`
+	Episodes []*Episode   `json:"episodes"`
+}
+
+type Episode struct {
+	EpisodeId int    `json:"episodeid"`
+	Label     string `json:"label"`
+}
+
+type RefreshEpisodeRequest struct {
+	EpisodeId int `json:"episodeid"`
+}
