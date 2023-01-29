@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// GetTvDetail 获取详情
+// GetTvDetail 获取详情 TODO err 只返回不输出，由调用方自行处理
 func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
 	var err error
 	var detail = new(tmdb.TvDetail)
