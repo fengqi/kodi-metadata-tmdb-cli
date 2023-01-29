@@ -178,7 +178,7 @@ func (c *Collector) runWatcher() {
 				continue
 			}
 
-			if event.Op&fsnotify.Remove == fsnotify.Remove {
+			if event.Has(fsnotify.Remove) {
 				err := c.watcher.Remove(filepath.Dir(event.Name))
 				if err != nil {
 					utils.Logger.WarningF("remove shows watcher: %s error: %v", event.Name, err)
@@ -186,7 +186,7 @@ func (c *Collector) runWatcher() {
 				continue
 			}
 
-			if event.Op&fsnotify.Create != fsnotify.Create {
+			if !event.Has(fsnotify.Create) {
 				continue
 			}
 

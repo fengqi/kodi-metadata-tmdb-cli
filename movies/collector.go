@@ -57,7 +57,7 @@ func (c *Collector) runWatcher() {
 				return
 			}
 
-			if event.Op&fsnotify.Create != fsnotify.Create {
+			if !event.Has(fsnotify.Create) {
 				continue
 			}
 
