@@ -216,6 +216,16 @@ func (d *Dir) getNfoFile() string {
 	return d.GetFullDir() + "/tvshow.nfo"
 }
 
+func (d *Dir) NfoExist() bool {
+	nfo := d.getNfoFile()
+
+	if info, err := os.Stat(nfo); err == nil && info.Size() > 0 {
+		return true
+	}
+
+	return false
+}
+
 func (f *File) getTitleWithoutSuffix() string {
 	return strings.Replace(f.OriginTitle, "."+f.Suffix, "", 1)
 }
