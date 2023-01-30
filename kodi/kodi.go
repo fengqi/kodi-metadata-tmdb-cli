@@ -24,7 +24,7 @@ func InitKodi(config *config.KodiConfig) {
 		refreshLock:  &sync.RWMutex{},
 		scanLock:     &sync.RWMutex{},
 		VideoLibrary: &VideoLibrary{
-			scanLimiter:   NewLimiter(600),
+			scanLimiter:   NewLimiter(300),
 			refreshMovie:  NewLimiter(60),
 			refreshTVShow: NewLimiter(60),
 		},
