@@ -2,7 +2,7 @@ package kodi
 
 // GetSourcesRequest Files.GetSources Parameters
 type GetSourcesRequest struct {
-	Method string `json:"method"`
+	Media string `json:"media"`
 }
 
 // GetSourcesResponse Files.GetSources Returns

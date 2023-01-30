@@ -8,11 +8,11 @@ import (
 type Files struct{}
 
 // GetSources 获取kodi添加的媒体源
-func (f *Files) GetSources(media string) *GetSourcesResponse {
+func (f *Files) GetSources(media string) []*FileSource {
 	body, _ := Rpc.request(&JsonRpcRequest{
 		Method: "Files.GetSources",
 		Params: GetSourcesRequest{
-			Method: media,
+			Media: media,
 		},
 	})
 
@@ -26,9 +26,10 @@ func (f *Files) GetSources(media string) *GetSourcesResponse {
 	if resp != nil && resp.Result != nil {
 		jsonBytes, _ := json.Marshal(resp.Result)
 		sourcesResp := &GetSourcesResponse{}
-		_ = json.Unmarshal(jsonBytes, sourcesResp)
-
-		return sourcesResp
+		err = json.Unmarshal(jsonBytes, sourcesResp)
+		if err == nil {
+			return sourcesResp.Sources
+		}
 	}
 
 	return nil
