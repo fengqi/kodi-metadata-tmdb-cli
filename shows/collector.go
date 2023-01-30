@@ -47,7 +47,7 @@ func (c *Collector) showsDirProcess() {
 				continue
 			}
 
-			if !detail.FromCache {
+			if !detail.FromCache || !dir.NfoExist() {
 				_ = dir.saveToNfo(detail)
 				kodi.Rpc.AddRefreshTask(kodi.TaskRefreshTVShow, detail.OriginalName)
 			}
@@ -135,7 +135,7 @@ func (c *Collector) showsDirProcess() {
 // 单个剧集处理
 func (c *Collector) showsFileProcess(originalName string, showsFile *File) bool {
 	episodeDetail, err := showsFile.getTvEpisodeDetail()
-	if err != nil || episodeDetail == nil || episodeDetail.FromCache {
+	if err != nil || episodeDetail == nil || episodeDetail.FromCache && showsFile.NfoExist() {
 		return false
 	}
 
