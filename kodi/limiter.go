@@ -19,7 +19,7 @@ func NewLimiter(second int) *Limiter {
 
 func (l *Limiter) take() bool {
 	var t time.Time
-	value, ok := l.lock.LoadOrStore("time", time.Time{})
+	value, ok := l.lock.Load("time")
 	if !ok {
 		t = time.Now().Add(time.Second * time.Duration(-l.second))
 	} else {
