@@ -14,6 +14,8 @@ func (r *JsonRpc) AddRefreshTask(task TaskRefresh, value string) {
 		return
 	}
 
+	utils.Logger.DebugF("AddRefreshTask %d %s", task, value)
+
 	r.refreshLock.Lock()
 	defer r.refreshLock.Unlock()
 
@@ -91,6 +93,7 @@ func (r *JsonRpc) RefreshMovie(name string) bool {
 func (r *JsonRpc) RefreshShows(name string) bool {
 	kodiShowsResp := r.VideoLibrary.GetTVShowsByField("originaltitle", "contains", name)
 	if kodiShowsResp == nil || kodiShowsResp.Limits.Total == 0 {
+		r.VideoLibrary.Scan("", true) // 新剧集，刷新变扫描库，不知道在Kodi的路径所以路径为空
 		return false
 	}
 
