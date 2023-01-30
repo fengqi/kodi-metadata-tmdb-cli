@@ -38,8 +38,13 @@ func (r *JsonRpc) ConsumerScanTask() {
 	}
 
 	for {
-		if len(r.scanQueue) == 0 || !r.VideoLibrary.scanLimiter.take() || !r.Ping() || r.VideoLibrary.IsScanning() {
-			time.Sleep(time.Second * 60)
+		if len(r.scanQueue) == 0 || !r.Ping() || r.VideoLibrary.IsScanning() {
+			time.Sleep(time.Second * 30)
+			continue
+		}
+
+		if !r.VideoLibrary.scanLimiter.take() {
+			time.Sleep(time.Second * 30)
 			continue
 		}
 

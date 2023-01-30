@@ -33,7 +33,7 @@ func (r *JsonRpc) ConsumerRefreshTask() {
 
 	for {
 		if len(r.refreshQueue) == 0 || !r.Ping() || r.VideoLibrary.IsScanning() {
-			time.Sleep(time.Second * 60)
+			time.Sleep(time.Second * 30)
 			continue
 		}
 
