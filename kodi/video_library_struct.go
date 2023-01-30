@@ -64,6 +64,7 @@ type TvShowDetails struct {
 	TvShowId      int    `json:"tvshowid"`
 	Title         string `json:"title"`
 	OriginalTitle string `json:"originaltitle"`
+	File          string `json:"file"`
 }
 
 type MovieDetails struct {
