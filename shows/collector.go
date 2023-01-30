@@ -22,15 +22,13 @@ func RunCollector(config *config.Config) {
 	}
 
 	collector = &Collector{
-		config:   config,
-		watcher:  watcher,
-		dirChan:  make(chan *Dir, 100),
-		fileChan: make(chan *File, 100),
+		config:  config,
+		watcher: watcher,
+		dirChan: make(chan *Dir, 100),
 	}
 
 	go collector.runWatcher()
 	go collector.showsDirProcess()
-	go collector.showsFileProcess()
 	collector.runCronScan()
 }
 
@@ -40,7 +38,7 @@ func (c *Collector) showsDirProcess() {
 
 	for {
 		select {
-		case dir := <-c.dirChan:
+		case dir := <-c.dirChan: // todo dir处理挪到独立的方法
 			utils.Logger.DebugF("shows dir process receive task: %v", dir.OriginTitle)
 
 			dir.checkCacheDir()
@@ -51,13 +49,13 @@ func (c *Collector) showsDirProcess() {
 
 			if !detail.FromCache {
 				_ = dir.saveToNfo(detail)
-				kodi.Rpc.RefreshShows(detail.OriginalName)
+				kodi.Rpc.AddRefreshTask(kodi.TaskRefreshTVShow, detail.OriginalName)
 			}
 
 			dir.downloadImage(detail)
 
 			files := make(map[int]map[string]*File, 0)
-			if dir.IsCollection {
+			if dir.IsCollection { // 合集
 				subDir, err := c.scanDir(dir.GetFullDir())
 				if err != nil {
 					utils.Logger.ErrorF("scan collection dir: %s err: %v", dir.OriginTitle, err)
@@ -76,7 +74,7 @@ func (c *Collector) showsDirProcess() {
 						files[item.Season] = subFiles
 					}
 				}
-			} else {
+			} else { // 普通剧集
 				subFiles, err := dir.scanShowsFile()
 				if err != nil {
 					utils.Logger.ErrorF("scan shows dir: %s err: %v", dir.OriginTitle, err)
@@ -88,8 +86,8 @@ func (c *Collector) showsDirProcess() {
 				}
 			}
 
-			if err != nil || len(files) == 0 {
-				utils.Logger.WarningF("scan shows file: %s err: %v", dir.OriginTitle, err)
+			if len(files) == 0 {
+				utils.Logger.WarningF("scan shows file empty: %s", dir.OriginTitle)
 				continue
 			}
 
@@ -125,37 +123,29 @@ func (c *Collector) showsDirProcess() {
 				}
 			}
 
-			// TODO 这里其实不需要开一个channel, 直接处理就可以省掉上面的缓存写入了
 			for _, file := range files {
 				for _, subFile := range file {
-					subFile.TvId = detail.Id
-					c.fileChan <- subFile
+					c.showsFileProcess(detail.OriginalName, subFile)
 				}
 			}
 		}
 	}
 }
 
-// 文件处理队列消费
-func (c *Collector) showsFileProcess() {
-	utils.Logger.Debug("run shows file process")
-
-	for {
-		select {
-		case file := <-c.fileChan:
-			detail, err := file.getTvEpisodeDetail()
-			if err != nil || detail == nil {
-				continue
-			}
-
-			if detail.FromCache && file.NfoExist() {
-				continue
-			}
-
-			_ = file.saveToNfo(detail)
-			file.downloadImage(detail)
-		}
+// 单个剧集处理
+func (c *Collector) showsFileProcess(originalName string, showsFile *File) bool {
+	episodeDetail, err := showsFile.getTvEpisodeDetail()
+	if err != nil || episodeDetail == nil || episodeDetail.FromCache {
+		return false
 	}
+
+	_ = showsFile.saveToNfo(episodeDetail)
+	showsFile.downloadImage(episodeDetail)
+
+	taskVal := fmt.Sprintf("%s|-|%d|-|%d", originalName, episodeDetail.SeasonNumber, episodeDetail.EpisodeNumber)
+	kodi.Rpc.AddRefreshTask(kodi.TaskRefreshEpisode, taskVal)
+
+	return true
 }
 
 // 目录监听，新增的增加到队列，删除的移除监听
@@ -212,7 +202,7 @@ func (c *Collector) runWatcher() {
 				showsFile := parseShowsFile(dir, fileInfo)
 				showsFile.TvId = tvDetail.Id
 				if showsFile != nil {
-					c.fileChan <- showsFile
+					c.showsFileProcess(tvDetail.OriginalName, showsFile)
 				}
 			}
 
@@ -255,7 +245,6 @@ func (c *Collector) runCronScan() {
 			}
 		}
 
-		kodi.Rpc.VideoLibrary.Scan(nil)
 		if c.config.Kodi.CleanLibrary {
 			kodi.Rpc.VideoLibrary.Clean(nil)
 		}

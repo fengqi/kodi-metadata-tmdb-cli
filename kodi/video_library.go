@@ -3,23 +3,25 @@ package kodi
 import (
 	"encoding/json"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
-	"fmt"
 )
 
-// Scans the video sources for new library items
-func (vl *VideoLibrary) Scan(req *ScanRequest) bool {
-	if !vl.scanLimiter.take() {
-		return false
-	}
-
-	if req == nil {
-		req = &ScanRequest{Directory: "", ShowDialogs: false}
-	}
-
-	return Rpc.AddTask("scan video library", &JsonRpcRequest{
+// Scan 扫描媒体库
+func (vl *VideoLibrary) Scan(directory string, showDialogs bool) bool {
+	_, err := Rpc.request(&JsonRpcRequest{
 		Method: "VideoLibrary.Scan",
-		Params: req,
+		Params: &ScanRequest{
+			Directory:   directory,
+			ShowDialogs: showDialogs,
+		},
 	})
+
+	return err == nil
+}
+
+// IsScanning 是否正在扫描
+func (vl *VideoLibrary) IsScanning() bool {
+	info := Rpc.XBMC.GetInfoBooleans([]string{"Library.IsScanningVideo"})
+	return info != nil && info["Library.IsScanningVideo"]
 }
 
 // GetMovies Retrieve all movies
@@ -48,18 +50,21 @@ func (vl *VideoLibrary) GetMovies(req *GetMoviesRequest) *GetMoviesResponse {
 }
 
 // RefreshMovie Refresh the given movie in the library
-func (vl *VideoLibrary) RefreshMovie(req *RefreshMovieRequest) bool {
-	if !vl.refreshMovie.take() {
-		return false
-	}
+func (vl *VideoLibrary) RefreshMovie(movieId int) bool {
 
-	return Rpc.AddTask(fmt.Sprintf("refresh movie %d", req.MovieId), &JsonRpcRequest{
+	_, err := Rpc.request(&JsonRpcRequest{
 		Method: "VideoLibrary.RefreshMovie",
-		Params: req,
+		Params: &RefreshMovieRequest{
+			MovieId:   movieId,
+			IgnoreNfo: false,
+		},
 	})
+
+	return err == nil
 }
 
 // GetTVShowsByField 自定义根据字段搜索，例如：GetTVShowsByField("title", "is", "去有风的地方")
+// TODO 根据名字获取可能有重复，可等待后续使用uniqueId搜索：https://github.com/xbmc/xbmc/pull/22498
 func (vl *VideoLibrary) GetTVShowsByField(field, operator, value string) *GetTVShowsResponse {
 	req := &GetTVShowsRequest{
 		Filter: &Filter{
@@ -120,15 +125,17 @@ func (vl *VideoLibrary) GetTVShows(req *GetTVShowsRequest) *GetTVShowsResponse {
 }
 
 // RefreshTVShow Refresh the given tv show in the library
-func (vl *VideoLibrary) RefreshTVShow(req *RefreshTVShowRequest) bool {
-	if !vl.refreshTVShow.take() {
-		return false
-	}
-
-	return Rpc.AddTask(fmt.Sprintf("refresh tvshow %d", req.TvShowId), &JsonRpcRequest{
+func (vl *VideoLibrary) RefreshTVShow(tvShowId int) bool {
+	_, err := Rpc.request(&JsonRpcRequest{
 		Method: "VideoLibrary.RefreshTVShow",
-		Params: req,
+		Params: &RefreshTVShowRequest{
+			TvShowId:        tvShowId,
+			IgnoreNfo:       false,
+			RefreshEpisodes: false,
+		},
 	})
+
+	return err == nil
 }
 
 // RefreshEpisode 刷新剧集信息
@@ -145,15 +152,17 @@ func (vl *VideoLibrary) RefreshEpisode(episodeId int) bool {
 }
 
 // Clean 清理资料库
-func (vl *VideoLibrary) Clean(req *CleanRequest) bool {
-	if req == nil {
-		req = &CleanRequest{Directory: "", ShowDialogs: false, Content: "video"}
-	}
-
-	return Rpc.AddTask("clean video library", &JsonRpcRequest{
+func (vl *VideoLibrary) Clean(directory string, showDialogs bool) bool {
+	_, err := Rpc.request(&JsonRpcRequest{
 		Method: "VideoLibrary.Clean",
-		Params: req,
+		Params: &CleanRequest{
+			Directory:   directory,
+			ShowDialogs: showDialogs,
+			Content:     "video",
+		},
 	})
+
+	return err == nil
 }
 
 // GetEpisodes 获取电视剧剧集列表

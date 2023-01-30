@@ -7,8 +7,8 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -18,75 +18,26 @@ var httpClient *http.Client
 
 func InitKodi(config *config.KodiConfig) {
 	Rpc = &JsonRpc{
-		config: config,
-		queue:  make(map[string]*JsonRpcRequest, 0),
-		lock:   &sync.RWMutex{},
+		config:       config,
+		refreshQueue: make(map[string]struct{}, 0),
+		scanQueue:    make(map[string]struct{}, 0),
+		refreshLock:  &sync.RWMutex{},
+		scanLock:     &sync.RWMutex{},
 		VideoLibrary: &VideoLibrary{
-			scanLimiter:   NewLimiter(300),
-			refreshMovie:  NewLimiter(300),
-			refreshTVShow: NewLimiter(300),
+			scanLimiter:   NewLimiter(600),
+			refreshMovie:  NewLimiter(60),
+			refreshTVShow: NewLimiter(60),
 		},
 		Files: &Files{},
+		XBMC:  &XBMC{},
 	}
+
+	go Rpc.ConsumerRefreshTask()
+	go Rpc.ConsumerScanTask()
 
 	httpClient = &http.Client{
 		Timeout:   time.Duration(config.Timeout) * time.Second,
 		Transport: &http.Transport{},
-	}
-}
-
-func (r *JsonRpc) AddTask(name string, req *JsonRpcRequest) bool {
-	if !r.config.Enable {
-		return false
-	}
-
-	r.lock.Lock()
-	defer r.lock.Unlock()
-
-	if _, ok := r.queue[name]; !ok {
-		r.queue[name] = req
-	}
-
-	return true
-}
-
-func (r *JsonRpc) RunNotify() {
-	if !r.config.Enable {
-		return
-	}
-
-	task := func() {
-		if len(r.queue) == 0 {
-			return
-		}
-
-		if !r.Ping() {
-			return
-		}
-
-		r.lock.RLock()
-		defer r.lock.RUnlock()
-
-		utils.Logger.DebugF("kodi request queue size: %d", len(r.queue))
-		for k, req := range r.queue {
-			_, err := r.request(req)
-			if err != nil {
-				utils.Logger.ErrorF("request kodi %s err: %v", req.Method, err)
-				continue
-			}
-
-			delete(r.queue, k)
-
-			time.Sleep(time.Second * 30)
-		}
-	}
-
-	ticker := time.NewTicker(time.Second * 60)
-	for {
-		select {
-		case <-ticker.C:
-			task()
-		}
 	}
 }
 
@@ -98,62 +49,18 @@ func (r *JsonRpc) Ping() bool {
 	return err == nil
 }
 
-func (r *JsonRpc) RefreshMovie(name string) bool {
-	kodiMoviesReq := &GetMoviesRequest{
-		Filter: &Filter{
-			Field:    "originaltitle",
-			Operator: "is",
-			Value:    name,
-		},
-		Limit: &Limits{
-			Start: 0,
-			End:   5,
-		},
-		Properties: []string{"title", "originaltitle", "year"},
-	}
-
-	kodiMoviesResp := r.VideoLibrary.GetMovies(kodiMoviesReq)
-	if kodiMoviesResp == nil || kodiMoviesResp.Limits.Total == 0 {
-		return false
-	}
-
-	for _, item := range kodiMoviesResp.Movies {
-		utils.Logger.DebugF("find movie by name: %s, refresh detail", item.Title)
-		r.VideoLibrary.RefreshMovie(&RefreshMovieRequest{MovieId: item.MovieId, IgnoreNfo: false})
-	}
-
-	return true
-}
-
-func (r *JsonRpc) RefreshShows(name string) bool {
-	// TODO kodi没开机导致搜索失败, 改完ping成功后再搜索然后刷新
-	kodiShowsResp := r.VideoLibrary.GetTVShowsByField("originaltitle", "is", name)
-	if kodiShowsResp == nil || kodiShowsResp.Limits.Total == 0 {
-		return false
-	}
-
-	for _, item := range kodiShowsResp.TvShows {
-		utils.Logger.DebugF("find tv shows by name :%s, refresh detail", item.Title)
-		kodiRefreshReq := &RefreshTVShowRequest{TvShowId: item.TvShowId, IgnoreNfo: false, RefreshEpisodes: true}
-		r.VideoLibrary.RefreshTVShow(kodiRefreshReq)
-	}
-
-	return true
-}
-
 // 发送json rpc请求
 func (r *JsonRpc) request(rpcReq *JsonRpcRequest) ([]byte, error) {
-	utils.Logger.InfoF("request kodi: %s", rpcReq.Method)
-
 	if rpcReq.JsonRpc == "" {
 		rpcReq.JsonRpc = "2.0"
 	}
 
 	if rpcReq.Id == "" {
-		rpcReq.Id = time.Now().String()
+		rpcReq.Id = strconv.FormatInt(time.Now().Unix(), 10)
 	}
 
 	jsonBytes, err := json.Marshal(rpcReq)
+	utils.Logger.InfoF("request kodi: %s", jsonBytes)
 	if err != nil {
 		utils.Logger.WarningF("request kodi marshal err: %v", err)
 		return nil, err
@@ -185,5 +92,5 @@ func (r *JsonRpc) request(rpcReq *JsonRpcRequest) ([]byte, error) {
 		return nil, errors.New(resp.Status)
 	}
 
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }

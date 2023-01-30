@@ -6,10 +6,9 @@ import (
 )
 
 type Collector struct {
-	config   *config.Config
-	watcher  *fsnotify.Watcher
-	dirChan  chan *Dir
-	fileChan chan *File
+	config  *config.Config
+	watcher *fsnotify.Watcher
+	dirChan chan *Dir // todo 更名为tvShow
 }
 
 // Dir 电视剧目录详情，从名字分析

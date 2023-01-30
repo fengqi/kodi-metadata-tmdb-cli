@@ -31,8 +31,7 @@ func main() {
 	ffmpeg.InitFfmpeg(c.Ffmpeg)
 
 	wg := &sync.WaitGroup{}
-	wg.Add(4)
-	go kodi.Rpc.RunNotify()
+	wg.Add(3)
 	go shows.RunCollector(c)
 	go movies.RunCollector(c)
 	go music_videos.RunCollector(c)

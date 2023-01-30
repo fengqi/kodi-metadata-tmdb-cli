@@ -5,12 +5,25 @@ import (
 	"sync"
 )
 
+type TaskRefresh int
+
+const (
+	TaskSep                           = "|-|"
+	TaskRefreshTVShow     TaskRefresh = 1
+	TaskRefreshEpisode    TaskRefresh = 2
+	TaskRefreshMovie      TaskRefresh = 3
+	TaskRefreshMusicVideo TaskRefresh = 4
+)
+
 type JsonRpc struct {
 	config       *config.KodiConfig
-	queue        map[string]*JsonRpcRequest
-	lock         *sync.RWMutex
+	refreshQueue map[string]struct{}
+	refreshLock  *sync.RWMutex
+	scanQueue    map[string]struct{}
+	scanLock     *sync.RWMutex
 	VideoLibrary *VideoLibrary
 	Files        *Files
+	XBMC         *XBMC
 }
 
 // JsonRpcRequest JsonRpc 请求参数
