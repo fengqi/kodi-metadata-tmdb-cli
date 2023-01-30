@@ -235,3 +235,13 @@ func (m *Movie) getNfoFile(mode int) string {
 
 	return m.VideoFileNameWithoutSuffix() + ".nfo"
 }
+
+func (m *Movie) NfoExist(mode int) bool {
+	nfo := m.getNfoFile(mode)
+
+	if info, err := os.Stat(nfo); err == nil && info.Size() > 0 {
+		return true
+	}
+
+	return false
+}
