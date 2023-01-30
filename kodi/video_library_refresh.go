@@ -53,7 +53,7 @@ func (r *JsonRpc) ConsumerRefreshTask() {
 				r.RefreshEpisode(queue[5:])
 				break
 			case TaskRefreshMovie:
-				// todo
+				r.RefreshMovie(queue[5:])
 				break
 			}
 
@@ -79,6 +79,7 @@ func (r *JsonRpc) RefreshMovie(name string) bool {
 
 	kodiMoviesResp := r.VideoLibrary.GetMovies(kodiMoviesReq)
 	if kodiMoviesResp == nil || kodiMoviesResp.Limits.Total == 0 {
+		r.VideoLibrary.Scan("", true) // 同剧集，新电影，刷新变扫描库
 		return false
 	}
 

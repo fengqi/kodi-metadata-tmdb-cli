@@ -98,9 +98,9 @@ func (c *Collector) runMoviesProcess() {
 				continue
 			}
 
-			if !detail.FromCache {
+			if !detail.FromCache || !dir.NfoExist(c.config.Collector.MoviesNfoMode) {
 				_ = dir.saveToNfo(detail, c.config.Collector.MoviesNfoMode)
-				_ = kodi.Rpc.RefreshMovie(detail.OriginalTitle)
+				kodi.Rpc.AddRefreshTask(kodi.TaskRefreshMovie, detail.OriginalTitle)
 			}
 
 			_ = dir.downloadImage(detail)
@@ -127,15 +127,6 @@ func (c *Collector) runCronScan() {
 			}
 		}
 
-		// 等队列处理完成，最多等待5分钟
-		for i := 0; i < 300; i++ {
-			if len(c.channel) == 0 {
-				break
-			}
-			time.Sleep(time.Second * 1)
-		}
-
-		kodi.Rpc.VideoLibrary.Scan(nil)
 		if c.config.Kodi.CleanLibrary {
 			kodi.Rpc.AddCleanTask("")
 		}
