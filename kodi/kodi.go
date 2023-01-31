@@ -56,7 +56,7 @@ func (r *JsonRpc) request(rpcReq *JsonRpcRequest) ([]byte, error) {
 	}
 
 	if rpcReq.Id == "" {
-		rpcReq.Id = strconv.FormatInt(time.Now().Unix(), 10)
+		rpcReq.Id = strconv.FormatInt(time.Now().UnixNano(), 10)
 	}
 
 	jsonBytes, err := json.Marshal(rpcReq)
