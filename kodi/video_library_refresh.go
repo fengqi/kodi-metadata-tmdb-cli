@@ -164,6 +164,7 @@ func (r *JsonRpc) RefreshEpisode(taskVal string) bool {
 		time.Sleep(time.Second * 2)
 
 		// 刷新可能会导致episodeId变化，丢失观看记录，需要补回来
+		// TODO 可能看过的没必要刷新了？
 		if refresh && episode.PlayCount > 0 && episode.LastPlayed != "" {
 			newFilter := &Filter{
 				Field:    "episode",
