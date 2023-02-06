@@ -84,27 +84,9 @@ func (r *JsonRpc) RefreshMovie(name string) bool {
 	}
 
 	for _, item := range kodiMoviesResp.Movies {
-		utils.Logger.DebugF("find movie by name: %s, refresh detail", item.Title)
-		refresh := r.VideoLibrary.RefreshMovie(item.MovieId)
-		time.Sleep(time.Second * 2) // 不sleep就返回-32602，原因未知
-
-		// 补回丢失的观看记录
-		if refresh && item.PlayCount > 0 && item.LastPlayed != "" {
-			newKodiMoviesResp := r.VideoLibrary.GetMovies(kodiMoviesReq)
-			if newKodiMoviesResp == nil || newKodiMoviesResp.Limits.Total == 0 {
-				continue
-			}
-			for _, item2 := range newKodiMoviesResp.Movies {
-				// 名称搜索有概率重复，所以用TMDB匹配，期望将来可以用TMDB过滤
-				// 极端情况下，媒体库中有同一个电影的两个版本，也会错乱，需要辅助其他信息确定唯一
-				if item2.UniqueId.Tmdb != "" && item2.UniqueId.Tmdb == item.UniqueId.Tmdb {
-					played := map[string]interface{}{
-						"playcount":  1,
-						"lastplayed": item.LastPlayed,
-					}
-					r.VideoLibrary.SetMovieDetails(item2.MovieId, played)
-				}
-			}
+		if item.LastPlayed == "" && item.PlayCount == 0 {
+			utils.Logger.DebugF("find movie by name: %s, refresh detail", item.Title)
+			r.VideoLibrary.RefreshMovie(item.MovieId)
 		}
 	}
 
@@ -159,27 +141,11 @@ func (r *JsonRpc) RefreshEpisode(taskVal string) bool {
 			continue
 		}
 
-		episode := episodes[0]
-		refresh := r.VideoLibrary.RefreshEpisode(episode.EpisodeId)
-		time.Sleep(time.Second * 2)
-
-		// 刷新可能会导致episodeId变化，丢失观看记录，需要补回来
-		// TODO 可能看过的没必要刷新了？
-		if refresh && episode.PlayCount > 0 && episode.LastPlayed != "" {
-			newFilter := &Filter{
-				Field:    "episode",
-				Operator: "is",
-				Value:    strconv.Itoa(episode.Episode),
+		for _, episode := range episodes {
+			if episode.PlayCount == 0 && episode.LastPlayed == "" {
+				utils.Logger.DebugF("refresh tv shows %s episode %d %s", item.Title, episode.Episode)
+				r.VideoLibrary.RefreshEpisode(episode.EpisodeId)
 			}
-			newEpisodes, err := r.VideoLibrary.GetEpisodes(episode.TvShowId, season, newFilter)
-			if err != nil || len(newEpisodes) == 0 {
-				continue
-			}
-			played := map[string]interface{}{
-				"playcount":  1,
-				"lastplayed": episode.LastPlayed,
-			}
-			r.VideoLibrary.SetEpisodeDetails(newEpisodes[0].EpisodeId, played)
 		}
 	}
 
