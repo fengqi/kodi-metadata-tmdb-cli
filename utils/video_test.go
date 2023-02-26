@@ -189,6 +189,8 @@ func TestFilterCorrecting(t *testing.T) {
 	cases := map[string]string{
 		"邪恶力量.第01-14季.Supernatural.S01-S14.1080p.Blu-Ray.AC3.x265.10bit-Yumi": "邪恶力量.S01-S14.Supernatural.S01-S14.1080p.Blu-Ray.AC3.x265.10bit-Yumi",
 		"堕落.第一季.2013.中英字幕￡CMCT无影":                                             "堕落.S01.2013.中英字幕￡CMCT无影",
+		"一年一度喜剧大赛":                                                            "一年一度喜剧大赛",
+		"亿万富犬.第一季":                                                            "亿万富犬.S01",
 	}
 
 	for title, want := range cases {
