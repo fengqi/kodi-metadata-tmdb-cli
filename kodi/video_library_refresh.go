@@ -143,7 +143,7 @@ func (r *JsonRpc) RefreshEpisode(taskVal string) bool {
 
 		for _, episode := range episodes {
 			if episode.PlayCount == 0 && episode.LastPlayed == "" {
-				utils.Logger.DebugF("refresh tv shows %s episode %d %s", item.Title, episode.Episode)
+				utils.Logger.DebugF("refresh tv shows %s episode %d", item.Title, episode.Episode)
 				r.VideoLibrary.RefreshEpisode(episode.EpisodeId)
 			}
 		}
