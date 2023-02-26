@@ -143,7 +143,7 @@ func init() {
 	formatMatch, _ = regexp.Compile("([0-9]+[pPiI]|[24][kK])")
 	seasonMatch, _ = regexp.Compile("[sS](0|)[0-9]+")
 	optionsMatch, _ = regexp.Compile("\\[.*?\\](\\.)?")
-	chsMatch, _ = regexp.Compile("([零一二三四五六七八九十百千万亿]+)")
+	chsMatch, _ = regexp.Compile("([零一二三四五六七八九十百千万亿]+)[季|集]")
 	chsSeasonMatch, _ = regexp.Compile("第([0-9]+)([-至到])?([0-9]+)?季")
 	resolutionMatch, _ = regexp.Compile("[0-9]{3,4}Xx*[0-9]{3,4}")
 	seasonRangeMatch, _ = regexp.Compile("[sS](0|)[0-9]+-[sS](0|)[0-9]+")

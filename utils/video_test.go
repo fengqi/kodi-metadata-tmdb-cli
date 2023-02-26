@@ -171,10 +171,11 @@ func TestCoverChsNumber(t *testing.T) {
 
 func TestReplaceChsNumber(t *testing.T) {
 	cases := map[string]string{
-		"我零":      "我0",
-		"你一":      "你1",
-		"她二":      "她2",
-		"我一百九十二你": "我192你",
+		"第一季":   "第1季",
+		"第一集":   "第1集",
+		"第十一集":  "第11集",
+		"二":     "二",
+		"一百九十二": "一百九十二",
 	}
 	for number, want := range cases {
 		give := ReplaceChsNumber(number)
