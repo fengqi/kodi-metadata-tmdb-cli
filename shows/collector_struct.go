@@ -16,8 +16,9 @@ type Collector struct {
 type Dir struct {
 	Dir          string `json:"dir"`
 	OriginTitle  string `json:"origin_title"`  // 原始文件名
-	Title        string `json:"title"`         // 从视频提取的完整文件名 鹰眼 Hawkeye
-	ChsTitle     string `json:"chs_title"`     // 分离出来的中午名称 鹰眼
+	Title        string `json:"title"`         // 从视频提取的文件名 鹰眼 Hawkeye
+	AliasTitle   string `json:"alias_title"`   // 别名，通常没有用
+	ChsTitle     string `json:"chs_title"`     // 分离出来的中文名称 鹰眼
 	EngTitle     string `json:"eng_title"`     // 分离出来的英文名称 Hawkeye
 	TvId         int    `json:"tv_id"`         // TMDb tv id
 	GroupId      string `json:"group_id"`      // TMDB Episode Group

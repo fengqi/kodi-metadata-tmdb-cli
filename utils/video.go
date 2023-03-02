@@ -264,6 +264,14 @@ func SplitChsEngTitle(name string) (string, string) {
 	return chsName, engName
 }
 
+func SplitTitleAlias(name string) (string, string) {
+	split := strings.Split(name, " AKA ")
+	if len(split) == 2 {
+		return split[0], split[1]
+	}
+	return name, ""
+}
+
 // MatchEpisode 匹配季和集
 func MatchEpisode(name string) (string, int, int) {
 	find := episodeMatch.FindStringSubmatch(name)

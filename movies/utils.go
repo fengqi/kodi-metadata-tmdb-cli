@@ -86,6 +86,7 @@ func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 		}
 	}
 
+	movieDir.Title, movieDir.AliasTitle = utils.SplitTitleAlias(movieDir.Title)
 	movieDir.ChsTitle, movieDir.EngTitle = utils.SplitChsEngTitle(movieDir.Title)
 	if len(movieDir.Title) == 0 {
 		utils.Logger.WarningF("file: %s parse title empty: %v", file.Name(), movieDir)
