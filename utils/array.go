@@ -110,10 +110,10 @@ func SplitWith(s string, sep []string, exclude []string) []string {
 					a[i] = guest
 					a[i-1] = ""
 					jump = spans[i-1].start + len(item)
-					flag = false
 					break
 				}
 			}
+			flag = false
 		}
 	}
 
