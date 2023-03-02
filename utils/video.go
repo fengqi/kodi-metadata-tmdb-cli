@@ -69,14 +69,16 @@ var (
 		"WEB-DL",
 		"DDP5.1",
 		"DDP 5.1",
+		"DDP.5.1",
 		"H.265",
 		"BLU-RAY",
 		"MA5.1",
 		"MA 5.1",
+		"MA.5.1",
 		"MA7.1",
 		"MA 7.1",
+		"MA.7.1",
 		"DTS-HD",
-		"DDP5.1",
 	}
 	channel = []string{
 		"OAD",
