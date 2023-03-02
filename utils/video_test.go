@@ -79,6 +79,12 @@ func TestSplit(t *testing.T) {
 			"11",
 			"06",
 			"AVC",
+			"1080P",
+			"GB",
+			"JP",
+			"MP4",
+			"V2",
+			"mp4",
 		},
 		"The Last Son 2021.mkv": []string{
 			"The",
@@ -93,14 +99,10 @@ func TestSplit(t *testing.T) {
 			"2160p",
 			"CAN",
 			"UHD",
-			"Blu",
-			"ray",
+			"Blu-ray",
 			"HEVC",
-			"DTS",
-			"HD",
-			"MA",
-			"5",
-			"1",
+			"DTS-HD",
+			"MA 5.1",
 			"THDBST",
 			"HDSky",
 			"nfo",
@@ -109,10 +111,8 @@ func TestSplit(t *testing.T) {
 
 	for k, v := range unit {
 		actual := Split(k)
-		for k2, v2 := range v {
-			if actual[k2] != v2 {
-				t.Errorf("Split(%s) = %s; expected %s", k, actual[k2], v2)
-			}
+		if !ArrayCompare(actual, v, false) {
+			t.Errorf("Split(%s) = %v; expected %v", k, actual, v)
 		}
 	}
 }

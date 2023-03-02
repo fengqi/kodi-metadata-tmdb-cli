@@ -65,6 +65,19 @@ var (
 		":",
 		"：",
 	}
+	delimiterExecute = []string{
+		"WEB-DL",
+		"DDP5.1",
+		"DDP 5.1",
+		"H.265",
+		"BLU-RAY",
+		"MA5.1",
+		"MA 5.1",
+		"MA7.1",
+		"MA 7.1",
+		"DTS-HD",
+		"DDP5.1",
+	}
 	channel = []string{
 		"OAD",
 		"OVA",
@@ -395,35 +408,6 @@ func IsResolution(name string) string {
 }
 
 // Split 影视目录或文件名切割
-// TODO 对于web-dl、h.264、blu-ray、5.1、DTS-HD这样的可以不切割
 func Split(name string) []string {
-	runeStr := []rune(name)
-	split := make([]string, 0)
-	start := 0
-	match := false
-	lastMatch := false
-	for k, v := range runeStr {
-		if _, ok := delimiterMap[string(v)]; ok {
-			if match {
-				lastMatch = true
-				subStr := string(runeStr[start:k])
-				if subStr != "" {
-					split = append(split, subStr)
-				}
-				match = false
-			}
-			start = k + 1
-		}
-		lastMatch = false
-		match = true
-	}
-
-	if !lastMatch {
-		subStr := string(runeStr[start:])
-		if subStr != "" {
-			split = append(split, subStr)
-		}
-	}
-
-	return split
+	return SplitWith(name, delimiter, delimiterExecute)
 }
