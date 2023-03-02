@@ -38,10 +38,78 @@ func RunCollector(config *config.Config) {
 
 // 运行文件变动监听
 func (c *Collector) runWatcher() {
-	// todo
+	if !c.config.Collector.Watcher {
+		return
+	}
+
+	utils.Logger.Debug("run music videos watcher")
+
+	for {
+		select {
+		case event, ok := <-c.watcher.Events:
+			if !ok {
+				return
+			}
+
+			fileInfo, err := os.Stat(event.Name)
+			if fileInfo == nil || err != nil {
+				utils.Logger.WarningF("get music video stat err: %v", err)
+				continue
+			}
+
+			// 删除文件夹
+			if event.Has(fsnotify.Remove) && fileInfo.IsDir() {
+				utils.Logger.InfoF("removed dir: %s", event.Name)
+
+				err := c.watcher.Remove(event.Name)
+				if err != nil {
+					utils.Logger.WarningF("remove shows watcher: %s error: %v", event.Name, err)
+				}
+				continue
+			}
+
+			if !event.Has(fsnotify.Create) || c.skipFolders(filepath.Dir(event.Name), event.Name) {
+				continue
+			}
+
+			//  新增目录
+			if fileInfo.IsDir() {
+				videos, err := c.scanDir(fileInfo.Name())
+				if err != nil || len(videos) == 0 {
+					utils.Logger.WarningF("new dir %s scan err: %v", event.Name, err)
+					continue
+				}
+
+				for _, video := range videos {
+					c.channel <- video
+				}
+
+				err = c.watcher.Add(event.Name)
+				if err != nil {
+					utils.Logger.FatalF("add music video dir: %s to watcher err: %v", event.Name, err)
+				}
+
+				continue
+			}
+
+			// 单个文件
+			if utils.IsVideo(event.Name) != "" {
+				video := c.parseVideoFile(filepath.Dir(event.Name), fileInfo)
+				c.channel <- video
+				continue
+			}
+
+		case err, ok := <-c.watcher.Errors:
+			if !ok {
+				return
+			}
+
+			utils.Logger.ErrorF("music videos watcher error: %v", err)
+		}
+	}
 }
 
-// 运行处理器
+// 处理扫描队列
 func (c *Collector) runProcessor() {
 	utils.Logger.Debug("run music videos processor")
 
@@ -53,13 +121,34 @@ func (c *Collector) runProcessor() {
 
 			limiter <- struct{}{}
 			go func() {
-				err := video.drawThumb()
-				if err == nil {
-					_ = video.saveToNfo()
-				}
+				c.videoProcessor(video)
 				<-limiter
 			}()
 		}
+	}
+}
+
+// 视频文件处理
+func (c *Collector) videoProcessor(video *MusicVideo) {
+	if video == nil || (video.NfoExist() && video.ThumbExist()) {
+		return
+	}
+
+	probe, err := video.getProbe()
+	if err != nil {
+		utils.Logger.WarningF("parse video %s probe err: %v", video.Dir+"/"+video.OriginTitle, err)
+		return
+	}
+
+	video.VideoStream = probe.FirstVideoStream()
+	video.AudioStream = probe.FirstAudioStream()
+	if video.VideoStream == nil || video.AudioStream == nil {
+		return
+	}
+
+	err = video.drawThumb()
+	if err == nil {
+		_ = video.saveToNfo()
 	}
 }
 
@@ -69,6 +158,9 @@ func (c *Collector) runScanner() {
 
 	task := func() {
 		for _, item := range c.config.Collector.MusicVideosDir {
+			_ = c.watcher.Add(item)
+			utils.Logger.DebugF("runCronScan add music videos dir: %s to watcher", item)
+
 			videos, err := c.scanDir(item)
 			if len(videos) == 0 || err != nil {
 				continue
@@ -80,26 +172,11 @@ func (c *Collector) runScanner() {
 				err := os.Mkdir(cacheDir, 0755)
 				if err != nil {
 					utils.Logger.ErrorF("create probe cache: %s dir err: %v", cacheDir, err)
+					continue
 				}
 			}
 
 			for _, video := range videos {
-				if video.NfoExist() && video.ThumbExist() {
-					continue
-				}
-
-				probe, err := video.getProbe()
-				if err != nil {
-					utils.Logger.WarningF("parse video %s probe err: %v", video.Dir+"/"+video.OriginTitle, err)
-					continue
-				}
-
-				video.VideoStream = probe.FirstVideoStream()
-				video.AudioStream = probe.FirstAudioStream()
-				if video.VideoStream == nil || video.AudioStream == nil {
-					continue
-				}
-
 				c.channel <- video
 			}
 		}
@@ -131,6 +208,9 @@ func (c *Collector) scanDir(dir string) ([]*MusicVideo, error) {
 				utils.Logger.DebugF("passed in skip folders: %s", file.Name())
 				continue
 			}
+
+			_ = c.watcher.Add(dir + "/" + file.Name())
+			utils.Logger.DebugF("scanDir add music videos dir: %s to watcher", file.Name())
 
 			subVideos, err := c.scanDir(dir + "/" + file.Name())
 			if err != nil {
