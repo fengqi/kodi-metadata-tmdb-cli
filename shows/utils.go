@@ -1,9 +1,7 @@
 package shows
 
 import (
-	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -161,97 +159,10 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 		return nil
 	}
 
+	// 读特殊指定的值
 	showsDir.ReadSeason()
 	showsDir.ReadTvId()
 	showsDir.ReadGroupId()
 
 	return showsDir
-}
-
-func (f *File) getNfoFile() string {
-	return f.Dir + "/" + f.getTitleWithoutSuffix() + ".nfo"
-}
-
-func (f *File) NfoExist() bool {
-	nfo := f.getNfoFile()
-
-	if info, err := os.Stat(nfo); err == nil && info.Size() > 0 {
-		return true
-	}
-
-	return false
-}
-
-func (d *Dir) getNfoFile() string {
-	return d.GetFullDir() + "/tvshow.nfo"
-}
-
-func (d *Dir) NfoExist() bool {
-	nfo := d.getNfoFile()
-
-	if info, err := os.Stat(nfo); err == nil && info.Size() > 0 {
-		return true
-	}
-
-	return false
-}
-
-func (f *File) getTitleWithoutSuffix() string {
-	return strings.Replace(f.OriginTitle, "."+f.Suffix, "", 1)
-}
-
-func (d *Dir) GetCacheDir() string {
-	return d.GetFullDir() + "/tmdb"
-}
-
-func (d *Dir) GetFullDir() string {
-	return d.Dir + "/" + d.OriginTitle
-}
-
-// CheckCacheDir tmdb 缓存目录
-func (d *Dir) checkCacheDir() {
-	dir := d.GetCacheDir()
-	if _, err := os.Stat(dir); err != nil && os.IsNotExist(err) {
-		err := os.Mkdir(dir, 0755)
-		if err != nil {
-			utils.Logger.ErrorF("create cache: %s dir err: %v", dir, err)
-		}
-	}
-}
-
-func (f *File) getCacheDir() string {
-	return f.Dir + "/tmdb"
-}
-
-// 下载电视剧的相关图片
-// TODO 下载失败后，没有重复以及很长一段时间都不会再触发下载
-func (d *Dir) downloadImage(detail *tmdb.TvDetail) {
-	utils.Logger.DebugF("download %s images", d.Title)
-
-	if len(detail.PosterPath) > 0 {
-		_ = utils.DownloadFile(tmdb.Api.GetImageOriginal(detail.PosterPath), d.GetFullDir()+"/poster.jpg")
-	}
-
-	if len(detail.BackdropPath) > 0 {
-		_ = utils.DownloadFile(tmdb.Api.GetImageOriginal(detail.BackdropPath), d.GetFullDir()+"/fanart.jpg")
-	}
-
-	// TODO group的信息里可能 season poster不全
-	if len(detail.Seasons) > 0 {
-		for _, item := range detail.Seasons {
-			if !d.IsCollection && item.SeasonNumber != d.Season || item.PosterPath == "" {
-				continue
-			}
-			seasonPoster := fmt.Sprintf("season%02d-poster.jpg", item.SeasonNumber)
-			_ = utils.DownloadFile(tmdb.Api.GetImageOriginal(item.PosterPath), d.GetFullDir()+"/"+seasonPoster)
-		}
-	}
-}
-
-// 下载剧集的相关图片
-func (f *File) downloadImage(d *tmdb.TvEpisodeDetail) {
-	file := f.getTitleWithoutSuffix()
-	if len(d.StillPath) > 0 {
-		_ = utils.DownloadFile(tmdb.Api.GetImageOriginal(d.StillPath), f.Dir+"/"+file+"-thumb.jpg")
-	}
 }
