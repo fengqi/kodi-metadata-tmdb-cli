@@ -160,35 +160,46 @@ func (c *Collector) runWatcher() {
 		select {
 		case event, ok := <-c.watcher.Events:
 			if !ok {
-				return
-			}
-
-			fileInfo, _ := os.Stat(event.Name)
-			if fileInfo == nil || (!fileInfo.IsDir() && utils.IsVideo(event.Name) == "") {
 				continue
 			}
 
-			if event.Has(fsnotify.Remove) {
-				err := c.watcher.Remove(filepath.Dir(event.Name))
+			fileInfo, err := os.Stat(event.Name)
+			if fileInfo == nil || err != nil {
+				utils.Logger.WarningF("get shows stat err: %v", err)
+				continue
+			}
+
+			// 删除文件夹
+			if event.Has(fsnotify.Remove) && fileInfo.IsDir() {
+				utils.Logger.InfoF("removed dir: %s", event.Name)
+
+				err := c.watcher.Remove(event.Name)
 				if err != nil {
 					utils.Logger.WarningF("remove shows watcher: %s error: %v", event.Name, err)
 				}
 				continue
 			}
 
-			if !event.Has(fsnotify.Create) {
-				continue
-			}
+			// 新增文件夹
+			if event.Has(fsnotify.Create) && fileInfo.IsDir() {
+				utils.Logger.InfoF("created dir: %s", event.Name)
 
-			utils.Logger.InfoF("created file: %s", event.Name)
-
-			if fileInfo.IsDir() {
 				showsDir := parseShowsDir(filepath.Dir(event.Name), fileInfo)
 				if showsDir != nil {
 					c.dirChan <- showsDir
 				}
-			} else {
-				// 刷新剧集
+
+				err = c.watcher.Add(event.Name)
+				if err != nil {
+					utils.Logger.FatalF("add shows dir: %s to watcher err: %v", event.Name, err)
+				}
+				continue
+			}
+
+			// 新增剧集文件
+			if event.Has(fsnotify.Create) && utils.IsVideo(event.Name) != "" {
+				utils.Logger.InfoF("created file: %s", event.Name)
+
 				filePath := filepath.Dir(event.Name)
 				basePath := filepath.Dir(filePath)
 				dirInfo, _ := os.Stat(filePath)
@@ -196,22 +207,14 @@ func (c *Collector) runWatcher() {
 				if dir != nil {
 					c.dirChan <- dir
 				}
-
-				// 刷新单集
-				tvDetail, _ := dir.getTvDetail()
-				showsFile := parseShowsFile(dir, fileInfo)
-				showsFile.TvId = tvDetail.Id
-				if showsFile != nil {
-					c.showsFileProcess(tvDetail.OriginalName, showsFile)
-				}
 			}
 
 		case err, ok := <-c.watcher.Errors:
+			utils.Logger.ErrorF("shows watcher error: %v", err)
+
 			if !ok {
 				return
 			}
-
-			utils.Logger.ErrorF("shows watcher error: %v", err)
 		}
 	}
 }
