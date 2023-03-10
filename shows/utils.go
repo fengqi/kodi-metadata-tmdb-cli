@@ -5,7 +5,6 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -162,39 +161,9 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 		return nil
 	}
 
-	if showsDir.Season == 0 && len(showsDir.YearRange) == 0 {
-		showsDir.Season = 1
-	}
-
-	seasonFile := baseDir + "/" + file.Name() + "/tmdb/season.txt"
-	if _, err := os.Stat(seasonFile); err == nil {
-		bytes, err := ioutil.ReadFile(seasonFile)
-		if err == nil {
-			showsDir.Season, _ = strconv.Atoi(strings.Trim(string(bytes), "\r\n "))
-		} else {
-			utils.Logger.WarningF("read season specially file: %s err: %v", seasonFile, err)
-		}
-	}
-
-	idFile := baseDir + "/" + file.Name() + "/tmdb/id.txt"
-	if _, err := os.Stat(idFile); err == nil {
-		bytes, err := ioutil.ReadFile(idFile)
-		if err == nil {
-			showsDir.TvId, _ = strconv.Atoi(strings.Trim(string(bytes), "\r\n "))
-		} else {
-			utils.Logger.WarningF("read tv id specially file: %s err: %v", idFile, err)
-		}
-	}
-
-	groupFile := baseDir + "/" + file.Name() + "/tmdb/group.txt"
-	if _, err := os.Stat(groupFile); err == nil {
-		bytes, err := ioutil.ReadFile(groupFile)
-		if err == nil {
-			showsDir.GroupId = strings.Trim(string(bytes), "\r\n ")
-		} else {
-			utils.Logger.WarningF("read group id specially file: %s err: %v", groupFile, err)
-		}
-	}
+	showsDir.ReadSeason()
+	showsDir.ReadTvId()
+	showsDir.ReadGroupId()
 
 	return showsDir
 }

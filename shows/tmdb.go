@@ -91,6 +91,8 @@ func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
 		}
 	}
 
+	d.TvId = detail.Id
+
 	return detail, err
 }
 
