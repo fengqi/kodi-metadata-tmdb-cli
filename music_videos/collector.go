@@ -48,7 +48,7 @@ func (c *Collector) runWatcher() {
 		select {
 		case event, ok := <-c.watcher.Events:
 			if !ok {
-				return
+				continue
 			}
 
 			fileInfo, err := os.Stat(event.Name)
@@ -74,7 +74,7 @@ func (c *Collector) runWatcher() {
 
 			//  新增目录
 			if fileInfo.IsDir() {
-				videos, err := c.scanDir(fileInfo.Name())
+				videos, err := c.scanDir(event.Name)
 				if err != nil || len(videos) == 0 {
 					utils.Logger.WarningF("new dir %s scan err: %v", event.Name, err)
 					continue
