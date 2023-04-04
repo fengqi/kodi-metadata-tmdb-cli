@@ -108,6 +108,9 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 
 		if season := utils.IsSeason(item); len(season) > 0 {
 			if !showsDir.IsCollection {
+				if season != item { // TODO 这里假定只有名字和season在一起，没有其他特殊字符的情况，如：黄石S01，否则可能不适合这样处理
+					showsDir.Title += strings.TrimRight(item, season) + " "
+				}
 				s := season[1:]
 				i, err := strconv.Atoi(s)
 				if err == nil {
