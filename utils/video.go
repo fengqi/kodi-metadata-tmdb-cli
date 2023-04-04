@@ -159,7 +159,7 @@ func init() {
 	seasonMatch, _ = regexp.Compile("[sS](0|)[0-9]+")
 	optionsMatch, _ = regexp.Compile("\\[.*?\\](\\.)?")
 	chsMatch, _ = regexp.Compile("([零一二三四五六七八九十百千万亿]+)[季|集]")
-	chsSeasonMatch, _ = regexp.Compile("第([0-9]+)([-至到])?([0-9]+)?季")
+	chsSeasonMatch, _ = regexp.Compile("(.*?)(\\.|)第([0-9]+)([-至到])?([0-9]+)?季")
 	resolutionMatch, _ = regexp.Compile("[0-9]{3,4}Xx*[0-9]{3,4}")
 	seasonRangeMatch, _ = regexp.Compile("[sS](0|)[0-9]+-[sS](0|)[0-9]+")
 }
@@ -382,23 +382,23 @@ func FilterCorrecting(name string) string {
 	name = ReplaceChsNumber(name)
 	right := ""
 	find := chsSeasonMatch.FindStringSubmatch(name)
-	if len(find) == 4 {
-		if find[2] == "" && find[3] == "" {
-			num, err := strconv.Atoi(find[1])
+	if len(find) == 6 {
+		if find[4] == "" && find[5] == "" {
+			num, err := strconv.Atoi(find[3])
 			if err == nil && num > 0 {
 				right = fmt.Sprintf("S%.2d", num)
 			}
 		} else {
-			num1, err := strconv.Atoi(find[1])
-			num2, err := strconv.Atoi(find[3])
+			num1, err := strconv.Atoi(find[3])
+			num2, err := strconv.Atoi(find[5])
 			if err == nil && num1 > 0 && num2 > 0 {
 				right = fmt.Sprintf("S%.2d-S%.2d", num1, num2)
 			}
 		}
-	}
 
-	if right != "" {
-		return chsSeasonMatch.ReplaceAllString(name, right)
+		if right != "" {
+			name = strings.Replace(name, find[0], find[1]+"."+right, 1)
+		}
 	}
 
 	return name

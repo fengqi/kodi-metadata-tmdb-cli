@@ -70,7 +70,7 @@ func TestIsSeason(t *testing.T) {
 
 func TestSplit(t *testing.T) {
 	unit := map[string][]string{
-		"[梦蓝字幕组]Crayonshinchan 蜡笔小新[1105][2021.11.06][AVC][1080P][GB_JP][MP4]V2.mp4": []string{
+		"[梦蓝字幕组]Crayonshinchan 蜡笔小新[1105][2021.11.06][AVC][1080P][GB_JP][MP4]V2.mp4": {
 			"梦蓝字幕组",
 			"Crayonshinchan",
 			"蜡笔小新",
@@ -86,14 +86,14 @@ func TestSplit(t *testing.T) {
 			"V2",
 			"mp4",
 		},
-		"The Last Son 2021.mkv": []string{
+		"The Last Son 2021.mkv": {
 			"The",
 			"Last",
 			"Son",
 			"2021",
 			"mkv",
 		},
-		"Midway 2019 2160p CAN UHD Blu-ray HEVC DTS-HD MA 5.1-THDBST@HDSky.nfo": []string{
+		"Midway 2019 2160p CAN UHD Blu-ray HEVC DTS-HD MA 5.1-THDBST@HDSky.nfo": {
 			"Midway",
 			"2019",
 			"2160p",
@@ -191,6 +191,7 @@ func TestFilterCorrecting(t *testing.T) {
 		"堕落.第一季.2013.中英字幕￡CMCT无影":                                             "堕落.S01.2013.中英字幕￡CMCT无影",
 		"一年一度喜剧大赛":                                                            "一年一度喜剧大赛",
 		"亿万富犬.第一季":                                                            "亿万富犬.S01",
+		"超级宝贝JOJO第二季":                                                         "超级宝贝JOJO.S02",
 	}
 
 	for title, want := range cases {
