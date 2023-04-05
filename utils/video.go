@@ -104,6 +104,7 @@ var (
 		"七": 7,
 		"八": 8,
 		"九": 9,
+		"十": 10,
 	}
 	chsNumberUnit = map[string]int{
 		"十": 10,
