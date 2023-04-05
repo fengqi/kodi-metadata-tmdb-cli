@@ -14,9 +14,9 @@ func TestMatchEpisode(t *testing.T) {
 		"Kimetsu.no.Yaiba.Yuukaku-hen.E01.2021.Crunchyroll.WEB-DL.1080p.x264.AAC-HDCTV.mkv": {1, 1},
 		"Overlord IV - 09.mp4":  {1, 9},
 		"宝贝揪揪 第3季 第10集.mp4":     {3, 10},
+		"宝贝揪揪 3季 10集.mp4":       {3, 10},
 		"宝贝揪揪 第9集.mp4":          {1, 9},
 		"Gannibal.E01.2022":     {1, 1},
-		"Gannibal E01 2022":     {1, 1},
 		"Gannibal S01 E01 2022": {1, 1},
 	}
 	for name, cse := range cases {

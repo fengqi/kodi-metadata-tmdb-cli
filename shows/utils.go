@@ -29,24 +29,26 @@ func parseShowsFile(dir *Dir, file fs.FileInfo) *File {
 	// 判断是视频, 并获取后缀
 	suffix := utils.IsVideo(fileName)
 	if len(suffix) == 0 {
-		utils.Logger.DebugF("pass : %s", fileName)
+		utils.Logger.DebugF("pass : %s", file.Name())
 		return nil
 	}
+
+	fileName = utils.ReplaceChsNumber(fileName)
 
 	// 提取季和集
 	se, snum, enum := utils.MatchEpisode(fileName)
 	if dir.Season > 0 {
 		snum = dir.Season
 	}
-	utils.Logger.InfoF("find season: %d episode: %d %s", snum, enum, fileName)
+	utils.Logger.InfoF("find season: %d episode: %d %s", snum, enum, file.Name())
 	if len(se) == 0 || snum == 0 || enum == 0 {
-		utils.Logger.WarningF("seaon or episode not find: %s", fileName)
+		utils.Logger.WarningF("seaon or episode not find: %s", file.Name())
 		return nil
 	}
 
 	return &File{
 		Dir:           dir.Dir + "/" + dir.OriginTitle,
-		OriginTitle:   fileName,
+		OriginTitle:   file.Name(),
 		Season:        snum,
 		Episode:       enum,
 		SeasonEpisode: se,
@@ -69,7 +71,7 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 	showName = utils.FilterOptionals(showName)
 
 	// 过滤掉或替换歧义的内容
-	showName = utils.FilterCorrecting(showName)
+	showName = utils.SeasonCorrecting(showName)
 
 	// 过滤掉分段的干扰
 	if subEpisodes := utils.IsSubEpisodes(showName); subEpisodes != "" {
