@@ -41,11 +41,17 @@ func InitTmdb(config *config.TmdbConfig) {
 
 // GetImageW500 压缩后的图片
 func (t *tmdb) GetImageW500(path string) string {
+	if path == "" {
+		return ""
+	}
 	return Api.imageHost + "/t/p/w500" + path
 }
 
 // GetImageOriginal 原始图片
 func (t *tmdb) GetImageOriginal(path string) string {
+	if path == "" {
+		return ""
+	}
 	return Api.imageHost + "/t/p/original" + path
 }
 
