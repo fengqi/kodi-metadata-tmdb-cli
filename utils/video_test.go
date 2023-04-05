@@ -12,7 +12,12 @@ func TestMatchEpisode(t *testing.T) {
 		"Agent.Carter.S02E01.1080p.BluRay.DD5.1.x264-HDS.mkv":                               {2, 1},
 		"[壹高清]21点灵.Leave No Soul Behind.Ep01.HDTV.1080p.H264-OneHD.ts":                      {1, 1},
 		"Kimetsu.no.Yaiba.Yuukaku-hen.E01.2021.Crunchyroll.WEB-DL.1080p.x264.AAC-HDCTV.mkv": {1, 1},
-		"Overlord IV - 09.mp4": {1, 9},
+		"Overlord IV - 09.mp4":  {1, 9},
+		"宝贝揪揪 第3季 第10集.mp4":     {3, 10},
+		"宝贝揪揪 第9集.mp4":          {1, 9},
+		"Gannibal.E01.2022":     {1, 1},
+		"Gannibal E01 2022":     {1, 1},
+		"Gannibal S01 E01 2022": {1, 1},
 	}
 	for name, cse := range cases {
 		_, s, e := MatchEpisode(name)
