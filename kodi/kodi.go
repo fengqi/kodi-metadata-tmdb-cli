@@ -60,15 +60,13 @@ func (r *JsonRpc) request(rpcReq *JsonRpcRequest) ([]byte, error) {
 	}
 
 	jsonBytes, err := json.Marshal(rpcReq)
-	utils.Logger.InfoF("request kodi: %s", jsonBytes)
+	utils.Logger.DebugF("request kodi: %s", jsonBytes)
 	if err != nil {
-		utils.Logger.WarningF("request kodi marshal err: %v", err)
 		return nil, err
 	}
 
 	req, err := http.NewRequest(http.MethodPost, r.config.JsonRpc, bytes.NewReader(jsonBytes))
 	if err != nil {
-		utils.Logger.WarningF("request kodi NewRequest err: %v", err)
 		return nil, err
 	}
 
@@ -77,7 +75,6 @@ func (r *JsonRpc) request(rpcReq *JsonRpcRequest) ([]byte, error) {
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		utils.Logger.WarningF("request kodi Do err: %v", err)
 		return nil, err
 	}
 

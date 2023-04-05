@@ -9,7 +9,7 @@ import (
 func (c *Collector) parseVideoFile(dir string, file fs.FileInfo) *MusicVideo {
 	ext := utils.IsVideo(file.Name())
 	if ext == "" {
-		utils.Logger.InfoF("not a video file: %s", file.Name())
+		utils.Logger.DebugF("not a video file: %s", file.Name())
 		return nil
 	}
 
