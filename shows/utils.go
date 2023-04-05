@@ -48,7 +48,7 @@ func parseShowsFile(dir *Dir, file fs.FileInfo) *File {
 
 	return &File{
 		Dir:           dir.Dir + "/" + dir.OriginTitle,
-		OriginTitle:   file.Name(),
+		OriginTitle:   utils.FilterTmpSuffix(file.Name()),
 		Season:        snum,
 		Episode:       enum,
 		SeasonEpisode: se,
