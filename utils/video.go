@@ -113,8 +113,9 @@ var (
 		"万": 10000,
 		"亿": 100000000,
 	}
-	chsMatch       *regexp.Regexp
-	chsSeasonMatch *regexp.Regexp
+	chsMatch        *regexp.Regexp
+	chsSeasonMatch  *regexp.Regexp
+	chsEpisodeMatch *regexp.Regexp
 
 	episodeMatch       *regexp.Regexp
 	collectionMatch    *regexp.Regexp
@@ -159,8 +160,9 @@ func init() {
 	formatMatch, _ = regexp.Compile("([0-9]+[pPiI]|[24][kK])")
 	seasonMatch, _ = regexp.Compile("[sS](0|)[0-9]+")
 	optionsMatch, _ = regexp.Compile("\\[.*?\\](\\.)?")
-	chsMatch, _ = regexp.Compile("([零一二三四五六七八九十百千万亿]+)[季|集]")
+	chsMatch, _ = regexp.Compile("(?:第|)([零一二三四五六七八九十百千万亿]+)[季|集]")
 	chsSeasonMatch, _ = regexp.Compile("(.*?)(\\.|)第([0-9]+)([-至到])?([0-9]+)?季")
+	chsEpisodeMatch, _ = regexp.Compile("(?:第|)([0-9]+)集")
 	resolutionMatch, _ = regexp.Compile("[0-9]{3,4}Xx*[0-9]{3,4}")
 	seasonRangeMatch, _ = regexp.Compile("[sS](0|)[0-9]+-[sS](0|)[0-9]+")
 }
@@ -369,8 +371,12 @@ func CoverChsNumber(number string) int {
 
 // ReplaceChsNumber 替换字符里面的中文数字为阿拉伯数字
 func ReplaceChsNumber(name string) string {
-	find := chsMatch.FindStringSubmatch(name)
-	if len(find) == 2 {
+	for {
+		find := chsMatch.FindStringSubmatch(name)
+		if len(find) == 0 {
+			break
+		}
+
 		number := strconv.Itoa(CoverChsNumber(find[1]))
 		name = strings.Replace(name, find[1], number, 1)
 	}
@@ -378,8 +384,8 @@ func ReplaceChsNumber(name string) string {
 	return name
 }
 
-// FilterCorrecting 特殊字符纠正为可是识别的字符，或者过滤掉
-func FilterCorrecting(name string) string {
+// SeasonCorrecting 中文季纠正
+func SeasonCorrecting(name string) string {
 	name = ReplaceChsNumber(name)
 	right := ""
 	find := chsSeasonMatch.FindStringSubmatch(name)
@@ -399,6 +405,20 @@ func FilterCorrecting(name string) string {
 
 		if right != "" {
 			name = strings.Replace(name, find[0], find[1]+"."+right, 1)
+		}
+	}
+
+	return name
+}
+
+// EpisodeCorrecting 中文集纠正
+func EpisodeCorrecting(name string) string {
+	name = ReplaceChsNumber(name)
+	find := chsEpisodeMatch.FindStringSubmatch(name)
+	if len(find) == 2 {
+		number, err := strconv.Atoi(find[1])
+		if err == nil {
+			name = strings.Replace(name, find[0], fmt.Sprintf("E%02d", number), 1)
 		}
 	}
 

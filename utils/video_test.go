@@ -153,6 +153,8 @@ func TestCoverChsNumber(t *testing.T) {
 		"七":          7,
 		"八":          8,
 		"九":          9,
+		"十":          10,
+		"十一":         11,
 		"十二":         12,
 		"一十二":        12,
 		"二十二":        22,
@@ -179,6 +181,7 @@ func TestReplaceChsNumber(t *testing.T) {
 		"第一季":   "第1季",
 		"第一集":   "第1集",
 		"第十一集":  "第11集",
+		"十一集":   "11集",
 		"二":     "二",
 		"一百九十二": "一百九十二",
 	}
@@ -190,7 +193,7 @@ func TestReplaceChsNumber(t *testing.T) {
 	}
 }
 
-func TestFilterCorrecting(t *testing.T) {
+func TestSeasonCorrecting(t *testing.T) {
 	cases := map[string]string{
 		"邪恶力量.第01-14季.Supernatural.S01-S14.1080p.Blu-Ray.AC3.x265.10bit-Yumi": "邪恶力量.S01-S14.Supernatural.S01-S14.1080p.Blu-Ray.AC3.x265.10bit-Yumi",
 		"堕落.第一季.2013.中英字幕￡CMCT无影":                                             "堕落.S01.2013.中英字幕￡CMCT无影",
@@ -200,9 +203,24 @@ func TestFilterCorrecting(t *testing.T) {
 	}
 
 	for title, want := range cases {
-		give := FilterCorrecting(title)
+		give := SeasonCorrecting(title)
 		if give != want {
-			t.Errorf("FilterAmbiguous(%s) give: %s, want %s", title, give, want)
+			t.Errorf("SeasonCorrecting(%s) give: %s, want %s", title, give, want)
+		}
+	}
+}
+
+func TestEpisodeCorrecting(t *testing.T) {
+	cases := map[string]string{
+		"宝贝揪揪 第三季 第09集.mp4": "宝贝揪揪 第3季 E09.mp4",
+		"宝贝揪揪 第三季 第01集.mp4": "宝贝揪揪 第3季 E01.mp4",
+		"宝贝揪揪 第三季 第十集.mp4":  "宝贝揪揪 第3季 E10.mp4",
+	}
+
+	for title, want := range cases {
+		give := EpisodeCorrecting(title)
+		if give != want {
+			t.Errorf("SeasonCorrecting(%s) give: %s, want %s", title, give, want)
 		}
 	}
 }
