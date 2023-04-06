@@ -16,7 +16,7 @@ func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 	movieName := utils.FilterTmpSuffix(file.Name())
 
 	// 过滤无用文件
-	if movieName == "@eaDir" || movieName == "tmdb" || movieName == "metadata" || movieName[0:1] == "." {
+	if movieName[0:1] == "." || utils.InArray(collector.config.Collector.SkipFolders, movieName) {
 		return nil
 	}
 

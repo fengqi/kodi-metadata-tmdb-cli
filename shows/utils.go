@@ -62,7 +62,7 @@ func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 	showName := file.Name()
 
 	// 过滤无用文件
-	if showName == "@eaDir" || showName == "tmdb" || showName == "metadata" || showName[0:1] == "." {
+	if showName[0:1] == "." || utils.InArray(collector.config.Collector.SkipFolders, showName) {
 		utils.Logger.DebugF("pass file: %s", showName)
 		return nil
 	}

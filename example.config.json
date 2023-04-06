@@ -16,8 +16,6 @@
         "watcher": true,
         "cron_seconds": 3600,
         "skip_folders": [
-            ".",
-            "..",
             "tmdb",
             "@eaDir",
             "CERTIFICATE",
@@ -28,7 +26,8 @@
             "ADV_OBJ",
             "PLEX VERSIONS",
             "Sample",
-            "gallery"
+            "gallery",
+            "metadata"
         ],
         "movies_nfo_mode": 2,
         "movies_dir": [
