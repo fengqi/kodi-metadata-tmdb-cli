@@ -10,19 +10,29 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"flag"
+	"fmt"
+	"runtime"
 	"sync"
 )
 
 var (
-	configFile string
+	configFile   string
+	version      bool
+	buildVersion = "dev-master"
 )
 
 func init() {
 	flag.StringVar(&configFile, "config", "./config.json", "config file")
+	flag.BoolVar(&version, "version", false, "display version")
 	flag.Parse()
 }
 
 func main() {
+	if version {
+		fmt.Printf("version: %s, build with: %s\n", buildVersion, runtime.Version())
+		return
+	}
+
 	c := config.LoadConfig(configFile)
 
 	utils.InitLogger(c.Log.Mode, c.Log.Level, c.Log.File)

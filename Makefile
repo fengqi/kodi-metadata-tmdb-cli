@@ -2,7 +2,7 @@
 NAME=kodi-tmdb
 VERSION=$(shell git describe --tags || echo "dev-master")
 RELEASE_DIR=release
-GOBUILD=CGO_ENABLED=0 go build -trimpath -ldflags '-w -s'
+GOBUILD=CGO_ENABLED=0 go build -trimpath -ldflags '-w -s -X "main.buildVersion=$(VERSION)"'
 
 PLATFORM_LIST = \
 	darwin-amd64 \
