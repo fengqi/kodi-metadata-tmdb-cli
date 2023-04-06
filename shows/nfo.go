@@ -8,7 +8,7 @@ import (
 )
 
 func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
-	utils.Logger.InfoF("save tvshow.nfo to: %s", d.getNfoFile())
+	utils.Logger.InfoF("save tvshow.nfo to: %s", d.GetNfoFile())
 
 	genre := make([]string, 0)
 	for _, item := range detail.Genres {
@@ -121,7 +121,7 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 		top.NamedSeason = namedSeason
 	}
 
-	return utils.SaveNfo(d.getNfoFile(), top)
+	return utils.SaveNfo(d.GetNfoFile(), top)
 }
 
 // SaveTvEpisodeNFO 保存每集的信息到独立的NFO文件

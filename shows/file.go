@@ -7,6 +7,19 @@ import (
 	"strings"
 )
 
+// File 电视剧目录内文件详情，从名字分析
+// Dexter.New.Blood.S01E04.H.is.for.Hero.1080p.AMZN.WEB-DL.DDP5.1.H.264-NTb.mkv
+type File struct {
+	Dir           string `json:"dir"`
+	OriginTitle   string `json:"origin_title"` // 原始文件名
+	Season        int    `json:"season"`       // 第几季 ，电影类 -1
+	Episode       int    `json:"episode"`      // 第几集，电影类 -1
+	SeasonEpisode string `json:"season_episode"`
+	Suffix        string `json:"suffix"`
+	TvId          int    `json:"tv_id"`
+	//TvDetail      *tmdb.TvDetail `json:"tv_detail"`
+}
+
 func (f *File) getNfoFile() string {
 	return f.Dir + "/" + f.getTitleWithoutSuffix() + ".nfo"
 }

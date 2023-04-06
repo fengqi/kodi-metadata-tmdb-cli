@@ -6,8 +6,6 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"io/ioutil"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -16,71 +14,57 @@ func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
 	var err error
 	var detail = new(tmdb.TvDetail)
 
+	d.ReadTvId()
+
 	// 从缓存读取
 	tvCacheFile := d.GetCacheDir() + "/tv.json"
 	cacheExpire := false
 	if cf, err := os.Stat(tvCacheFile); err == nil {
 		utils.Logger.DebugF("get tv detail from cache: %s", tvCacheFile)
 
-		bytes, err := ioutil.ReadFile(tvCacheFile)
+		bytes, err := os.ReadFile(tvCacheFile)
 		if err != nil {
 			utils.Logger.WarningF("read tv.json cache: %s err: %v", tvCacheFile, err)
+			goto search
 		}
 
 		err = json.Unmarshal(bytes, detail)
 		if err != nil {
 			utils.Logger.WarningF("parse tv file: %s err: %v", tvCacheFile, err)
+			_ = os.Remove(tvCacheFile)
+			goto search
 		}
 
 		airTime, _ := time.Parse("2006-01-02", detail.LastAirDate)
 		cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
 		detail.FromCache = true
+		d.TvId = detail.Id
 	}
 
+search:
 	// 缓存失效，重新搜索
 	if detail == nil || detail.Id == 0 || cacheExpire {
 		detail.FromCache = false
-		tvId := detail.Id
-		idFile := d.GetCacheDir() + "/id.txt"
-		if _, err = os.Stat(idFile); err == nil {
-			bytes, err := ioutil.ReadFile(idFile)
-			if err != nil {
-				utils.Logger.WarningF("id file: %s read err: %v", idFile, err)
-			} else {
-				tvId, _ = strconv.Atoi(strings.Trim(string(bytes), "\r\n "))
-			}
-		}
-
-		if tvId == 0 {
+		if d.TvId == 0 {
 			SearchResults, err := tmdb.Api.SearchShows(d.ChsTitle, d.EngTitle, d.Year)
 			if err != nil || SearchResults == nil {
 				utils.Logger.ErrorF("search title: %s year: %d failed", d.Title, d.Year)
 				return detail, err
 			}
 
-			tvId = SearchResults.Id
-
-			// 保存tvId
-			err = ioutil.WriteFile(idFile, []byte(strconv.Itoa(tvId)), 0664)
-			if err != nil {
-				utils.Logger.ErrorF("save tvId %d to %s err: %v", tvId, idFile, err)
-			}
+			d.TvId = SearchResults.Id
+			d.CacheTvId()
 		}
 
 		// 获取详情
-		detail, err = tmdb.Api.GetTvDetail(tvId)
-		if err != nil {
-			utils.Logger.ErrorF("get tv: %d detail err: %v", tvId, err)
+		detail, err = tmdb.Api.GetTvDetail(d.TvId)
+		if err != nil || detail == nil || detail.Id == 0 || detail.Name == "" {
+			utils.Logger.ErrorF("get tv: %d detail err: %v", d.TvId, err)
 			return nil, err
 		}
 
 		// 保存到缓存
-		d.checkCacheDir()
 		detail.SaveToCache(tvCacheFile)
-	}
-
-	if detail.Id == 0 || detail.Name == "" {
-		return nil, err
 	}
 
 	// 剧集分组：不同的季版本
@@ -91,9 +75,7 @@ func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
 		}
 	}
 
-	d.TvId = detail.Id
-
-	return detail, err
+	return detail, nil
 }
 
 func (f *File) getTvEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
@@ -184,7 +166,6 @@ func (d *Dir) getTvEpisodeGroupDetail() (*tmdb.TvEpisodeGroupDetail, error) {
 		}
 
 		// 保存到缓存
-		d.checkCacheDir()
 		detail.SaveToCache(cacheFile)
 	}
 

@@ -9,8 +9,30 @@ import (
 	"strings"
 )
 
+// Dir 电视剧目录详情，从名字分析
+// World.Heritage.In.China.E01-E38.2008.CCTVHD.x264.AC3.720p-CMCT
+type Dir struct {
+	Dir          string `json:"dir"`
+	OriginTitle  string `json:"origin_title"`  // 原始文件名
+	Title        string `json:"title"`         // 从视频提取的文件名 鹰眼 Hawkeye
+	AliasTitle   string `json:"alias_title"`   // 别名，通常没有用
+	ChsTitle     string `json:"chs_title"`     // 分离出来的中文名称 鹰眼
+	EngTitle     string `json:"eng_title"`     // 分离出来的英文名称 Hawkeye
+	TvId         int    `json:"tv_id"`         // TMDb tv id
+	GroupId      string `json:"group_id"`      // TMDB Episode Group
+	Season       int    `json:"season"`        // 第几季 ，电影类 -1
+	SeasonRange  string `json:"season_range"`  // 合集：S01-S05
+	Year         int    `json:"year"`          // 年份：2020、2021
+	YearRange    string `json:"year_range"`    // 年份：2010-2015
+	Format       string `json:"format"`        // 格式：720p、1080p
+	Source       string `json:"source"`        // 来源
+	Studio       string `json:"studio"`        // 媒体
+	IsCollection bool   `json:"is_collection"` // 是否是合集目录
+}
+
+// ReadTvId 从文件读取tvId
 func (d *Dir) ReadTvId() {
-	idFile := d.Dir + "/" + d.OriginTitle + "/tmdb/id.txt"
+	idFile := d.GetCacheDir() + "/id.txt"
 	if _, err := os.Stat(idFile); err == nil {
 		bytes, err := os.ReadFile(idFile)
 		if err == nil {
@@ -21,8 +43,18 @@ func (d *Dir) ReadTvId() {
 	}
 }
 
+// CacheTvId 缓存tvId到文件
+func (d *Dir) CacheTvId() {
+	idFile := d.GetCacheDir() + "/id.txt"
+	err := os.WriteFile(idFile, []byte(strconv.Itoa(d.TvId)), 0664)
+	if err != nil {
+		utils.Logger.ErrorF("save tvId %d to %s err: %v", d.TvId, idFile, err)
+	}
+}
+
+// ReadSeason 从文件读取季
 func (d *Dir) ReadSeason() {
-	seasonFile := d.Dir + "/" + d.OriginTitle + "/tmdb/season.txt"
+	seasonFile := d.GetCacheDir() + "/season.txt"
 	if _, err := os.Stat(seasonFile); err == nil {
 		bytes, err := os.ReadFile(seasonFile)
 		if err == nil {
@@ -37,8 +69,9 @@ func (d *Dir) ReadSeason() {
 	}
 }
 
+// ReadGroupId 从文件读取剧集分组
 func (d *Dir) ReadGroupId() {
-	groupFile := d.Dir + "/" + d.OriginTitle + "/tmdb/group.txt"
+	groupFile := d.GetCacheDir() + "/group.txt"
 	if _, err := os.Stat(groupFile); err == nil {
 		bytes, err := os.ReadFile(groupFile)
 		if err == nil {
@@ -49,20 +82,24 @@ func (d *Dir) ReadGroupId() {
 	}
 }
 
+// GetCacheDir 获取TMDB信息缓存目录, 通常是在每部电视剧的根目录下
 func (d *Dir) GetCacheDir() string {
 	return d.GetFullDir() + "/tmdb"
 }
 
+// GetFullDir 获取电视剧的完整目录
 func (d *Dir) GetFullDir() string {
 	return d.Dir + "/" + d.OriginTitle
 }
 
-func (d *Dir) getNfoFile() string {
+// GetNfoFile 获取电视剧的NFO文件路径
+func (d *Dir) GetNfoFile() string {
 	return d.GetFullDir() + "/tvshow.nfo"
 }
 
+// NfoExist 判断NFO文件是否存在
 func (d *Dir) NfoExist() bool {
-	nfo := d.getNfoFile()
+	nfo := d.GetNfoFile()
 
 	if info, err := os.Stat(nfo); err == nil && info.Size() > 0 {
 		return true
@@ -71,7 +108,7 @@ func (d *Dir) NfoExist() bool {
 	return false
 }
 
-// CheckCacheDir tmdb 缓存目录
+// CheckCacheDir 检查并创建缓存目录
 func (d *Dir) checkCacheDir() {
 	dir := d.GetCacheDir()
 	if _, err := os.Stat(dir); err != nil && os.IsNotExist(err) {
