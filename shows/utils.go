@@ -58,6 +58,7 @@ func parseShowsFile(dir *Dir, file fs.FileInfo) *File {
 }
 
 // 解析目录, 返回详情
+// TODO 参数合并，只需要传完整的路径
 func parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 	showName := file.Name()
 
