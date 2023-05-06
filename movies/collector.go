@@ -4,12 +4,11 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"github.com/fsnotify/fsnotify"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
-
-	"github.com/fsnotify/fsnotify"
 )
 
 var collector *Collector
@@ -104,6 +103,7 @@ func (c *Collector) runMoviesProcess() {
 			}
 
 			_ = dir.downloadImage(detail)
+			_ = dir.downloadSubtitle(detail)
 		}
 	}
 }
