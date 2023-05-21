@@ -62,7 +62,6 @@ func (c *Collector) showsDirProcess() {
 
 			dir.downloadImage(detail)
 
-			files := make(map[int]map[string]*File, 0)
 			if dir.IsCollection { // 合集
 				subDir, err := c.scanDir(dir.GetFullDir())
 				if err != nil {
@@ -71,26 +70,29 @@ func (c *Collector) showsDirProcess() {
 				}
 
 				for _, item := range subDir {
-					subFiles, err := c.scanShowsFile(item)
+					err := c.watcher.Add(item.Dir + "/" + item.OriginTitle)
+					utils.Logger.DebugF("runCronScan add shows dir: %s to watcher", item.Dir+"/"+item.OriginTitle)
 					if err != nil {
-						utils.Logger.ErrorF("scan collection sub dir: %s err: %v", item.OriginTitle, err)
-						continue
+						utils.Logger.FatalF("add shows dir: %s to watcher err: %v", item.Dir+"/"+item.OriginTitle, err)
 					}
 
-					if len(subFiles) > 0 {
-						files[item.Season] = subFiles
-					}
-				}
-			} else { // 普通剧集
-				subFiles, err := c.scanShowsFile(dir)
-				if err != nil {
-					utils.Logger.ErrorF("scan shows dir: %s err: %v", dir.OriginTitle, err)
-					continue
+					item.TvId = dir.TvId
+					c.dirChan <- item
 				}
 
-				if len(subFiles) > 0 {
-					files[dir.Season] = subFiles
-				}
+				continue
+			}
+
+			// 普通剧集
+			subFiles, err := c.scanShowsFile(dir)
+			if err != nil {
+				utils.Logger.ErrorF("scan shows dir: %s err: %v", dir.OriginTitle, err)
+				continue
+			}
+
+			files := make(map[int]map[string]*File, 0)
+			if len(subFiles) > 0 {
+				files[dir.Season] = subFiles
 			}
 
 			if len(files) == 0 {
@@ -248,6 +250,14 @@ func (c *Collector) runCronScan() {
 				utils.Logger.DebugF("runCronScan add shows dir: %s to watcher", showDir.Dir+"/"+showDir.OriginTitle)
 				if err != nil {
 					utils.Logger.FatalF("add shows dir: %s to watcher err: %v", showDir.Dir+"/"+showDir.OriginTitle, err)
+				}
+
+				// 预留50%空间给可能重新放回队列的任务
+				for {
+					if len(c.dirChan) < 100*0.5 {
+						break
+					}
+					time.Sleep(time.Second * 2)
 				}
 
 				c.dirChan <- showDir
