@@ -71,10 +71,10 @@ func (t *tmdb) SearchShows(chsTitle, engTitle string, year int) (*SearchResults,
 	if chsTitle != "" {
 		if year > 0 {
 			searchComb = append(searchComb, map[string]string{
-				"query":               chsTitle,
-				"page":                "1",
-				"include_adult":       "true",
-				"first_air_date_year": strYear,
+				"query":         chsTitle,
+				"page":          "1",
+				"include_adult": "true",
+				"year":          strYear,
 			})
 		}
 		searchComb = append(searchComb, map[string]string{
@@ -87,10 +87,10 @@ func (t *tmdb) SearchShows(chsTitle, engTitle string, year int) (*SearchResults,
 	if engTitle != "" {
 		if year > 0 {
 			searchComb = append(searchComb, map[string]string{
-				"query":               engTitle,
-				"page":                "1",
-				"include_adult":       "true",
-				"first_air_date_year": strYear,
+				"query":         engTitle,
+				"page":          "1",
+				"include_adult": "true",
+				"year":          strYear,
 			})
 		}
 		searchComb = append(searchComb, map[string]string{
