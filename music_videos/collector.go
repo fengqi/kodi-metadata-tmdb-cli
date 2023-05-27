@@ -74,6 +74,11 @@ func (c *Collector) runWatcher() {
 
 			//  新增目录
 			if fileInfo.IsDir() {
+				err = c.watcher.Add(event.Name)
+				if err != nil {
+					utils.Logger.WarningF("add music video dir: %s to watcher err: %v", event.Name, err)
+				}
+
 				videos, err := c.scanDir(event.Name)
 				if err != nil || len(videos) == 0 {
 					utils.Logger.WarningF("new dir %s scan err: %v", event.Name, err)
@@ -82,11 +87,6 @@ func (c *Collector) runWatcher() {
 
 				for _, video := range videos {
 					c.channel <- video
-				}
-
-				err = c.watcher.Add(event.Name)
-				if err != nil {
-					utils.Logger.FatalF("add music video dir: %s to watcher err: %v", event.Name, err)
 				}
 
 				continue
