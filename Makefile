@@ -7,11 +7,13 @@ GOBUILD=CGO_ENABLED=0 go build -trimpath -ldflags '-w -s -X "main.buildVersion=$
 PLATFORM_LIST = \
 	darwin-amd64 \
 	darwin-arm64 \
-	linux-amd64
+	linux-amd64 \
+	linux-arm64 \
+	linux-arm
 
 WINDOWS_ARCH_LIST = windows-amd64
 
-all: linux-amd64 darwin-amd64 darwin-arm64 windows-amd64
+all: linux-amd64 linux-arm64 linux-arm darwin-amd64 darwin-arm64 windows-amd64
 
 darwin-amd64:
 	GOARCH=amd64 GOOS=darwin $(GOBUILD) -o $(RELEASE_DIR)/$(NAME)-$@
@@ -23,6 +25,14 @@ darwin-arm64:
 
 linux-amd64:
 	GOARCH=amd64 GOOS=linux $(GOBUILD) -o $(RELEASE_DIR)/$(NAME)-$@
+	cp example.config.json $(RELEASE_DIR)/
+
+linux-arm64:
+	GOARCH=arm64 GOOS=linux $(GOBUILD) -o $(RELEASE_DIR)/$(NAME)-$@
+	cp example.config.json $(RELEASE_DIR)/
+
+linux-arm:
+	GOARCH=arm GOOS=linux $(GOBUILD) -o $(RELEASE_DIR)/$(NAME)-$@
 	cp example.config.json $(RELEASE_DIR)/
 
 windows-amd64:
