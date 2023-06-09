@@ -128,6 +128,7 @@ var (
 	optionsMatch       *regexp.Regexp
 	resolutionMatch    *regexp.Regexp
 	seasonRangeMatch   *regexp.Regexp
+	partMatch          *regexp.Regexp
 )
 
 func init() {
@@ -165,6 +166,7 @@ func init() {
 	chsEpisodeMatch, _ = regexp.Compile("(?:第|)([0-9]+)集")
 	resolutionMatch, _ = regexp.Compile("[0-9]{3,4}Xx*[0-9]{3,4}")
 	seasonRangeMatch, _ = regexp.Compile("[sS](0|)[0-9]+-[sS](0|)[0-9]+")
+	partMatch, _ = regexp.Compile("(:?.|-|_| |@)[pP]art([0-9])(:?.|-|_| |@)")
 }
 
 // IsCollection 是否是合集，如S01-S03季
@@ -433,4 +435,16 @@ func IsResolution(name string) string {
 // Split 影视目录或文件名切割
 func Split(name string) []string {
 	return SplitWith(name, delimiter, delimiterExecute)
+}
+
+// MatchPart 匹配分卷
+func MatchPart(name string) int {
+	find := partMatch.FindStringSubmatch(name)
+	if len(find) == 4 {
+		num, err := strconv.Atoi(find[2])
+		if err == nil {
+			return num
+		}
+	}
+	return 0
 }

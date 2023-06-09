@@ -28,6 +28,7 @@ type Dir struct {
 	Source       string `json:"source"`        // 来源
 	Studio       string `json:"studio"`        // 媒体
 	IsCollection bool   `json:"is_collection"` // 是否是合集目录
+	PartMode     int    `json:"part_mode"`     // 分卷模式: 0不使用分卷, 1-自动, 2以上为手动指定分卷数量
 }
 
 // ReadTvId 从文件读取tvId
@@ -140,6 +141,19 @@ func (d *Dir) downloadImage(detail *tmdb.TvDetail) {
 			}
 			seasonPoster := fmt.Sprintf("season%02d-poster.jpg", item.SeasonNumber)
 			_ = utils.DownloadFile(tmdb.Api.GetImageOriginal(item.PosterPath), d.GetFullDir()+"/"+seasonPoster)
+		}
+	}
+}
+
+// ReadPart 读取分卷模式
+func (d *Dir) ReadPart() {
+	partFile := d.GetCacheDir() + "/part.txt"
+	if _, err := os.Stat(partFile); err == nil {
+		bytes, err := os.ReadFile(partFile)
+		if err == nil {
+			d.PartMode, _ = strconv.Atoi(strings.Trim(string(bytes), "\r\n "))
+		} else {
+			utils.Logger.WarningF("read part specially file: %s err: %v", partFile, err)
 		}
 	}
 }
