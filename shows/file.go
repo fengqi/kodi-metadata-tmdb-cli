@@ -17,6 +17,7 @@ type File struct {
 	SeasonEpisode string `json:"season_episode"`
 	Suffix        string `json:"suffix"`
 	TvId          int    `json:"tv_id"`
+	Part          int    `json:"part"` // 分卷模式下，第几部分
 	//TvDetail      *tmdb.TvDetail `json:"tv_detail"`
 }
 

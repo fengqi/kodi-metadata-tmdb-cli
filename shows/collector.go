@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -321,17 +322,51 @@ func (c *Collector) scanShowsFile(d *Dir) (map[string]*File, error) {
 		return nil, err
 	}
 
-	movieFiles := make(map[string]*File, 0)
+	movieFiles := make([]*File, 0)
 	for _, file := range fileInfo {
 		movieFile := c.parseShowsFile(d, file)
-		if movieFile == nil {
-			continue
+		if movieFile != nil {
+			if d.PartMode > 0 {
+				movieFile.Part = utils.MatchPart(file.Name())
+			}
+			movieFiles = append(movieFiles, movieFile)
 		}
-
-		movieFiles[movieFile.SeasonEpisode] = movieFile
 	}
 
-	return movieFiles, nil
+	// 处理分卷
+	// part=1会根据part出现的次数累加, 适合没有规律的, 比如E01只有上下, E03有上中下, 但是如果中间部分剧集缺失会导致算错
+	// part=2或者更大的数字会使用当前集数*2, 比如part=2的时候, E05.Part1会映射成E09, 可以缺失中间部分剧集
+	if d.PartMode == 1 {
+		// 使用season episode part多重排序
+		sort.Slice(movieFiles, func(i, j int) bool {
+			if movieFiles[i].Season == movieFiles[j].Season {
+				if movieFiles[i].Episode == movieFiles[j].Episode {
+					return movieFiles[i].Part < movieFiles[j].Part
+				}
+				return movieFiles[i].Episode < movieFiles[j].Episode
+			}
+			return movieFiles[i].Season < movieFiles[j].Season
+		})
+
+		// 重新计算episode
+		for i, item := range movieFiles {
+			item.Episode = i + 1
+			item.SeasonEpisode = fmt.Sprintf("s%02de%02d", item.Season, item.Episode)
+		}
+	} else {
+		for _, item := range movieFiles {
+			item.Episode = (item.Episode-1)*d.PartMode + item.Part
+			item.SeasonEpisode = fmt.Sprintf("s%02de%02d", item.Season, item.Episode)
+		}
+	}
+
+	// TODO 忘记这里为啥返回map，而不是slice了，先临时转成map，后续看看能不能改回来
+	movieFilesMap := make(map[string]*File)
+	for _, item := range movieFiles {
+		movieFilesMap[item.SeasonEpisode] = item
+	}
+
+	return movieFilesMap, nil
 }
 
 // 解析文件, 返回详情
@@ -482,6 +517,7 @@ func (c *Collector) parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 	showsDir.ReadTvId()
 	showsDir.ReadGroupId()
 	showsDir.checkCacheDir()
+	showsDir.ReadPart()
 
 	return showsDir
 }
