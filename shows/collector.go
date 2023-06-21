@@ -144,8 +144,11 @@ func (c *Collector) showsDirProcess() {
 
 // 单个剧集处理
 func (c *Collector) showsFileProcess(originalName string, showsFile *File) bool {
+	utils.Logger.DebugF("episode process: season: %d episode: %d %s", showsFile.Season, showsFile.Episode, showsFile.OriginTitle)
+
 	episodeDetail, err := showsFile.getTvEpisodeDetail()
 	if err != nil || episodeDetail == nil || episodeDetail.FromCache && showsFile.NfoExist() {
+		utils.Logger.WarningF("get tv episode detail err: %v", err)
 		return false
 	}
 
@@ -352,11 +355,13 @@ func (c *Collector) scanShowsFile(d *Dir) (map[string]*File, error) {
 		for i, item := range movieFiles {
 			item.Episode = i + 1
 			item.SeasonEpisode = fmt.Sprintf("s%02de%02d", item.Season, item.Episode)
+			utils.Logger.DebugF("scanShowsFile partMode=%d, correct episode to %d", d.PartMode, item.Episode, item.OriginTitle)
 		}
-	} else {
+	} else if d.PartMode > 1 {
 		for _, item := range movieFiles {
 			item.Episode = (item.Episode-1)*d.PartMode + item.Part
 			item.SeasonEpisode = fmt.Sprintf("s%02de%02d", item.Season, item.Episode)
+			utils.Logger.DebugF("scanShowsFile partMode=%d, correct episode to %d", d.PartMode, item.Episode, item.OriginTitle)
 		}
 	}
 
