@@ -1,42 +1,85 @@
 package subtitle
 
 import (
+	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"os"
 	"path/filepath"
 )
 
-type FileInfo struct {
-	Dir              string
-	VideoFileName    string
-	IsFile           bool
-	IsSingleFile     bool
-	TmdbId           int
-	ImdbId           string
-	OriginalTitle    string
-	OriginalLanguage string
-	Title            string
+type opensubtitles struct {
+	apiHost   string
+	apiKey    string
+	languages []string
+	client    *http.Client
 }
 
-type SubtitleInfo struct {
-	Url      string
-	Filename string
+const CacheFileSubfix = "opensubtitles.json"
+
+var osb *opensubtitles
+
+func InitSubtitles(config *config.OpensubtitlesConfig) {
+	osb = &opensubtitles{
+		apiHost:   config.ApiHost,
+		apiKey:    config.ApiKey,
+		languages: config.Languages,
+		client:    utils.GetHttpClient(config.Proxy),
+	}
 }
 
-type Subtitle interface {
-	GetSubtitleList(fileInfo *FileInfo) (SubtitleInfoList []*SubtitleInfo, err error)
-}
+func GetSubtitles(tmdbId int, cacheFile string) (subtitles []*File, err error) {
+	// 从缓存读取
+	if cf, err := os.Stat(cacheFile); err == nil && cf.Size() > 0 {
+		utils.Logger.DebugF("get subtitles from cache: %s", cacheFile)
 
-func DownloadSubtitle(fileInfo *FileInfo) error {
-	sub := NewOpenSubtitles()
+		bytes, err := ioutil.ReadFile(cacheFile)
+		if err != nil {
+			utils.Logger.WarningF("read opensubtitles.json cache: %s err: %v", cacheFile, err)
+		}
 
-	list, err := sub.GetSubtitleList(fileInfo)
-	if err != nil {
-		utils.Logger.ErrorF("GetSubtitleList: %v", err)
-		return err
+		err = json.Unmarshal(bytes, &subtitles)
+		if err != nil {
+			utils.Logger.WarningF("parse opensubtitles: %s file err: %v", cacheFile, err)
+		}
 	}
 
-	for _, v := range list {
-		utils.DownloadFile(v.Url, filepath.Join(fileInfo.Dir, v.Filename))
+	// 缓存失效，重新搜索
+	if subtitles == nil {
+
+		// 获取字幕
+		subtitles, err = osb.getSubtitleList(tmdbId)
+		if err != nil {
+			utils.Logger.ErrorF("get opensubtitles err: %v", err)
+			return
+		}
+
+		// 保存到缓存
+		file, _ := json.MarshalIndent(subtitles, "", " ")
+		_ = ioutil.WriteFile(cacheFile, file, 0644)
+
+	}
+
+	return
+}
+
+func Download(files []*File, dir string) error {
+	for _, f := range files {
+
+		filename := filepath.Join(dir, f.Filename)
+
+		if info, err := os.Stat(filename); err == nil && info.Size() > 0 {
+			continue
+		}
+
+		info, err := osb.getDownloadLink(f.FileID)
+		if err != nil {
+			return err
+		}
+		utils.DownloadFile(info.Link, filename)
 	}
 
 	return nil

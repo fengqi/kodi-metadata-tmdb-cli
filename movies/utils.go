@@ -1,9 +1,9 @@
 package movies
 
 import (
-	"fengqi/kodi-metadata-tmdb-cli/subtitle"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+
 	"io/fs"
 	"io/ioutil"
 	"os"
@@ -203,24 +203,6 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 	}
 
 	return err
-}
-
-func (d *Movie) downloadSubtitle(detail *tmdb.MovieDetail) error {
-	utils.Logger.DebugF("download %s subtitles", d.Title)
-
-	info := &subtitle.FileInfo{
-		Dir:              d.GetFullDir(),
-		VideoFileName:    d.VideoFileName,
-		IsFile:           d.IsFile,
-		IsSingleFile:     d.IsSingleFile,
-		TmdbId:           detail.Id,
-		ImdbId:           detail.ImdbId,
-		OriginalTitle:    detail.OriginalTitle,
-		OriginalLanguage: detail.OriginalLanguage,
-		Title:            detail.Title,
-	}
-
-	return subtitle.DownloadSubtitle(info)
 }
 
 // maybe <VideoFileName>.nfo
