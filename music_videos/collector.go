@@ -189,13 +189,9 @@ func (c *Collector) runScanner() {
 
 	task()
 	ticker := time.NewTicker(time.Second * time.Duration(c.config.Collector.CronSeconds))
-	for {
-		select {
-		case <-ticker.C:
-			task()
-
-			utils.Logger.Debug("run music video scanner finished")
-		}
+	for range ticker.C {
+		task()
+		utils.Logger.Debug("run music video scanner finished")
 	}
 }
 
