@@ -2,6 +2,7 @@ package kodi
 
 import (
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -12,16 +13,16 @@ func (r *JsonRpc) AddScanTask(directory string) {
 	}
 
 	utils.Logger.DebugF("AddScanTask %s", directory)
-
-	sources := r.Files.GetSources("video")
-	if sources == nil {
-		return
-	}
-
-	for _, item := range sources {
-		if strings.Contains(directory, item.File) {
-			directory = item.File
-			break
+	if directory != "" {
+		directory = filepath.Clean(directory)
+		sources := r.Files.GetSources("video")
+		if sources != nil {
+			for _, item := range sources {
+				if strings.Contains(item.File, directory) {
+					directory = item.File
+					break
+				}
+			}
 		}
 	}
 
