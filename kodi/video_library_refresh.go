@@ -55,12 +55,19 @@ func (r *JsonRpc) ConsumerRefreshTask() {
 			case TaskRefreshMovie:
 				r.RefreshMovie(queue[5:])
 				break
+			case TaskRefreshMusicVideo:
+				r.RefreshMusicVideo(queue[5:])
 			}
 
 			delete(r.refreshQueue, queue)
 			r.refreshLock.Unlock()
 		}
 	}
+}
+
+func (r *JsonRpc) RefreshMusicVideo(s string) bool {
+	// TODO
+	return true
 }
 
 func (r *JsonRpc) RefreshMovie(name string) bool {
