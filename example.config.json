@@ -50,7 +50,7 @@
     },
     "ffmpeg": {
         "max_worker": 4,
-        "ffmpeg": "/usr/local/ffmpeg-5.0.1-amd64-static/ffmpeg",
-        "ffprobe": "/usr/local/ffmpeg-5.0.1-amd64-static/ffprobe"
+        "ffmpeg_path": "/usr/local/ffmpeg-5.0.1-amd64-static/ffmpeg",
+        "ffprobe_path": "/usr/local/ffmpeg-5.0.1-amd64-static/ffprobe"
     }
 }
