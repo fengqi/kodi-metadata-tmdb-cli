@@ -2,6 +2,7 @@ package music_videos
 
 import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
+	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"github.com/fsnotify/fsnotify"
 	"io/ioutil"
@@ -150,6 +151,8 @@ func (c *Collector) videoProcessor(video *MusicVideo) {
 	if err == nil {
 		_ = video.saveToNfo()
 	}
+
+	kodi.Rpc.AddScanTask(video.Dir)
 }
 
 // 运行扫描器
