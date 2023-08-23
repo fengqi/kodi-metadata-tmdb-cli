@@ -15,7 +15,7 @@
 # 功能列表
 
 - [x] 从TMDB获取电视剧、电视剧分集、电视剧合集、电视剧剧集组、电影、电影合集信息
-- [x] 从TMDB获取演员列表、封面图片、海报图片、内容分级
+- [x] 从TMDB获取演员列表、封面图片、海报图片、内容分级、logo
 - [x] 定时扫描电影、电视剧、音乐视频文件和目录
 - [x] 实时监听新添加的电影、电视剧、音乐视频文件和目录
 - [x] 命名不规范或有歧义的电影、电视剧支持手动指定id
@@ -32,6 +32,7 @@
 
 - Kodi v19 (Matrix) JSON-RPC API/V12 https://kodi.wiki/view/JSON-RPC_API/v12
 - Kodi v19 (Matrix) NFO files https://kodi.wiki/view/NFO_files
+- Kodi Artwork types https://kodi.wiki/view/Artwork_types
 - TMDB Api Overview https://www.themoviedb.org/documentation/api
 - TMDB Api V3 https://developers.themoviedb.org/3/getting-started/introduction
 - File system notifications for Go https://github.com/fsnotify/fsnotify
