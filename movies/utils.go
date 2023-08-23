@@ -180,7 +180,7 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 
 	var err error
 	if len(detail.PosterPath) > 0 {
-		posterFile := d.GetFullDir() + "/poster.jpg"
+		posterFile := ""
 		if d.IsFile {
 			suffix := utils.IsVideo(d.OriginTitle)
 			posterFile = d.Dir + "/" + strings.Replace(d.OriginTitle, "."+suffix, "", 1) + "-poster.jpg"
@@ -191,7 +191,7 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 	}
 
 	if len(detail.BackdropPath) > 0 {
-		fanArtFile := d.GetFullDir() + "/fanart.jpg"
+		fanArtFile := ""
 		if d.IsFile {
 			suffix := utils.IsVideo(d.OriginTitle)
 			fanArtFile = d.Dir + "/" + strings.Replace(d.OriginTitle, "."+suffix, "", 1) + "-fanart.jpg"
@@ -199,6 +199,25 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 			fanArtFile = name + "-fanart.jpg"
 		}
 		err = utils.DownloadFile(tmdb.Api.GetImageOriginal(detail.BackdropPath), fanArtFile)
+	}
+
+	if len(detail.ProductionCompanies) > 0 {
+		for _, item := range detail.ProductionCompanies {
+			if item.LogoPath == "" {
+				continue
+			}
+
+			logoFile := ""
+			if d.IsFile {
+				suffix := utils.IsVideo(d.OriginTitle)
+				logoFile = d.Dir + "/" + strings.Replace(d.OriginTitle, "."+suffix, "", 1) + "-clearlogo.png"
+			} else if name := d.VideoFileNameWithoutSuffix(); name != "" {
+				logoFile = name + "-clearlogo.png"
+			}
+			if err = utils.DownloadFile(tmdb.Api.GetImageOriginal(item.LogoPath), logoFile); err == nil {
+				break
+			}
+		}
 	}
 
 	return err

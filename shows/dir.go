@@ -143,6 +143,17 @@ func (d *Dir) downloadImage(detail *tmdb.TvDetail) {
 			_ = utils.DownloadFile(tmdb.Api.GetImageOriginal(item.PosterPath), d.GetFullDir()+"/"+seasonPoster)
 		}
 	}
+
+	if len(detail.Networks) > 0 {
+		for _, item := range detail.Networks {
+			if item.LogoPath == "" {
+				continue
+			}
+			if err := utils.DownloadFile(tmdb.Api.GetImageOriginal(item.LogoPath), d.GetFullDir()+"/clearlogo.png"); err == nil {
+				break
+			}
+		}
+	}
 }
 
 // ReadPart 读取分卷模式
