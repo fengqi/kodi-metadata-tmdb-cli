@@ -5,6 +5,7 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -144,14 +145,23 @@ func (d *Dir) downloadImage(detail *tmdb.TvDetail) {
 		}
 	}
 
-	if len(detail.Networks) > 0 {
-		for _, item := range detail.Networks {
-			if item.LogoPath == "" {
-				continue
+	if detail.Images != nil && len(detail.Images.Logos) > 0 {
+		sort.SliceStable(detail.Images.Logos, func(i, j int) bool {
+			return detail.Images.Logos[i].VoteAverage > detail.Images.Logos[j].VoteAverage
+		})
+		image := detail.Images.Logos[0]
+		for _, item := range detail.Images.Logos {
+			if image.FilePath == "" && item.FilePath != "" {
+				image = item
 			}
-			if err := utils.DownloadFile(tmdb.Api.GetImageOriginal(item.LogoPath), d.GetFullDir()+"/clearlogo.png"); err == nil {
+			if item.Iso6391 == "zh" && image.Iso6391 != "zh" {
+				image = item
 				break
 			}
+		}
+		if image.FilePath != "" {
+			logoFile := d.GetFullDir() + "/clearlogo.png"
+			_ = utils.DownloadFile(tmdb.Api.GetImageOriginal(image.FilePath), logoFile)
 		}
 	}
 }

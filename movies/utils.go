@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -201,12 +202,22 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 		err = utils.DownloadFile(tmdb.Api.GetImageOriginal(detail.BackdropPath), fanArtFile)
 	}
 
-	if len(detail.ProductionCompanies) > 0 {
-		for _, item := range detail.ProductionCompanies {
-			if item.LogoPath == "" {
-				continue
-			}
+	if detail.Images != nil && len(detail.Images.Logos) > 0 {
+		sort.SliceStable(detail.Images.Logos, func(i, j int) bool {
+			return detail.Images.Logos[i].VoteAverage > detail.Images.Logos[j].VoteAverage
+		})
 
+		image := detail.Images.Logos[0]
+		for _, item := range detail.Images.Logos {
+			if image.FilePath == "" && item.FilePath != "" {
+				image = item
+			}
+			if item.Iso6391 == "zh" && image.Iso6391 != "zh" {
+				image = item
+				break
+			}
+		}
+		if image.FilePath != "" {
 			logoFile := ""
 			if d.IsFile {
 				suffix := utils.IsVideo(d.OriginTitle)
@@ -214,9 +225,7 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 			} else if name := d.VideoFileNameWithoutSuffix(); name != "" {
 				logoFile = name + "-clearlogo.png"
 			}
-			if err = utils.DownloadFile(tmdb.Api.GetImageOriginal(item.LogoPath), logoFile); err == nil {
-				break
-			}
+			_ = utils.DownloadFile(tmdb.Api.GetImageOriginal(image.FilePath), logoFile)
 		}
 	}
 
