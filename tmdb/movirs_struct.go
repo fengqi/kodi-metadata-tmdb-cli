@@ -30,6 +30,7 @@ type MovieDetail struct {
 	Credits             *Credit             `json:"credits"`
 	FromCache           bool                `json:"from_cache"`
 	Releases            MovieRelease        `json:"releases"`
+	Images              *MovieImages        `json:"images"`
 }
 
 type BelongsToCollection struct {
@@ -111,4 +112,21 @@ type ReleaseCountry struct {
 	ISO31661      string `json:"iso_3166_1"`
 	Primary       bool   `json:"primary"`
 	ReleaseDate   string `json:"release_date"`
+}
+
+type MovieImage struct {
+	AspectRatio float32 `json:"aspect_ratio"`
+	Height      int     `json:"height"`
+	Iso6391     string  `json:"iso_639_1"`
+	FilePath    string  `json:"file_path"`
+	VoteAverage float32 `json:"vote_average"`
+	VoteCount   int     `json:"vote_count"`
+	Width       int     `json:"width"`
+}
+
+type MovieImages struct {
+	Id        int           `json:"id"`
+	Logos     []*MovieImage `json:"logos"`
+	Posters   []*MovieImage `json:"posters"`
+	Backdrops []*MovieImage `json:"backdrops"`
 }

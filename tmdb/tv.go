@@ -51,7 +51,25 @@ type TvDetail struct {
 	AggregateCredits     *TvAggregateCredits   `json:"aggregate_credits"`
 	ContentRatings       *TvContentRatings     `json:"content_ratings"`
 	TvEpisodeGroupDetail *TvEpisodeGroupDetail `json:"tv_episode_group_detail"`
+	Images               *TvImages             `json:"images"`
 	FromCache            bool                  `json:"from_cache"`
+}
+
+type TvImage struct {
+	AspectRatio float32 `json:"aspect_ratio"`
+	Height      int     `json:"height"`
+	Iso6391     string  `json:"iso_639_1"`
+	FilePath    string  `json:"file_path"`
+	VoteAverage float32 `json:"vote_average"`
+	VoteCount   int     `json:"vote_count"`
+	Width       int     `json:"width"`
+}
+
+type TvImages struct {
+	Id        int        `json:"id"`
+	Logos     []*TvImage `json:"logos"`
+	Posters   []*TvImage `json:"posters"`
+	Backdrops []*TvImage `json:"backdrops"`
 }
 
 type Genre struct {
@@ -133,7 +151,8 @@ func (t *tmdb) GetTvDetail(id int) (*TvDetail, error) {
 
 	api := fmt.Sprintf(ApiTvDetail, id)
 	req := map[string]string{
-		"append_to_response": "aggregate_credits,content_ratings",
+		"append_to_response":     "aggregate_credits,content_ratings,images",
+		"include_image_language": "zh,en,null",
 	}
 
 	body, err := t.request(api, req)

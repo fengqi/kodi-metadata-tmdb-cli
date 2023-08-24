@@ -13,7 +13,8 @@ func (t *tmdb) GetMovieDetail(id int) (*MovieDetail, error) {
 
 	api := fmt.Sprintf(ApiMovieDetail, id)
 	req := map[string]string{
-		"append_to_response": "credits,releases",
+		"append_to_response":     "credits,releases,images",
+		"include_image_language": "zh,en,null",
 	}
 
 	body, err := t.request(api, req)
