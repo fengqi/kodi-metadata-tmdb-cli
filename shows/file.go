@@ -2,7 +2,6 @@ package shows
 
 import (
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
-	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"os"
 	"strings"
 )
@@ -47,6 +46,6 @@ func (f *File) getCacheDir() string {
 func (f *File) downloadImage(d *tmdb.TvEpisodeDetail) {
 	file := f.getTitleWithoutSuffix()
 	if len(d.StillPath) > 0 {
-		_ = utils.DownloadFile(tmdb.Api.GetImageOriginal(d.StillPath), f.Dir+"/"+file+"-thumb.jpg")
+		_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(d.StillPath), f.Dir+"/"+file+"-thumb.jpg")
 	}
 }

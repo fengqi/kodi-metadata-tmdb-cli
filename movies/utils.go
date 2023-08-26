@@ -188,7 +188,7 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 		} else if name := d.VideoFileNameWithoutSuffix(); name != "" {
 			posterFile = name + "-poster.jpg"
 		}
-		err = utils.DownloadFile(tmdb.Api.GetImageOriginal(detail.PosterPath), posterFile)
+		err = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.PosterPath), posterFile)
 	}
 
 	if len(detail.BackdropPath) > 0 {
@@ -199,7 +199,7 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 		} else if name := d.VideoFileNameWithoutSuffix(); name != "" {
 			fanArtFile = name + "-fanart.jpg"
 		}
-		err = utils.DownloadFile(tmdb.Api.GetImageOriginal(detail.BackdropPath), fanArtFile)
+		err = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.BackdropPath), fanArtFile)
 	}
 
 	if detail.Images != nil && len(detail.Images.Logos) > 0 {
@@ -225,7 +225,7 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 			} else if name := d.VideoFileNameWithoutSuffix(); name != "" {
 				logoFile = name + "-clearlogo.png"
 			}
-			_ = utils.DownloadFile(tmdb.Api.GetImageOriginal(image.FilePath), logoFile)
+			_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(image.FilePath), logoFile)
 		}
 	}
 

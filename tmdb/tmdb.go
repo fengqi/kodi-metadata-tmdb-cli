@@ -80,6 +80,52 @@ func (t *tmdb) request(api string, args map[string]string) ([]byte, error) {
 	return ioutil.ReadAll(resp.Body)
 }
 
+// DownloadFile 下载文件, 提供网址和目的地
+func DownloadFile(url string, filename string) error {
+	if info, err := os.Stat(filename); err == nil && info.Size() > 0 {
+		return nil
+	}
+
+	utils.Logger.InfoF("download %s to %s", url, filename)
+
+	resp, err := HttpClient.Get(url)
+	if err != nil {
+		utils.Logger.ErrorF("download: %s err: %v", url, err)
+		return err
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			utils.Logger.WarningF("download file, close body err: %v", err)
+		}
+	}(resp.Body)
+
+	if resp.StatusCode != 200 {
+		utils.Logger.ErrorF("download: %s status code failed: %d", url, resp.StatusCode)
+		return nil
+	}
+
+	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
+	if err != nil {
+		utils.Logger.ErrorF("download: %s open_file err: %v", url, err)
+		return err
+	}
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			utils.Logger.WarningF("download file, close file err: %v", err)
+		}
+	}(f)
+
+	_, err = io.Copy(f, resp.Body)
+	if err != nil {
+		utils.Logger.ErrorF("save content to image: %s err: %v", filename, err)
+		return err
+	}
+
+	return nil
+}
+
 // 支持 http 和 socks5 代理
 func getHttpClient(proxyConnect string) *http.Client {
 	proxyUrl, err := url.Parse(proxyConnect)
