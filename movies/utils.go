@@ -181,7 +181,7 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 
 	var err error
 	if len(detail.PosterPath) > 0 {
-		posterFile := ""
+		posterFile := d.GetFullDir() + "/poster.jpg"
 		if d.IsFile {
 			suffix := utils.IsVideo(d.OriginTitle)
 			posterFile = d.Dir + "/" + strings.Replace(d.OriginTitle, "."+suffix, "", 1) + "-poster.jpg"
@@ -192,7 +192,7 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 	}
 
 	if len(detail.BackdropPath) > 0 {
-		fanArtFile := ""
+		fanArtFile := d.GetFullDir() + "/fanart.jpg"
 		if d.IsFile {
 			suffix := utils.IsVideo(d.OriginTitle)
 			fanArtFile = d.Dir + "/" + strings.Replace(d.OriginTitle, "."+suffix, "", 1) + "-fanart.jpg"
@@ -218,7 +218,7 @@ func (d *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 			}
 		}
 		if image.FilePath != "" {
-			logoFile := ""
+			logoFile := d.GetFullDir() + "/clearlogo.jpg"
 			if d.IsFile {
 				suffix := utils.IsVideo(d.OriginTitle)
 				logoFile = d.Dir + "/" + strings.Replace(d.OriginTitle, "."+suffix, "", 1) + "-clearlogo.png"
