@@ -147,16 +147,18 @@ func (c *Collector) showsFileProcess(originalName string, showsFile *File) bool 
 	utils.Logger.DebugF("episode process: season: %d episode: %d %s", showsFile.Season, showsFile.Episode, showsFile.OriginTitle)
 
 	episodeDetail, err := showsFile.getTvEpisodeDetail()
-	if err != nil || episodeDetail == nil || episodeDetail.FromCache && showsFile.NfoExist() {
+	if err != nil || episodeDetail == nil {
 		utils.Logger.WarningF("get tv episode detail err: %v", err)
 		return false
 	}
 
-	_ = showsFile.saveToNfo(episodeDetail)
-	showsFile.downloadImage(episodeDetail)
+	if !episodeDetail.FromCache || !showsFile.NfoExist() {
+		_ = showsFile.saveToNfo(episodeDetail)
+		taskVal := fmt.Sprintf("%s|-|%d|-|%d", originalName, episodeDetail.SeasonNumber, episodeDetail.EpisodeNumber)
+		kodi.Rpc.AddRefreshTask(kodi.TaskRefreshEpisode, taskVal)
+	}
 
-	taskVal := fmt.Sprintf("%s|-|%d|-|%d", originalName, episodeDetail.SeasonNumber, episodeDetail.EpisodeNumber)
-	kodi.Rpc.AddRefreshTask(kodi.TaskRefreshEpisode, taskVal)
+	showsFile.downloadImage(episodeDetail)
 
 	return true
 }
