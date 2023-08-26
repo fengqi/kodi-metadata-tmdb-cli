@@ -107,13 +107,13 @@ func DownloadFile(url string, filename string) error {
 
 	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 	if err != nil {
-		utils.Logger.ErrorF("download: %s open_file err: %v", url, err)
+		utils.Logger.ErrorF("download: %s open_file %s err: %v", url, filename, err)
 		return err
 	}
 	defer func(f *os.File) {
 		err := f.Close()
 		if err != nil {
-			utils.Logger.WarningF("download file, close file err: %v", err)
+			utils.Logger.WarningF("download file, close file %s err: %v", filename, err)
 		}
 	}(f)
 
