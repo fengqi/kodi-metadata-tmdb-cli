@@ -149,8 +149,15 @@ func (c *Collector) videoProcessor(video *MusicVideo) {
 	}
 
 	err = video.drawThumb()
-	if err == nil {
-		_ = video.saveToNfo()
+	if err != nil {
+		utils.Logger.WarningF("draw thumb err: %v", err)
+		return
+	}
+
+	err = video.saveToNfo()
+	if err != nil {
+		utils.Logger.WarningF("save to NFO err: %v", err)
+		return
 	}
 
 	split := strings.Split(video.BaseDir, "/")

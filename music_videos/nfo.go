@@ -87,10 +87,5 @@ func (m *MusicVideo) drawThumb() error {
 	}
 
 	utils.Logger.InfoF("draw thumb start: %s, %s to %s", ss, m.OriginTitle, thumb)
-	err := ffmpeg.Frame(filename, thumb, "-ss", ss)
-	if err != nil {
-		utils.Logger.WarningF("draw thumb err: %v", err)
-	}
-
-	return err
+	return ffmpeg.Frame(filename, thumb, "-ss", ss)
 }
