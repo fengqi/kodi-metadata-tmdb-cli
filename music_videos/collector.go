@@ -83,7 +83,7 @@ func (c *Collector) runWatcher() {
 
 				videos, err := c.scanDir(event.Name)
 				if err != nil || len(videos) == 0 {
-					utils.Logger.WarningF("new dir %s scan err: %v", event.Name, err)
+					utils.Logger.WarningF("new dir %s scan err: %v or no videos", event.Name, err)
 					continue
 				}
 
