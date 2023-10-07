@@ -129,6 +129,7 @@ var (
 	resolutionMatch    *regexp.Regexp
 	seasonRangeMatch   *regexp.Regexp
 	partMatch          *regexp.Regexp
+	numberMatch        *regexp.Regexp
 )
 
 func init() {
@@ -152,7 +153,7 @@ func init() {
 		channelMap[item] = struct{}{}
 	}
 
-	episodeMatch, _ = regexp.Compile(`(?i)((?:s|第|season)([0-9]+)(?:季|)(?:.|_|x|-| |))?((?:第|e|ep|p|episode)([0-9]+)(?:集|))`)
+	episodeMatch, _ = regexp.Compile(`(?i)((?:s|第|season)([0-9]+)(?:季|)(?:.|_|x|-| |))?((?:第|e|ep|p|episode)([0-9]+)(?:集|)).+$`)
 	collectionMatch, _ = regexp.Compile("[sS](0|)[0-9]+-[sS](0|)[0-9]+")
 	subEpisodesMatch, _ = regexp.Compile("[eE](0|)[0-9]+-[eE](0|)[0-9]+")
 	yearRangeLikeMatch, _ = regexp.Compile("[12][0-9]{3}-[12][0-9]{3}")
@@ -167,6 +168,7 @@ func init() {
 	resolutionMatch, _ = regexp.Compile("[0-9]{3,4}Xx*[0-9]{3,4}")
 	seasonRangeMatch, _ = regexp.Compile("[sS](0|)[0-9]+-[sS](0|)[0-9]+")
 	partMatch, _ = regexp.Compile("(:?.|-|_| |@)[pP]art([0-9])(:?.|-|_| |@)")
+	numberMatch, _ = regexp.Compile("([0-9]+).+$")
 }
 
 // IsCollection 是否是合集，如S01-S03季
@@ -294,22 +296,31 @@ func SplitTitleAlias(name string) (string, string) {
 
 // MatchEpisode 匹配季和集
 func MatchEpisode(name string) (string, int, int) {
+	seasonStr := ""
+	episodeStr := ""
 	find := episodeMatch.FindStringSubmatch(name)
 	if len(find) != 5 {
-		return "", 0, 0
+		findNumber := numberMatch.FindStringSubmatch(name)
+		if len(findNumber) != 2 {
+			return "", 0, 0
+		}
+		episodeStr = findNumber[1]
+	} else {
+		seasonStr = find[2]
+		episodeStr = find[4]
 	}
 
 	season := 1
 	episode := 1
-	if len(find[2]) > 0 {
-		s, err := strconv.Atoi(find[2])
+	if seasonStr != "" {
+		s, err := strconv.Atoi(seasonStr)
 		if err == nil {
 			season = s
 		}
 	}
 
-	if len(find[4]) > 0 {
-		s, err := strconv.Atoi(find[4])
+	if episodeStr != "" {
+		s, err := strconv.Atoi(episodeStr)
 		if err == nil {
 			episode = s
 		}
