@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"time"
 )
 
@@ -160,8 +159,7 @@ func (c *Collector) videoProcessor(video *MusicVideo) {
 		return
 	}
 
-	split := strings.Split(video.BaseDir, "/")
-	kodi.Rpc.AddScanTask(split[len(split)-1])
+	kodi.Rpc.AddScanTask(video.BaseDir)
 }
 
 // 运行扫描器
