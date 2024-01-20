@@ -9,7 +9,7 @@
         "image_host": "https://image.tmdb.org",
         "api_key": "a52fb1bab999ef3918b3e2864d584cb6",
         "language": "zh-CN",
-        "proxy": "",
+        "proxy": "(socks5h|socks5|http|https)://user@password@127.0.0.1:1080",
         "rating": "US"
     },
     "collector": {
