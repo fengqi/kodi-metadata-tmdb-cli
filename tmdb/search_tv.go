@@ -120,7 +120,7 @@ func (t *tmdb) SearchShows(chsTitle, engTitle string, year int) (*SearchResults,
 
 		if len(tvResp.Results) > 0 {
 			tvResp.SortResults()
-			utils.Logger.InfoF("search tv: %s %d result count: %d, use: %v", chsTitle, year, len(tvResp.Results), tvResp.Results[0])
+			utils.Logger.DebugF("search tv: %s %d result count: %d, use: %v", chsTitle, year, len(tvResp.Results), tvResp.Results[0])
 			return tvResp.Results[0], nil
 		}
 	}
