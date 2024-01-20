@@ -390,12 +390,12 @@ func (c *Collector) parseShowsFile(dir *Dir, file fs.FileInfo) *File {
 	fileName = utils.ReplaceChsNumber(fileName)
 
 	// 提取季和集
-	se, snum, enum := utils.MatchEpisode(fileName)
+	snum, enum := utils.MatchEpisode(fileName)
 	if dir.Season > 0 {
 		snum = dir.Season
 	}
 	utils.Logger.InfoF("find season: %d episode: %d %s", snum, enum, file.Name())
-	if len(se) == 0 || snum == 0 || enum == 0 {
+	if snum == 0 || enum == 0 {
 		utils.Logger.WarningF("seaon or episode not find: %s", file.Name())
 		return nil
 	}
@@ -405,7 +405,7 @@ func (c *Collector) parseShowsFile(dir *Dir, file fs.FileInfo) *File {
 		OriginTitle:   utils.FilterTmpSuffix(file.Name()),
 		Season:        snum,
 		Episode:       enum,
-		SeasonEpisode: se,
+		SeasonEpisode: fmt.Sprintf("s%02de%02d", snum, enum),
 		Suffix:        suffix,
 		TvId:          dir.TvId,
 	}

@@ -295,14 +295,14 @@ func SplitTitleAlias(name string) (string, string) {
 }
 
 // MatchEpisode 匹配季和集
-func MatchEpisode(name string) (string, int, int) {
+func MatchEpisode(name string) (int, int) {
 	seasonStr := ""
 	episodeStr := ""
 	find := episodeMatch.FindStringSubmatch(name)
 	if len(find) != 6 {
 		findNumber := numberMatch.FindStringSubmatch(name)
 		if len(findNumber) != 2 {
-			return "", 0, 0
+			return 0, 0
 		}
 		episodeStr = findNumber[1]
 	} else {
@@ -326,9 +326,7 @@ func MatchEpisode(name string) (string, int, int) {
 		}
 	}
 
-	se := fmt.Sprintf("s%02de%02d", season, episode)
-
-	return se, season, episode
+	return season, episode
 }
 
 // FilterTmpSuffix 过滤临时文件后缀，部分软件会在未完成的文件后面增加后缀

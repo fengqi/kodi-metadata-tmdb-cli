@@ -23,7 +23,7 @@ func TestMatchEpisode(t *testing.T) {
 		"地球脉动.第3季.Planet.Earth.S03E02.2023.2160p.WEB-DL.H265.10bit.DDP2.0.2Audio-OurTV.mp4": {3, 2},
 	}
 	for name, cse := range cases {
-		_, s, e := MatchEpisode(name)
+		s, e := MatchEpisode(name)
 		if s != cse[0] {
 			t.Errorf("MatchEpisode(%s)\n season %d; expected %d", name, s, cse[0])
 		}
