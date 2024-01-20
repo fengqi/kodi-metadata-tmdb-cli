@@ -7,16 +7,20 @@ import (
 func TestMatchEpisode(t *testing.T) {
 	cases := map[string][]int{
 		"[堕落].The.Fall.2013.S02.E03.Complete.BluRay.720p.x264.AC3-CMCT.mkv":                 {2, 3},
-		"Agent.Carter.S02E01.1080p.BluRay.DD5.1.x264-HDS.mkv":                               {2, 1},
-		"[壹高清]21点灵.Leave No Soul Behind.Ep01.HDTV.1080p.H264-OneHD.ts":                      {1, 1},
-		"Kimetsu.no.Yaiba.Yuukaku-hen.E01.2021.Crunchyroll.WEB-DL.1080p.x264.AAC-HDCTV.mkv": {1, 1},
+		"Agent.Carter.S02E11.1080p.BluRay.DD5.1.x264-HDS.mkv":                               {2, 11},
+		"[壹高清]21点灵.Leave No Soul Behind.Ep03.HDTV.1080p.H264-OneHD.ts":                      {1, 3},
+		"Kimetsu.no.Yaiba.Yuukaku-hen.E05.2021.Crunchyroll.WEB-DL.1080p.x264.AAC-HDCTV.mkv": {1, 5},
 		"宝贝揪揪 第3季 第10集.mp4":                                                                 {3, 10},
 		"宝贝揪揪 第9集.mp4":                                                                      {1, 9},
-		"Gannibal.E01.2022.mp4":                                                             {1, 1},
+		"宝贝揪揪 s01 p02.mp4":                                                                  {1, 2},
+		"宝贝揪揪 s01xe02.mp4":                                                                  {1, 2},
+		"宝贝揪揪 s01-e02.mp4":                                                                  {1, 2},
+		"Gannibal.E16.2022.mp4":                                                             {1, 16},
 		"Gannibal S02 E11 2022.mp4":                                                         {2, 11},
 		"Gannibal-S01-E02-2022.mp4":                                                         {1, 2},
 		"Gannibal.Season01.EP02.2022.mp4":                                                   {1, 2},
 		"转生成自动贩卖机02全片简中.mp4":                                                                {1, 2},
+		"地球脉动.第3季.Planet.Earth.S03E02.2023.2160p.WEB-DL.H265.10bit.DDP2.0.2Audio-OurTV.mp4": {3, 2},
 	}
 	for name, cse := range cases {
 		_, s, e := MatchEpisode(name)

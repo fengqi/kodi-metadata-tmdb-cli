@@ -153,7 +153,7 @@ func init() {
 		channelMap[item] = struct{}{}
 	}
 
-	episodeMatch, _ = regexp.Compile(`(?i)((?:s|第|season)([0-9]+)(?:季|)(?:.|_|x|-| |))?((?:第|e|ep|p|episode)([0-9]+)(?:集|)).+$`)
+	episodeMatch, _ = regexp.Compile(`(?i)((第|s|season)\s*(\d+).*?季?)?(第|e|p|ep|episode)\s*(\d+).+$`)
 	collectionMatch, _ = regexp.Compile("[sS](0|)[0-9]+-[sS](0|)[0-9]+")
 	subEpisodesMatch, _ = regexp.Compile("[eE](0|)[0-9]+-[eE](0|)[0-9]+")
 	yearRangeLikeMatch, _ = regexp.Compile("[12][0-9]{3}-[12][0-9]{3}")
@@ -299,15 +299,15 @@ func MatchEpisode(name string) (string, int, int) {
 	seasonStr := ""
 	episodeStr := ""
 	find := episodeMatch.FindStringSubmatch(name)
-	if len(find) != 5 {
+	if len(find) != 6 {
 		findNumber := numberMatch.FindStringSubmatch(name)
 		if len(findNumber) != 2 {
 			return "", 0, 0
 		}
 		episodeStr = findNumber[1]
 	} else {
-		seasonStr = find[2]
-		episodeStr = find[4]
+		seasonStr = find[3]
+		episodeStr = find[5]
 	}
 
 	season := 1
