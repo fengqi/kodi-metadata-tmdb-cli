@@ -21,6 +21,7 @@ func TestMatchEpisode(t *testing.T) {
 		"Gannibal.Season01.EP02.2022.mp4":                                                   {1, 2},
 		"转生成自动贩卖机02全片简中.mp4":                                                                {1, 2},
 		"地球脉动.第3季.Planet.Earth.S03E02.2023.2160p.WEB-DL.H265.10bit.DDP2.0.2Audio-OurTV.mp4": {3, 2},
+        "E01.mkv": {1, 1},
 	}
 	for name, cse := range cases {
 		s, e := MatchEpisode(name)

@@ -357,13 +357,13 @@ func (c *Collector) scanShowsFile(d *Dir) (map[string]*File, error) {
 		for i, item := range movieFiles {
 			item.Episode = i + 1
 			item.SeasonEpisode = fmt.Sprintf("s%02de%02d", item.Season, item.Episode)
-			utils.Logger.DebugF("scanShowsFile partMode=%d, correct episode to %d", d.PartMode, item.Episode, item.OriginTitle)
+			utils.Logger.DebugF("scanShowsFile partMode=%d, correct episode to %d", d.PartMode, item.Episode)
 		}
 	} else if d.PartMode > 1 {
 		for _, item := range movieFiles {
 			item.Episode = (item.Episode-1)*d.PartMode + item.Part
 			item.SeasonEpisode = fmt.Sprintf("s%02de%02d", item.Season, item.Episode)
-			utils.Logger.DebugF("scanShowsFile partMode=%d, correct episode to %d", d.PartMode, item.Episode, item.OriginTitle)
+			utils.Logger.DebugF("scanShowsFile partMode=%d, correct episode to %d", d.PartMode, item.Episode)
 		}
 	}
 
@@ -387,10 +387,13 @@ func (c *Collector) parseShowsFile(dir *Dir, file fs.FileInfo) *File {
 		return nil
 	}
 
+	fileName = strings.Replace(fileName, "."+suffix, "", 1)
+	fileName = utils.FilterOptionals(fileName)
 	fileName = utils.ReplaceChsNumber(fileName)
+	fileName = utils.EpisodeCorrecting(fileName)
 
 	// 提取季和集
-	snum, enum := utils.MatchEpisode(fileName)
+	snum, enum := utils.MatchEpisode(fileName + "." + suffix)
 	if dir.Season > 0 {
 		snum = dir.Season
 	}
