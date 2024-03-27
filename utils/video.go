@@ -340,8 +340,19 @@ func FilterTmpSuffix(name string) string {
 }
 
 // FilterOptionals 过滤掉可选的字符: 被中括号[]包围的
+// 若是过滤完后为空，可能直接使用[]分段，尝试只过滤第一个
 func FilterOptionals(name string) string {
-	return optionsMatch.ReplaceAllString(name, "")
+	clear := optionsMatch.ReplaceAllString(name, "")
+	if clear != "" {
+		return clear
+	}
+
+	find := optionsMatch.FindStringSubmatch(name)
+	if len(find) == 2 {
+		clear = strings.Replace(name, find[0], "", 1)
+	}
+
+	return clear
 }
 
 // CoverChsNumber 中文数字替换为阿拉伯数字
