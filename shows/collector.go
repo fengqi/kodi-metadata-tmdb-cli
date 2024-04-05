@@ -6,7 +6,6 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"io/fs"
 	"io/ioutil"
 	"os"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 type Collector struct {
@@ -181,6 +182,12 @@ func (c *Collector) runWatcher() {
 			fileInfo, err := os.Stat(event.Name)
 			if fileInfo == nil || err != nil {
 				utils.Logger.WarningF("get shows stat err: %v", err)
+				continue
+			}
+
+			// 根目录电视剧不允许以单文件的形式存在
+			if !fileInfo.IsDir() && utils.InArray(c.config.Collector.ShowsDir, filepath.Dir(event.Name)) {
+				utils.Logger.WarningF("shows file not allow root: %s", event.Name)
 				continue
 			}
 
