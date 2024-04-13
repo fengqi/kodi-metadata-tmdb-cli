@@ -29,6 +29,7 @@ type MovieNfo struct {
 	Tag           []string `xml:"tag"`
 	Set           Set      `xml:"-"`
 	Country       []string `xml:"country"`
+	Languages     []string `xml:"languages"`
 	Credits       []string `xml:"credits"`
 	Director      []string `xml:"director"`
 	Premiered     string   `xml:"premiered"`

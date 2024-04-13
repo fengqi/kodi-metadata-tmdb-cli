@@ -79,6 +79,16 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 		year = detail.ReleaseDate[:4]
 	}
 
+	country := make([]string, 0)
+	for _, item := range detail.ProductionCountries {
+		country = append(country, item.Name) // todo 使用 iso_3166_1 匹配中文
+	}
+
+	languages := make([]string, 0)
+	for _, item := range detail.SpokenLanguages {
+		languages = append(languages, item.Name) // todo 使用 iso_639_1 匹配中文
+	}
+
 	top := &MovieNfo{
 		Title:         detail.Title,
 		OriginalTitle: detail.OriginalTitle,
@@ -97,6 +107,8 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 		Status:     detail.Status,
 		Genre:      genre,
 		Tag:        genre,
+		Country:    country,
+		Languages:  languages,
 		Studio:     studio,
 		UserRating: detail.VoteAverage,
 		Actor:      actor,
