@@ -17,7 +17,7 @@ type MovieNfo struct {
 	Outline       string   `xml:"-"`
 	Plot          string   `xml:"plot"`
 	Tagline       string   `xml:"-"`
-	Runtime       int      `xml:"-"`
+	Runtime       int      `xml:"-"` // Kodi会从视频文件提取，考虑到版本（剪辑版、完整版等）问题，这里不提供
 	Thumb         []Thumb  `xml:"-"`
 	FanArt        *FanArt  `xml:"fanart"`
 	MPaa          string   `xml:"mpaa"`
@@ -101,8 +101,8 @@ type Thumb struct {
 
 type UniqueId struct {
 	XMLName xml.Name `xml:"uniqueid"`
-	Type    string   `xml:"type,attr"`
 	Default bool     `xml:"default,attr"`
+	Type    string   `xml:"type,attr"`
 	Value   string   `xml:",chardata"`
 }
 

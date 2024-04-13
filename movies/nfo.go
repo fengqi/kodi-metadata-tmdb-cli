@@ -74,20 +74,26 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 		}
 	}
 
+	year := ""
+	if detail.ReleaseDate != "" {
+		year = detail.ReleaseDate[:4]
+	}
+
 	top := &MovieNfo{
 		Title:         detail.Title,
 		OriginalTitle: detail.OriginalTitle,
 		SortTitle:     detail.Title,
 		Plot:          detail.Overview,
 		UniqueId: UniqueId{
-			Type:    "tmdb",
 			Default: true,
+			Type:    "tmdb",
 			Value:   strconv.Itoa(detail.Id),
 		},
 		Id:         detail.Id,
 		Premiered:  detail.ReleaseDate,
 		Ratings:    Ratings{Rating: rating},
 		MPaa:       mpaa,
+		Year:       year,
 		Status:     detail.Status,
 		Genre:      genre,
 		Tag:        genre,
