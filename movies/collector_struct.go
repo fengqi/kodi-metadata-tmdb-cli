@@ -2,13 +2,11 @@ package movies
 
 import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
-	"github.com/fsnotify/fsnotify"
 )
 
 type Collector struct {
 	config  *config.Config
 	tmdb    *config.TmdbConfig
-	watcher *fsnotify.Watcher
 	channel chan *Movie
 }
 

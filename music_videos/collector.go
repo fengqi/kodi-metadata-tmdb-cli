@@ -4,7 +4,6 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
-	"github.com/fsnotify/fsnotify"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -14,100 +13,21 @@ import (
 
 type Collector struct {
 	config  *config.Config
-	watcher *fsnotify.Watcher
 	channel chan *MusicVideo
 }
 
 var collector *Collector
 
 func RunCollector(config *config.Config) {
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		utils.Logger.FatalF("new movies watcher err: %v", err)
-	}
-
 	collector = &Collector{
 		config:  config,
-		watcher: watcher,
 		channel: make(chan *MusicVideo, runtime.NumCPU()),
 	}
 
+	collector.initWatcher()
 	go collector.runWatcher()
 	go collector.runProcessor()
 	collector.runScanner()
-}
-
-// 运行文件变动监听
-func (c *Collector) runWatcher() {
-	if !c.config.Collector.Watcher {
-		return
-	}
-
-	utils.Logger.Debug("run music videos watcher")
-
-	for {
-		select {
-		case event, ok := <-c.watcher.Events:
-			if !ok {
-				continue
-			}
-
-			fileInfo, err := os.Stat(event.Name)
-			if fileInfo == nil || err != nil {
-				utils.Logger.WarningF("get music video stat err: %v", err)
-				continue
-			}
-
-			// 删除文件夹
-			if event.Has(fsnotify.Remove) && fileInfo.IsDir() {
-				utils.Logger.InfoF("removed dir: %s", event.Name)
-
-				err := c.watcher.Remove(event.Name)
-				if err != nil {
-					utils.Logger.WarningF("remove shows watcher: %s error: %v", event.Name, err)
-				}
-				continue
-			}
-
-			if !event.Has(fsnotify.Create) || c.skipFolders(filepath.Dir(event.Name), event.Name) {
-				continue
-			}
-
-			//  新增目录
-			if fileInfo.IsDir() {
-				err = c.watcher.Add(event.Name)
-				if err != nil {
-					utils.Logger.WarningF("add music video dir: %s to watcher err: %v", event.Name, err)
-				}
-
-				videos, err := c.scanDir(event.Name)
-				if err != nil || len(videos) == 0 {
-					utils.Logger.WarningF("new dir %s scan err: %v or no videos", event.Name, err)
-					continue
-				}
-
-				for _, video := range videos {
-					c.channel <- video
-				}
-
-				continue
-			}
-
-			// 单个文件
-			if utils.IsVideo(event.Name) != "" {
-				video := c.parseVideoFile(filepath.Dir(event.Name), fileInfo)
-				c.channel <- video
-				continue
-			}
-
-		case err, ok := <-c.watcher.Errors:
-			if !ok {
-				return
-			}
-
-			utils.Logger.ErrorF("music videos watcher error: %v", err)
-		}
-	}
 }
 
 // 处理扫描队列
@@ -168,8 +88,7 @@ func (c *Collector) runScanner() {
 
 	task := func() {
 		for _, item := range c.config.Collector.MusicVideosDir {
-			_ = c.watcher.Add(item)
-			utils.Logger.DebugF("runCronScan add music videos dir: %s to watcher", item)
+			c.watchDir(item)
 
 			videos, err := c.scanDir(item)
 			if len(videos) == 0 || err != nil {
@@ -215,8 +134,7 @@ func (c *Collector) scanDir(dir string) ([]*MusicVideo, error) {
 				continue
 			}
 
-			_ = c.watcher.Add(dir + "/" + file.Name())
-			utils.Logger.DebugF("scanDir add music videos dir: %s to watcher", file.Name())
+			c.watchDir(dir + "/" + file.Name())
 
 			subVideos, err := c.scanDir(dir + "/" + file.Name())
 			if err != nil {

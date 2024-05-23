@@ -8,79 +8,20 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-
-	"github.com/fsnotify/fsnotify"
 )
 
 var collector *Collector
 
 func RunCollector(config *config.Config) {
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		utils.Logger.FatalF("new movies watcher err: %v", err)
-	}
-
 	collector = &Collector{
 		config:  config,
-		watcher: watcher,
 		channel: make(chan *Movie, 100),
 	}
 
+	collector.initWatcher()
 	go collector.runWatcher()
 	go collector.runMoviesProcess()
 	collector.runCronScan()
-}
-
-// 开启文件夹监听
-func (c *Collector) runWatcher() {
-	if !c.config.Collector.Watcher {
-		return
-	}
-
-	utils.Logger.Debug("run movies watcher")
-
-	// 监听顶级目录
-	for _, item := range c.config.Collector.MoviesDir {
-		utils.Logger.DebugF("add movies dir: %s to watcher", item)
-
-		err := c.watcher.Add(item)
-		if err != nil {
-			utils.Logger.FatalF("add movies dir: %s to watcher err :%v", item, err)
-		}
-	}
-
-	for {
-		select {
-		// 接受事件，增删改查都会收到，需要过滤，部分情况下可能收不到create而是chmod
-		case event, ok := <-c.watcher.Events:
-			if !ok {
-				return
-			}
-
-			if !event.Has(fsnotify.Create) {
-				continue
-			}
-
-			fileInfo, _ := os.Stat(event.Name)
-			if fileInfo == nil || (!fileInfo.IsDir() && utils.IsVideo(event.Name) == "") {
-				continue
-			}
-
-			utils.Logger.InfoF("created file: %s", event.Name)
-
-			moviesDir := parseMoviesDir(filepath.Dir(event.Name), fileInfo)
-			if moviesDir != nil {
-				c.channel <- moviesDir
-			}
-
-		case err, ok := <-c.watcher.Errors:
-			if !ok {
-				return
-			}
-
-			utils.Logger.ErrorF("movies watcher error: %v", err)
-		}
-	}
 }
 
 // 电影信息处理：来源包括cron和inotify监听的
@@ -114,7 +55,8 @@ func (c *Collector) runCronScan() {
 
 	task := func() {
 		for _, item := range c.config.Collector.MoviesDir {
-			utils.Logger.DebugF("movies scan ticker trigger")
+			// 监听顶级目录
+			c.watchDir(item)
 
 			movieDirs, err := c.scanDir(item)
 			if err != nil {

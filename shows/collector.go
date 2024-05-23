@@ -9,35 +9,26 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/fsnotify/fsnotify"
 )
 
 type Collector struct {
 	config  *config.Config
-	watcher *fsnotify.Watcher
 	dirChan chan *Dir
 }
 
 var collector *Collector
 
 func RunCollector(config *config.Config) {
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		utils.Logger.FatalF("new shows watcher err: %v", err)
-	}
-
 	collector = &Collector{
 		config:  config,
-		watcher: watcher,
 		dirChan: make(chan *Dir, 100),
 	}
 
+	collector.initWatcher()
 	go collector.runWatcher()
 	go collector.showsDirProcess()
 	collector.runCronScan()
@@ -72,12 +63,7 @@ func (c *Collector) showsDirProcess() {
 				}
 
 				for _, item := range subDir {
-					err := c.watcher.Add(item.Dir + "/" + item.OriginTitle)
-					utils.Logger.DebugF("runCronScan add shows dir: %s to watcher", item.Dir+"/"+item.OriginTitle)
-					if err != nil {
-						utils.Logger.FatalF("add shows dir: %s to watcher err: %v", item.Dir+"/"+item.OriginTitle, err)
-					}
-
+					c.watchDir(item.Dir + "/" + item.OriginTitle)
 					item.TvId = dir.TvId
 					c.dirChan <- item
 				}
@@ -164,82 +150,6 @@ func (c *Collector) showsFileProcess(originalName string, showsFile *File) bool 
 	return true
 }
 
-// 目录监听，新增的增加到队列，删除的移除监听
-func (c *Collector) runWatcher() {
-	if !c.config.Collector.Watcher {
-		return
-	}
-
-	utils.Logger.Debug("run shows watcher")
-
-	for {
-		select {
-		case event, ok := <-c.watcher.Events:
-			if !ok {
-				continue
-			}
-
-			fileInfo, err := os.Stat(event.Name)
-			if fileInfo == nil || err != nil {
-				utils.Logger.WarningF("get shows stat err: %v", err)
-				continue
-			}
-
-			// 根目录电视剧不允许以单文件的形式存在
-			if !fileInfo.IsDir() && utils.InArray(c.config.Collector.ShowsDir, filepath.Dir(event.Name)) {
-				utils.Logger.WarningF("shows file not allow root: %s", event.Name)
-				continue
-			}
-
-			// 删除文件夹
-			if event.Has(fsnotify.Remove) && fileInfo.IsDir() {
-				utils.Logger.InfoF("removed dir: %s", event.Name)
-
-				err := c.watcher.Remove(event.Name)
-				if err != nil {
-					utils.Logger.WarningF("remove shows watcher: %s error: %v", event.Name, err)
-				}
-				continue
-			}
-
-			// 新增文件夹
-			if event.Has(fsnotify.Create) && fileInfo.IsDir() {
-				utils.Logger.InfoF("created dir: %s", event.Name)
-
-				showsDir := c.parseShowsDir(filepath.Dir(event.Name), fileInfo)
-				if showsDir != nil {
-					c.dirChan <- showsDir
-				}
-
-				err = c.watcher.Add(event.Name)
-				if err != nil {
-					utils.Logger.FatalF("add shows dir: %s to watcher err: %v", event.Name, err)
-				}
-				continue
-			}
-
-			// 新增剧集文件
-			if event.Has(fsnotify.Create) && utils.IsVideo(event.Name) != "" {
-				utils.Logger.InfoF("created file: %s", event.Name)
-
-				filePath := filepath.Dir(event.Name)
-				dirInfo, _ := os.Stat(filePath)
-				dir := c.parseShowsDir(filepath.Dir(filePath), dirInfo)
-				if dir != nil {
-					c.dirChan <- dir
-				}
-			}
-
-		case err, ok := <-c.watcher.Errors:
-			utils.Logger.ErrorF("shows watcher error: %v", err)
-
-			if !ok {
-				return
-			}
-		}
-	}
-}
-
 // 目录扫描，定时任务，扫描到的目录和文件增加到队列
 func (c *Collector) runCronScan() {
 	utils.Logger.DebugF("run shows scan cron_seconds: %d", c.config.Collector.CronSeconds)
@@ -247,11 +157,7 @@ func (c *Collector) runCronScan() {
 	task := func() {
 		for _, item := range c.config.Collector.ShowsDir {
 			// 扫描到的每个目录都添加到watcher，因为还不能只监听根目录
-			err := c.watcher.Add(item)
-			utils.Logger.DebugF("runCronScan add shows dir: %s to watcher", item)
-			if err != nil {
-				utils.Logger.FatalF("add shows dir: %s to watcher err: %v", item, err)
-			}
+			c.watchDir(item)
 
 			showDirs, err := c.scanDir(item)
 			if err != nil {
@@ -259,11 +165,7 @@ func (c *Collector) runCronScan() {
 			}
 
 			for _, showDir := range showDirs {
-				err := c.watcher.Add(showDir.Dir + "/" + showDir.OriginTitle)
-				utils.Logger.DebugF("runCronScan add shows dir: %s to watcher", showDir.Dir+"/"+showDir.OriginTitle)
-				if err != nil {
-					utils.Logger.FatalF("add shows dir: %s to watcher err: %v", showDir.Dir+"/"+showDir.OriginTitle, err)
-				}
+				c.watchDir(showDir.Dir + "/" + showDir.OriginTitle)
 
 				// 预留50%空间给可能重新放回队列的任务
 				for {
