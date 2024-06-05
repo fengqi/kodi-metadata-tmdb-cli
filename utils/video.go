@@ -9,6 +9,7 @@ import (
 )
 
 var (
+	// todo 可配置
 	video = []string{
 		"mkv",
 		"mp4",
@@ -25,6 +26,7 @@ var (
 		"ts",
 		"iso",
 		"mov",
+		"rmvb",
 	}
 	source = []string{
 		"web-dl",
