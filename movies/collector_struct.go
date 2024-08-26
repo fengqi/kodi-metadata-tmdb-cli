@@ -1,12 +1,6 @@
 package movies
 
-import (
-	"fengqi/kodi-metadata-tmdb-cli/config"
-)
-
 type Collector struct {
-	config  *config.Config
-	tmdb    *config.TmdbConfig
 	channel chan *Movie
 }
 

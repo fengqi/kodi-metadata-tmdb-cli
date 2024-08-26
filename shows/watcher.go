@@ -1,6 +1,7 @@
 package shows
 
 import (
+	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"github.com/fsnotify/fsnotify"
 	"os"
@@ -20,7 +21,7 @@ func (c *Collector) initWatcher() {
 
 // 目录监听，新增的增加到队列，删除的移除监听
 func (c *Collector) runWatcher() {
-	if !c.config.Collector.Watcher {
+	if !config.Collector.Watcher {
 		return
 	}
 
@@ -40,7 +41,7 @@ func (c *Collector) runWatcher() {
 			}
 
 			// 根目录电视剧不允许以单文件的形式存在
-			if !fileInfo.IsDir() && utils.InArray(c.config.Collector.ShowsDir, filepath.Dir(event.Name)) {
+			if !fileInfo.IsDir() && utils.InArray(config.Collector.ShowsDir, filepath.Dir(event.Name)) {
 				utils.Logger.WarningF("shows file not allow root: %s", event.Name)
 				continue
 			}
@@ -94,7 +95,7 @@ func (c *Collector) runWatcher() {
 // 监听目录
 // todo 判断是否是目录
 func (c *Collector) watchDir(name string) {
-	if !c.config.Collector.Watcher {
+	if !config.Collector.Watcher {
 		return
 	}
 

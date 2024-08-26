@@ -1,6 +1,7 @@
 package kodi
 
 import (
+	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
 	"strconv"
@@ -10,7 +11,7 @@ import (
 
 // AddRefreshTask 添加刷新数据任务
 func (r *JsonRpc) AddRefreshTask(task TaskRefresh, value string) {
-	if !r.config.Enable {
+	if !config.Kodi.Enable {
 		return
 	}
 
@@ -29,7 +30,7 @@ func (r *JsonRpc) AddRefreshTask(task TaskRefresh, value string) {
 
 // ConsumerRefreshTask 消费刷新数据任务
 func (r *JsonRpc) ConsumerRefreshTask() {
-	if !r.config.Enable {
+	if !config.Kodi.Enable {
 		return
 	}
 
@@ -39,7 +40,7 @@ func (r *JsonRpc) ConsumerRefreshTask() {
 			continue
 		}
 
-		for queue, _ := range r.refreshQueue {
+		for queue := range r.refreshQueue {
 			_task, _ := strconv.Atoi(queue[0:2])
 			task := TaskRefresh(_task)
 

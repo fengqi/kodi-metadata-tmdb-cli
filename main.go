@@ -33,17 +33,17 @@ func main() {
 		return
 	}
 
-	c := config.LoadConfig(configFile)
+	config.LoadConfig(configFile)
 
-	utils.InitLogger(c.Log.Mode, c.Log.Level, c.Log.File)
-	tmdb.InitTmdb(c.Tmdb)
-	kodi.InitKodi(c.Kodi)
-	ffmpeg.InitFfmpeg(c.Ffmpeg)
+	utils.InitLogger()
+	tmdb.InitTmdb()
+	kodi.InitKodi()
+	ffmpeg.InitFfmpeg()
 
 	wg := &sync.WaitGroup{}
 	wg.Add(3)
-	go shows.RunCollector(c)
-	go movies.RunCollector(c)
-	go music_videos.RunCollector(c)
+	go shows.RunCollector()
+	go movies.RunCollector()
+	go music_videos.RunCollector()
 	wg.Wait()
 }

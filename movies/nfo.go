@@ -1,6 +1,7 @@
 package movies
 
 import (
+	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"strconv"
@@ -52,7 +53,7 @@ func (d *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 	}
 
 	mpaa := "NR"
-	contentRating := strings.ToUpper(collector.config.Tmdb.Rating)
+	contentRating := strings.ToUpper(config.Tmdb.Rating)
 	if detail.Releases.Countries != nil && len(detail.Releases.Countries) > 0 {
 		mpaa = detail.Releases.Countries[0].Certification
 		for _, item := range detail.Releases.Countries {

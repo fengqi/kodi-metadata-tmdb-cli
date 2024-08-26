@@ -1,6 +1,7 @@
 package shows
 
 import (
+	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"strconv"
@@ -58,7 +59,7 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 	}
 
 	mpaa := "NR"
-	contentRating := strings.ToUpper(collector.config.Tmdb.Rating)
+	contentRating := strings.ToUpper(config.Tmdb.Rating)
 	if detail.ContentRatings != nil && len(detail.ContentRatings.Results) > 0 {
 		mpaa = detail.ContentRatings.Results[0].Rating
 		for _, item := range detail.ContentRatings.Results {

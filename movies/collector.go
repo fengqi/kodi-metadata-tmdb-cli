@@ -12,9 +12,8 @@ import (
 
 var collector *Collector
 
-func RunCollector(config *config.Config) {
+func RunCollector() {
 	collector = &Collector{
-		config:  config,
 		channel: make(chan *Movie, 100),
 	}
 
@@ -39,8 +38,8 @@ func (c *Collector) runMoviesProcess() {
 				continue
 			}
 
-			if !detail.FromCache || !dir.NfoExist(c.config.Collector.MoviesNfoMode) {
-				_ = dir.saveToNfo(detail, c.config.Collector.MoviesNfoMode)
+			if !detail.FromCache || !dir.NfoExist(config.Collector.MoviesNfoMode) {
+				_ = dir.saveToNfo(detail, config.Collector.MoviesNfoMode)
 				kodi.Rpc.AddRefreshTask(kodi.TaskRefreshMovie, detail.OriginalTitle)
 			}
 
@@ -51,10 +50,10 @@ func (c *Collector) runMoviesProcess() {
 
 // 运行定时扫描
 func (c *Collector) runCronScan() {
-	utils.Logger.DebugF("run movies scan cron_seconds: %d", c.config.Collector.CronSeconds)
+	utils.Logger.DebugF("run movies scan cron_seconds: %d", config.Collector.CronSeconds)
 
 	task := func() {
-		for _, item := range c.config.Collector.MoviesDir {
+		for _, item := range config.Collector.MoviesDir {
 			// 监听顶级目录
 			c.watchDir(item)
 
@@ -69,13 +68,13 @@ func (c *Collector) runCronScan() {
 			}
 		}
 
-		if c.config.Kodi.CleanLibrary {
+		if config.Kodi.CleanLibrary {
 			kodi.Rpc.AddCleanTask("")
 		}
 	}
 
 	task()
-	ticker := time.NewTicker(time.Second * time.Duration(c.config.Collector.CronSeconds))
+	ticker := time.NewTicker(time.Second * time.Duration(config.Collector.CronSeconds))
 	for {
 		select {
 		case <-ticker.C:
@@ -123,7 +122,7 @@ func (c *Collector) scanDir(dir string) ([]*Movie, error) {
 
 func (c *Collector) skipFolders(path, filename string) bool {
 	base := filepath.Base(path)
-	for _, item := range c.config.Collector.SkipFolders {
+	for _, item := range config.Collector.SkipFolders {
 		if item == base || item == filename {
 			return true
 		}

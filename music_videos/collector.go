@@ -18,9 +18,8 @@ type Collector struct {
 
 var collector *Collector
 
-func RunCollector(config *config.Config) {
+func RunCollector() {
 	collector = &Collector{
-		config:  config,
 		channel: make(chan *MusicVideo, runtime.NumCPU()),
 	}
 
@@ -34,7 +33,7 @@ func RunCollector(config *config.Config) {
 func (c *Collector) runProcessor() {
 	utils.Logger.Debug("run music videos processor")
 
-	limiter := make(chan struct{}, c.config.Ffmpeg.MaxWorker)
+	limiter := make(chan struct{}, config.Ffmpeg.MaxWorker)
 	for {
 		select {
 		case video := <-c.channel:
@@ -84,10 +83,10 @@ func (c *Collector) videoProcessor(video *MusicVideo) {
 
 // 运行扫描器
 func (c *Collector) runScanner() {
-	utils.Logger.DebugF("run music video scanner cron_seconds: %d", c.config.Collector.CronSeconds)
+	utils.Logger.DebugF("run music video scanner cron_seconds: %d", config.Collector.CronSeconds)
 
 	task := func() {
-		for _, item := range c.config.Collector.MusicVideosDir {
+		for _, item := range config.Collector.MusicVideosDir {
 			c.watchDir(item)
 
 			videos, err := c.scanDir(item)
@@ -112,7 +111,7 @@ func (c *Collector) runScanner() {
 	}
 
 	task()
-	ticker := time.NewTicker(time.Second * time.Duration(c.config.Collector.CronSeconds))
+	ticker := time.NewTicker(time.Second * time.Duration(config.Collector.CronSeconds))
 	for range ticker.C {
 		task()
 		utils.Logger.Debug("run music video scanner finished")

@@ -1,9 +1,12 @@
 package kodi
 
-import "fengqi/kodi-metadata-tmdb-cli/utils"
+import (
+	"fengqi/kodi-metadata-tmdb-cli/config"
+	"fengqi/kodi-metadata-tmdb-cli/utils"
+)
 
 func (r *JsonRpc) AddCleanTask(directory string) {
-	if !r.config.Enable {
+	if !config.Kodi.Enable {
 		return
 	}
 

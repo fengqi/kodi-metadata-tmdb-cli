@@ -16,9 +16,8 @@ import (
 var Rpc *JsonRpc
 var httpClient *http.Client
 
-func InitKodi(config *config.KodiConfig) {
+func InitKodi() {
 	Rpc = &JsonRpc{
-		config:       config,
 		refreshQueue: make(map[string]struct{}, 0),
 		scanQueue:    make(map[string]struct{}, 0),
 		refreshLock:  &sync.RWMutex{},
@@ -36,7 +35,7 @@ func InitKodi(config *config.KodiConfig) {
 	go Rpc.ConsumerScanTask()
 
 	httpClient = &http.Client{
-		Timeout:   time.Duration(config.Timeout) * time.Second,
+		Timeout:   time.Duration(config.Kodi.Timeout) * time.Second,
 		Transport: &http.Transport{},
 	}
 }
@@ -65,12 +64,12 @@ func (r *JsonRpc) request(rpcReq *JsonRpcRequest) ([]byte, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, r.config.JsonRpc, bytes.NewReader(jsonBytes))
+	req, err := http.NewRequest(http.MethodPost, config.Kodi.JsonRpc, bytes.NewReader(jsonBytes))
 	if err != nil {
 		return nil, err
 	}
 
-	req.SetBasicAuth(r.config.Username, r.config.Password)
+	req.SetBasicAuth(config.Kodi.Username, config.Kodi.Password)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := httpClient.Do(req)

@@ -5,23 +5,23 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 )
 
-func InitFfmpeg(config *config.FfmpegConfig) {
-	SetFfmpeg(config.FfmpegPath)
-	SetFfprobe(config.FfprobePath)
+func InitFfmpeg() {
+	SetFfmpeg()
+	SetFfprobe()
 }
 
-func SetFfmpeg(path string) {
-	if !utils.FileExist(path) {
+func SetFfmpeg() {
+	if !utils.FileExist(config.Ffmpeg.FfmpegPath) {
 		return
 	}
 
-	ffmpeg = path
+	ffmpeg = config.Ffmpeg.FfmpegPath
 }
 
-func SetFfprobe(path string) {
-	if !utils.FileExist(path) {
+func SetFfprobe() {
+	if !utils.FileExist(config.Ffmpeg.FfprobePath) {
 		return
 	}
 
-	ffprobe = path
+	ffprobe = config.Ffmpeg.FfprobePath
 }

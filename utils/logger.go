@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fmt"
 	"log"
 	"os"
@@ -42,21 +43,21 @@ type logger struct {
 	mode  int
 }
 
-func InitLogger(mode, level int, logFile string) {
+func InitLogger() {
 	var err error
 	var file *os.File
-	if mode != LogModeStdout {
-		file, err = os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+	if config.Log.Mode != LogModeStdout {
+		file, err = os.OpenFile(config.Log.File, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 		if err != nil {
-			log.Fatalf("open log file:%s err: %v", logFile, err)
+			log.Fatalf("open log file:%s err: %v", config.Log.File, err)
 		}
 	}
 
 	Logger = &logger{
-		level: logLevel(level),
+		level: logLevel(config.Log.Level),
 		lock:  new(sync.Mutex),
 		file:  file,
-		mode:  mode,
+		mode:  config.Log.Mode,
 	}
 }
 

@@ -16,15 +16,13 @@ import (
 )
 
 type Collector struct {
-	config  *config.Config
 	dirChan chan *Dir
 }
 
 var collector *Collector
 
-func RunCollector(config *config.Config) {
+func RunCollector() {
 	collector = &Collector{
-		config:  config,
 		dirChan: make(chan *Dir, 100),
 	}
 
@@ -152,10 +150,10 @@ func (c *Collector) showsFileProcess(originalName string, showsFile *File) bool 
 
 // 目录扫描，定时任务，扫描到的目录和文件增加到队列
 func (c *Collector) runCronScan() {
-	utils.Logger.DebugF("run shows scan cron_seconds: %d", c.config.Collector.CronSeconds)
+	utils.Logger.DebugF("run shows scan cron_seconds: %d", config.Collector.CronSeconds)
 
 	task := func() {
-		for _, item := range c.config.Collector.ShowsDir {
+		for _, item := range config.Collector.ShowsDir {
 			// 扫描到的每个目录都添加到watcher，因为还不能只监听根目录
 			c.watchDir(item)
 
@@ -179,13 +177,13 @@ func (c *Collector) runCronScan() {
 			}
 		}
 
-		if c.config.Kodi.CleanLibrary {
+		if config.Kodi.CleanLibrary {
 			kodi.Rpc.AddCleanTask("")
 		}
 	}
 
 	task() // TODO 启动后立即运行可控
-	ticker := time.NewTicker(time.Second * time.Duration(c.config.Collector.CronSeconds))
+	ticker := time.NewTicker(time.Second * time.Duration(config.Collector.CronSeconds))
 	for {
 		select {
 		case <-ticker.C:
@@ -329,7 +327,7 @@ func (c *Collector) parseShowsDir(baseDir string, file fs.FileInfo) *Dir {
 	showName := file.Name()
 
 	// 过滤无用文件
-	if showName[0:1] == "." || utils.InArray(collector.config.Collector.SkipFolders, showName) {
+	if showName[0:1] == "." || utils.InArray(config.Collector.SkipFolders, showName) {
 		utils.Logger.DebugF("pass file: %s", showName)
 		return nil
 	}

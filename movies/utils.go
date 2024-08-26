@@ -1,6 +1,7 @@
 package movies
 
 import (
+	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"io/fs"
@@ -17,7 +18,7 @@ func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 	movieName := utils.FilterTmpSuffix(file.Name())
 
 	// 过滤无用文件
-	if movieName[0:1] == "." || utils.InArray(collector.config.Collector.SkipFolders, movieName) {
+	if movieName[0:1] == "." || utils.InArray(config.Collector.SkipFolders, movieName) {
 		return nil
 	}
 

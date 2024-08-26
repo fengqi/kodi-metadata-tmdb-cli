@@ -1,7 +1,6 @@
 package kodi
 
 import (
-	"fengqi/kodi-metadata-tmdb-cli/config"
 	"sync"
 )
 
@@ -16,7 +15,6 @@ const (
 )
 
 type JsonRpc struct {
-	config       *config.KodiConfig
 	refreshQueue map[string]struct{}
 	refreshLock  *sync.RWMutex
 	scanQueue    map[string]struct{}

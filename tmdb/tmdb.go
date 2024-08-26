@@ -28,14 +28,14 @@ const (
 	ApiMovieDetail        = "/3/movie/%d"
 )
 
-func InitTmdb(config *config.TmdbConfig) {
-	HttpClient = getHttpClient(config.Proxy)
+func InitTmdb() {
+	HttpClient = getHttpClient(config.Tmdb.Proxy)
 	Api = &tmdb{
-		apiHost:   config.ApiHost,
-		apiKey:    config.ApiKey,
-		imageHost: config.ImageHost,
-		language:  config.Language,
-		rating:    config.Rating,
+		apiHost:   config.Tmdb.ApiHost,
+		apiKey:    config.Tmdb.ApiKey,
+		imageHost: config.Tmdb.ImageHost,
+		language:  config.Tmdb.Language,
+		rating:    config.Tmdb.Rating,
 	}
 }
 

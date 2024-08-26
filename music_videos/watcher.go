@@ -1,6 +1,7 @@
 package music_videos
 
 import (
+	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"github.com/fsnotify/fsnotify"
 	"os"
@@ -19,7 +20,7 @@ func (c *Collector) initWatcher() {
 
 // 运行文件变动监听
 func (c *Collector) runWatcher() {
-	if !c.config.Collector.Watcher {
+	if !config.Collector.Watcher {
 		return
 	}
 
@@ -92,7 +93,7 @@ func (c *Collector) runWatcher() {
 
 // 监听目录
 func (c *Collector) watchDir(name string) {
-	if !c.config.Collector.Watcher {
+	if !config.Collector.Watcher {
 		return
 	}
 

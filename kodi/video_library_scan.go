@@ -1,13 +1,14 @@
 package kodi
 
 import (
+	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"strings"
 	"time"
 )
 
 func (r *JsonRpc) AddScanTask(directory string) {
-	if !r.config.Enable {
+	if !config.Kodi.Enable {
 		return
 	}
 
@@ -36,7 +37,7 @@ func (r *JsonRpc) AddScanTask(directory string) {
 }
 
 func (r *JsonRpc) ConsumerScanTask() {
-	if !r.config.Enable {
+	if !config.Kodi.Enable {
 		return
 	}
 
@@ -51,7 +52,7 @@ func (r *JsonRpc) ConsumerScanTask() {
 			continue
 		}
 
-		for directory, _ := range r.scanQueue {
+		for directory := range r.scanQueue {
 			r.scanLock.Lock()
 
 			r.VideoLibrary.Scan(directory, true)
