@@ -39,11 +39,13 @@ type TmdbConfig struct {
 }
 
 type CollectorConfig struct {
-	Watcher        bool     `json:"watcher"`          // 是否开启文件监听，比定时扫描及时
-	CronSeconds    int      `json:"cron_seconds"`     // 定时扫描频率
-	SkipFolders    []string `json:"skip_folders"`     // 跳过的目录，可多个
-	MoviesNfoMode  int      `json:"movies_nfo_mode"`  // 电影NFO写入模式：1 movie.nfo，2 <VideoFileName>.nfo
-	MoviesDir      []string `json:"movies_dir"`       // 电影文件根目录，可多个
-	ShowsDir       []string `json:"shows_dir"`        // 电视剧文件根目录，可多个
-	MusicVideosDir []string `json:"music_videos_dir"` // 音乐视频文件根目录，可多个
+	Watcher         bool     `json:"watcher"`           // 是否开启文件监听，比定时扫描及时
+	CronSeconds     int      `json:"cron_seconds"`      // 定时扫描频率
+	FilterTmpSuffix bool     `json:"filter_tmp_suffix"` // 过滤临时文件后缀：.!ut、.!qB
+	TmpSuffix       []string `json:"tmp_suffix"`        // 临时文件后缀列表
+	SkipFolders     []string `json:"skip_folders"`      // 跳过的目录，可多个
+	MoviesNfoMode   int      `json:"movies_nfo_mode"`   // 电影NFO写入模式：1 movie.nfo，2 <VideoFileName>.nfo
+	MoviesDir       []string `json:"movies_dir"`        // 电影文件根目录，可多个
+	ShowsDir        []string `json:"shows_dir"`         // 电视剧文件根目录，可多个
+	MusicVideosDir  []string `json:"music_videos_dir"`  // 音乐视频文件根目录，可多个
 }

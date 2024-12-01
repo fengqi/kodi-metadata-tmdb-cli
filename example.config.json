@@ -29,6 +29,13 @@
             "gallery",
             "metadata"
         ],
+        "filter_tmp_suffix": true,
+        "tmp_suffix":[
+            ".part",
+            ".!qB",
+            ".!qb",
+            ".!ut"
+        ],
         "movies_nfo_mode": 2,
         "movies_dir": [
             "/volume1/down/movies"
