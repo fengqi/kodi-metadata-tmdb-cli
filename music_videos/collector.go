@@ -12,7 +12,6 @@ import (
 )
 
 type Collector struct {
-	config  *config.Config
 	channel chan *MusicVideo
 }
 
@@ -158,7 +157,7 @@ func (c *Collector) scanDir(dir string) ([]*MusicVideo, error) {
 
 func (c *Collector) skipFolders(path, filename string) bool {
 	base := filepath.Base(path)
-	for _, item := range c.config.Collector.SkipFolders {
+	for _, item := range config.Collector.SkipFolders {
 		if item == base || item == filename {
 			return true
 		}
