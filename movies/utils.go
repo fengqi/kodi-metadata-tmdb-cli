@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -93,21 +92,6 @@ func parseMoviesDir(baseDir string, file fs.FileInfo) *Movie {
 	if len(movieDir.Title) == 0 {
 		utils.Logger.WarningF("file: %s parse title empty: %v", file.Name(), movieDir)
 		return nil
-	}
-
-	// 通过文件指定id
-	// todo all use baseDir + "/tmdb/"
-	idFile := baseDir + "/" + file.Name() + "/tmdb/id.txt"
-	if !file.IsDir() {
-		idFile = baseDir + "/tmdb/" + movieName + ".id.txt"
-	}
-	if _, err := os.Stat(idFile); err == nil {
-		bytes, err := ioutil.ReadFile(idFile)
-		if err == nil {
-			movieDir.MovieId, _ = strconv.Atoi(strings.Trim(string(bytes), "\r\n "))
-		} else {
-			utils.Logger.WarningF("read movies id specially file: %s err: %v", idFile, err)
-		}
 	}
 
 	//识别是否时蓝光或dvd目录
