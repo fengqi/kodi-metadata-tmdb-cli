@@ -1,7 +1,12 @@
 package movies
 
+import (
+	"fengqi/kodi-metadata-tmdb-cli/common/watcher"
+)
+
 type Collector struct {
 	channel chan *Movie
+	watcher *watcher.Watcher
 }
 
 // Movie 电影目录详情，从名字分析

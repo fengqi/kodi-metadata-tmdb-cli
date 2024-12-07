@@ -2,6 +2,7 @@ package shows
 
 import (
 	"encoding/json"
+	"fengqi/kodi-metadata-tmdb-cli/common/watcher"
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
@@ -17,6 +18,7 @@ import (
 
 type Collector struct {
 	dirChan chan *Dir
+	watcher *watcher.Watcher
 }
 
 var collector *Collector
@@ -24,10 +26,10 @@ var collector *Collector
 func RunCollector() {
 	collector = &Collector{
 		dirChan: make(chan *Dir, 100),
+		watcher: watcher.InitWatcher("shows"),
 	}
 
-	collector.initWatcher()
-	go collector.runWatcher()
+	go collector.watcher.Run(collector.watcherCallback)
 	go collector.showsDirProcess()
 	collector.runCronScan()
 }
@@ -61,7 +63,7 @@ func (c *Collector) showsDirProcess() {
 				}
 
 				for _, item := range subDir {
-					c.watchDir(item.Dir + "/" + item.OriginTitle)
+					c.watcher.Add(item.Dir + "/" + item.OriginTitle)
 					item.TvId = dir.TvId
 					c.dirChan <- item
 				}
@@ -155,7 +157,7 @@ func (c *Collector) runCronScan() {
 	task := func() {
 		for _, item := range config.Collector.ShowsDir {
 			// 扫描到的每个目录都添加到watcher，因为还不能只监听根目录
-			c.watchDir(item)
+			c.watcher.Add(item)
 
 			showDirs, err := c.scanDir(item)
 			if err != nil {
@@ -163,7 +165,7 @@ func (c *Collector) runCronScan() {
 			}
 
 			for _, showDir := range showDirs {
-				c.watchDir(showDir.Dir + "/" + showDir.OriginTitle)
+				c.watcher.Add(showDir.Dir + "/" + showDir.OriginTitle)
 
 				// 预留50%空间给可能重新放回队列的任务
 				for {

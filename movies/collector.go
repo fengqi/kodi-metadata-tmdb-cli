@@ -1,6 +1,7 @@
 package movies
 
 import (
+	"fengqi/kodi-metadata-tmdb-cli/common/watcher"
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
@@ -15,10 +16,10 @@ var collector *Collector
 func RunCollector() {
 	collector = &Collector{
 		channel: make(chan *Movie, 100),
+		watcher: watcher.InitWatcher("movies"),
 	}
 
-	collector.initWatcher()
-	go collector.runWatcher()
+	go collector.watcher.Run(collector.watcherCallback)
 	go collector.runMoviesProcess()
 	collector.runCronScan()
 }
@@ -55,7 +56,7 @@ func (c *Collector) runCronScan() {
 	task := func() {
 		for _, item := range config.Collector.MoviesDir {
 			// 监听顶级目录
-			c.watchDir(item)
+			c.watcher.Add(item)
 
 			movieDirs, err := c.scanDir(item)
 			if err != nil {

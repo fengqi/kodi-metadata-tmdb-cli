@@ -1,6 +1,7 @@
 package music_videos
 
 import (
+	"fengqi/kodi-metadata-tmdb-cli/common/watcher"
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
@@ -13,6 +14,7 @@ import (
 
 type Collector struct {
 	channel chan *MusicVideo
+	watcher *watcher.Watcher
 }
 
 var collector *Collector
@@ -20,10 +22,10 @@ var collector *Collector
 func RunCollector() {
 	collector = &Collector{
 		channel: make(chan *MusicVideo, runtime.NumCPU()),
+		watcher: watcher.InitWatcher("music_videos"),
 	}
 
-	collector.initWatcher()
-	go collector.runWatcher()
+	go collector.watcher.Run(collector.watcherCallback)
 	go collector.runProcessor()
 	collector.runScanner()
 }
@@ -86,7 +88,7 @@ func (c *Collector) runScanner() {
 
 	task := func() {
 		for _, item := range config.Collector.MusicVideosDir {
-			c.watchDir(item)
+			c.watcher.Add(item)
 
 			videos, err := c.scanDir(item)
 			if len(videos) == 0 || err != nil {
@@ -132,7 +134,7 @@ func (c *Collector) scanDir(dir string) ([]*MusicVideo, error) {
 				continue
 			}
 
-			c.watchDir(dir + "/" + file.Name())
+			c.watcher.Add(dir + "/" + file.Name())
 
 			subVideos, err := c.scanDir(dir + "/" + file.Name())
 			if err != nil {
