@@ -15,6 +15,7 @@
     "collector": {
         "watcher": true,
         "cron_seconds": 3600,
+        "cron_scan_kodi": false,
         "skip_folders": [
             "tmdb",
             "@eaDir",

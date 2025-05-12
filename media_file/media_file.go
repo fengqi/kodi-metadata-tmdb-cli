@@ -2,7 +2,6 @@ package media_file
 
 import (
 	"fengqi/kodi-metadata-tmdb-cli/utils"
-	"fmt"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -12,29 +11,31 @@ var (
 	trailerCompile, _ = regexp.Compile("(?i).*[\\[\\]\\(\\)_.-]+trailer[\\[\\]\\(\\)_.-]?(\\d)*$")
 	sampleCompile, _  = regexp.Compile("(?i).*[\\[\\]\\(\\)_.-]+sample[\\[\\]\\(\\)_.-]?$")
 	dvdCompile, _     = regexp.Compile("(video_ts|vts_\\d\\d_\\d)\\.(vob|bup|ifo)")
-	blurayCompile, _  = regexp.Compile("(index\\.bdmv|movieobject\\.bdmv|\\d{5}\\.m2ts|\\d{5}\\.clpi|\\d{5}\\.mpls)")
+	bluRayCompile, _  = regexp.Compile("(index\\.bdmv|movieobject\\.bdmv|\\d{5}\\.m2ts|\\d{5}\\.clpi|\\d{5}\\.mpls)")
 )
 
-func NewMediaFile(path, filename string) *mediaFile {
+// NewMediaFile 实例化媒体类型
+func NewMediaFile(path, filename string, videoType VideoType) *MediaFile {
 	if filename[0:1] == "." {
 		return nil
 	}
 
 	mediaType := parseMediaType(path, filename)
 
-	return &mediaFile{
-		Path:     path,
-		Filename: filename,
-		Type:     mediaType,
+	return &MediaFile{
+		Path:      path,
+		Filename:  filename,
+		MediaType: mediaType,
+		VideoType: videoType,
+		Suffix:    filepath.Ext(filename),
 	}
 }
 
+// MediaType 解析文件类型
 func parseMediaType(path, filename string) MediaType {
 	folderName := strings.ToLower(filepath.Base(path))
 	ext := filepath.Ext(filename)
 	basename := strings.ToLower(strings.Replace(filename, ext, "", 1))
-
-	fmt.Println(filename, folderName, basename)
 
 	if folderName == "extras" || folderName == "extra" {
 		return EXTRA
@@ -99,26 +100,30 @@ func parseMediaType(path, filename string) MediaType {
 	return UNKNOWN
 }
 
+// 是否是光盘文件
 func isDiscFile(filename, path string) bool {
-	return isDVDFile(filename, path) || isBlurayFile(filename, path) || isHDDVDFile(filename, path)
+	return isDVDFile(filename, path) || isBluRayFile(filename, path) || isHDDVDFile(filename, path)
 }
 
+// 是否是DVD光盘文件
 func isDVDFile(filename, path string) bool {
-	if filename == "video_ts" || utils.EndsWith(path, "video_ts") {
+	if filename == "VIDEO_TS" || utils.EndsWith(path, "VIDEO_TS") {
 		return true
 	}
 
 	return dvdCompile.FindString(filename) != ""
 }
 
-func isBlurayFile(filename, path string) bool {
-	if filename == "bdmv" || utils.EndsWith(path, "bdmv") {
+// 是否是蓝光文件
+func isBluRayFile(filename, path string) bool {
+	if filename == "BDMV" || utils.EndsWith(path, "BDMV") {
 		return true
 	}
 
-	return blurayCompile.FindString(filename) != ""
+	return bluRayCompile.FindString(filename) != ""
 }
 
+// 是否是HD DVD文件
 func isHDDVDFile(filename, path string) bool {
-	return filename == "hvdvd_ts" || utils.EndsWith(path, "hvdvd_ts")
+	return filename == "HVDVD_TS" || utils.EndsWith(path, "HVDVD_TS")
 }

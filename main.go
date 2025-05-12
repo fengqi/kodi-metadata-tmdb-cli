@@ -1,18 +1,15 @@
 package main
 
 import (
+	"fengqi/kodi-metadata-tmdb-cli/collector"
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/ffmpeg"
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
-	"fengqi/kodi-metadata-tmdb-cli/movies"
-	"fengqi/kodi-metadata-tmdb-cli/music_videos"
-	"fengqi/kodi-metadata-tmdb-cli/shows"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"flag"
 	"fmt"
 	"runtime"
-	"sync"
 )
 
 var (
@@ -40,10 +37,5 @@ func main() {
 	kodi.InitKodi()
 	ffmpeg.InitFfmpeg()
 
-	wg := &sync.WaitGroup{}
-	wg.Add(3)
-	go shows.RunCollector()
-	go movies.RunCollector()
-	go music_videos.RunCollector()
-	wg.Wait()
+	collector.Run()
 }

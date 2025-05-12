@@ -1,12 +1,24 @@
 package media_file
 
-type mediaFile struct {
-	Path     string
-	Filename string
-	Type     MediaType
+import "strings"
+
+type MediaFile struct {
+	Path      string    // 完整路径
+	Filename  string    // 文件名
+	Suffix    string    // 后缀
+	MediaType MediaType // 文件类型
+	VideoType VideoType // 视频类型
 }
 
+type VideoType int
+
 type MediaType int
+
+const (
+	Movies = iota + 1
+	TvShows
+	MusicVideo
+)
 
 const (
 	UNKNOWN MediaType = iota
@@ -66,10 +78,32 @@ var (
 	}
 )
 
-func (mf *mediaFile) IsNFO() bool {
-	return mf.Type == NFO
+// IsNFO 是否是NFO文件
+func (mf *MediaFile) IsNFO() bool {
+	return mf.MediaType == NFO
 }
 
-func (mf *mediaFile) IsVideo() bool {
-	return mf.Type == VIDEO
+// IsVideo 是否是视频
+func (mf *MediaFile) IsVideo() bool {
+	return mf.MediaType == VIDEO
+}
+
+// IsBluRay 是否是蓝光目录
+func (mf *MediaFile) IsBluRay() bool {
+	return mf.MediaType == DISC && (mf.Filename == BDMV || mf.Filename == HVDVD_TS)
+}
+
+// IsDvd 是否是DVD目录
+func (mf *MediaFile) IsDvd() bool {
+	return mf.IsDisc() && (mf.Filename == VIDEO_TS || mf.Filename == "DVD")
+}
+
+// IsDisc 判断是否是光盘目录
+func (mf *MediaFile) IsDisc() bool {
+	return mf.MediaType == DISC
+}
+
+// PathWithoutSuffix 完整路径，去掉后缀，用于生成NFO、海报等
+func (mf *MediaFile) PathWithoutSuffix() string {
+	return strings.Replace(mf.Path, mf.Suffix, "", 1)
 }

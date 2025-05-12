@@ -2,29 +2,37 @@ package movies
 
 import (
 	"encoding/json"
+	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func (d *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
+// getMovieDetail 获取电影详情
+func (m *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 	var err error
-	var detail = new(tmdb.MovieDetail)
+	detail := &tmdb.MovieDetail{}
+	cacheExpire := false
+
+	// 缓存文件路径
+	// todo `tmdb/movie.json` 这种格式后期删除掉
+	oldCacheFile := m.GetCacheDir() + "/movie.json"
+	cacheFile := m.GetCacheDir() + "/" + m.MediaFile.Filename + ".movie.json"
+	if _, err := os.Stat(oldCacheFile); err == nil {
+		_, _ = utils.CopyFile(oldCacheFile, cacheFile)
+		_ = os.Remove(oldCacheFile)
+	}
 
 	// 从缓存读取
-	cacheFile := d.GetCacheDir() + "/movie.json"
-	if d.IsFile {
-		cacheFile = d.GetCacheDir() + "/" + d.OriginTitle + ".movie.json"
-	}
-	cacheExpire := false
 	if cf, err := os.Stat(cacheFile); err == nil {
 		utils.Logger.DebugF("get movie detail from cache: %s", cacheFile)
 
-		bytes, err := ioutil.ReadFile(cacheFile)
+		bytes, err := os.ReadFile(cacheFile)
 		if err != nil {
 			utils.Logger.WarningF("read movie.json cache: %s err: %v", cacheFile, err)
 		}
@@ -42,13 +50,18 @@ func (d *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 	// 缓存失效，重新搜索
 	if detail == nil || detail.Id == 0 || cacheExpire {
 		detail.FromCache = false
-		movieId := detail.Id
-		idFile := d.GetCacheDir() + "/id.txt"
-		if d.IsFile {
-			idFile = d.Dir + "/tmdb/" + d.OriginTitle + ".id.txt"
+		movieId := 0
+
+		// todo 兼容 tmdb/id.txt，后期删除
+		oldIdFile := m.GetCacheDir() + "/id.txt"
+		idFile := m.GetCacheDir() + "/" + m.MediaFile.Filename + ".id.txt"
+		if _, err := os.Stat(oldIdFile); err == nil {
+			_, _ = utils.CopyFile(oldIdFile, idFile)
+			_ = os.Remove(oldIdFile)
 		}
+
 		if _, err = os.Stat(idFile); err == nil {
-			bytes, err := ioutil.ReadFile(idFile)
+			bytes, err := os.ReadFile(idFile)
 			if err != nil {
 				utils.Logger.WarningF("id file: %s read err: %v", idFile, err)
 			} else {
@@ -57,9 +70,9 @@ func (d *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 		}
 
 		if movieId == 0 {
-			SearchResults, err := tmdb.Api.SearchMovie(d.ChsTitle, d.EngTitle, d.Year)
+			SearchResults, err := tmdb.Api.SearchMovie(m.ChsTitle, m.EngTitle, m.Year)
 			if err != nil || SearchResults == nil {
-				utils.Logger.ErrorF("search title: %s or %s, year: %d failed", d.ChsTitle, d.EngTitle, d.Year)
+				utils.Logger.ErrorF("search title: %s or %s, year: %d failed", m.ChsTitle, m.EngTitle, m.Year)
 				return detail, err
 			}
 
@@ -80,13 +93,55 @@ func (d *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 		}
 
 		// 保存到缓存
-		d.checkCacheDir()
+		m.checkCacheDir()
 		detail.SaveToCache(cacheFile)
 	}
 
-	if detail.Id == 0 || d.Title == "" {
+	if detail.Id == 0 || m.Title == "" {
 		return nil, err
 	}
 
 	return detail, err
+}
+
+// downloadImage 下载图片
+func (m *Movie) downloadImage(detail *tmdb.MovieDetail) error {
+	utils.Logger.DebugF("download %s images", m.Title)
+
+	var err error
+	var errs error
+	if len(detail.PosterPath) > 0 {
+		posterFile := m.MediaFile.PathWithoutSuffix() + "-poster.jpg"
+		err = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.PosterPath), posterFile)
+		errs = errors.Join(errs, err)
+	}
+
+	if len(detail.BackdropPath) > 0 {
+		fanArtFile := m.MediaFile.PathWithoutSuffix() + "-fanart.jpg"
+		err = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.BackdropPath), fanArtFile)
+		errs = errors.Join(errs, err)
+	}
+
+	if detail.Images != nil && len(detail.Images.Logos) > 0 {
+		sort.SliceStable(detail.Images.Logos, func(i, j int) bool {
+			return detail.Images.Logos[i].VoteAverage > detail.Images.Logos[j].VoteAverage
+		})
+
+		image := detail.Images.Logos[0]
+		for _, item := range detail.Images.Logos {
+			if image.FilePath == "" && item.FilePath != "" {
+				image = item
+			}
+			if item.Iso6391 == "zh" && image.Iso6391 != "zh" { // todo 语言可选
+				image = item
+				break
+			}
+		}
+		if image.FilePath != "" {
+			logoFile := m.MediaFile.PathWithoutSuffix() + "-clearlogo.png"
+			_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(image.FilePath), logoFile)
+		}
+	}
+
+	return errs
 }
