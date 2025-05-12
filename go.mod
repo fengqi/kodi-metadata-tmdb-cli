@@ -4,7 +4,7 @@ go 1.24
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0
-	golang.org/x/net v0.39.0
+	golang.org/x/net v0.40.0
 )
 
-require golang.org/x/sys v0.32.0 // indirect
+require golang.org/x/sys v0.33.0 // indirect
