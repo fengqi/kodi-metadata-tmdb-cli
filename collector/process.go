@@ -26,6 +26,8 @@ func (c *collector) runProcess() {
 			case media_file.MusicVideo:
 				// todo
 			}
+
+			c.wg.Done()
 		}
 	}
 }
