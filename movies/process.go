@@ -12,7 +12,7 @@ import (
 
 // Process 处理扫描到的电影文件
 func Process(mf *media_file.MediaFile) error {
-	movie, err := parseMoviesDir(mf)
+	movie, err := parseMoviesFile(mf)
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func Process(mf *media_file.MediaFile) error {
 }
 
 // 解析文件, 返回详情：年份、中文名称、英文名称等
-func parseMoviesDir(mf *media_file.MediaFile) (*Movie, error) {
+func parseMoviesFile(mf *media_file.MediaFile) (*Movie, error) {
 	movieName := utils.FilterTmpSuffix(mf.Filename)
 	if mf.IsDisc() { // 光盘类文件使用目录名刮削
 		movieName = filepath.Base(filepath.Dir(mf.Path))
