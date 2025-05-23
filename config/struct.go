@@ -41,7 +41,7 @@ type TmdbConfig struct {
 type CollectorConfig struct {
 	Watcher         bool     `json:"watcher"`           // 是否开启文件监听，比定时扫描及时
 	CronSeconds     int      `json:"cron_seconds"`      // 定时扫描频率
-	CronScanKodi    bool     `json:"cron_scan_kodi"`    // 定时扫描后出发kodi扫描
+	CronScanKodi    bool     `json:"cron_scan_kodi"`    // 定时扫描后触发kodi扫描
 	FilterTmpSuffix bool     `json:"filter_tmp_suffix"` // 过滤临时文件后缀：.!ut、.!qB
 	TmpSuffix       []string `json:"tmp_suffix"`        // 临时文件后缀列表
 	SkipFolders     []string `json:"skip_folders"`      // 跳过的目录，可多个
