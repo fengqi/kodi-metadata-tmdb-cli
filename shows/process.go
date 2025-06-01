@@ -76,10 +76,12 @@ func ParseShowFile(show *Show, parse string) error {
 		nameStop = true
 	}
 
-	if source, season := utils.IsSeason(filename); len(season) > 0 && source == filename {
-		split = split[0:0]
-		show.Season = cast.ToInt(season)
-		show.SeasonRoot = parse
+	if utils.IsDir(parse) {
+		if source, season := utils.IsSeason(filename); len(season) > 0 && source == filename {
+			split = split[0:0]
+			show.Season = cast.ToInt(season)
+			show.SeasonRoot = parse
+		}
 	}
 
 	for _, item := range split {
