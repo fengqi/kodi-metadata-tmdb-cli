@@ -46,9 +46,11 @@ func (c *collector) watcherCallback(filename string, fi os.FileInfo) {
 
 	mf := media_file.NewMediaFile(filename, fi.Name(), videoType)
 	if mf.IsBluRay() {
+		c.wg.Add(1)
 		c.channel <- mf
 	}
 	if mf.IsVideo() {
+		c.wg.Add(1)
 		c.channel <- mf
 	}
 }
