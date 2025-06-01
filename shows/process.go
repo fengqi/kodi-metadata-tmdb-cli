@@ -76,7 +76,7 @@ func ParseShowFile(show *Show, parse string) error {
 		nameStop = true
 	}
 
-	if utils.IsDir(parse) {
+	if lrace.IsDir(parse) {
 		if source, season := utils.IsSeason(filename); len(season) > 0 && source == filename {
 			split = split[0:0]
 			show.Season = cast.ToInt(season)
@@ -197,6 +197,7 @@ func ParseShowFile(show *Show, parse string) error {
 	}
 
 	// 文件名清理
+	show.Title = strings.TrimSpace(show.Title)
 	show.Title, show.AliasTitle = utils.SplitTitleAlias(show.Title)
 	show.ChsTitle, show.EngTitle = utils.SplitChsEngTitle(show.Title)
 
