@@ -4,20 +4,24 @@ import (
 	"encoding/json"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"fmt"
+	"github.com/fengqi/lrace"
 	"io/ioutil"
 	"os"
+	"sort"
+	"strings"
 	"time"
 )
 
-// GetTvDetail 获取详情 TODO err 只返回不输出，由调用方自行处理
-func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
+func (s *Show) getTvDetail() (*tmdb.TvDetail, error) {
 	var err error
 	var detail = new(tmdb.TvDetail)
 
-	d.ReadTvId()
+	//s.ReadTvId()
 
 	// 从缓存读取
-	tvCacheFile := d.GetCacheDir() + "/tv.json"
+	// todo 单集处理会导致大量的读tv详情缓存，增加内存缓存
+	tvCacheFile := s.GetTvCacheDir() + "/tv.json"
 	cacheExpire := false
 	if cf, err := os.Stat(tvCacheFile); err == nil {
 		utils.Logger.DebugF("get tv detail from cache: %s", tvCacheFile)
@@ -38,28 +42,28 @@ func (d *Dir) getTvDetail() (*tmdb.TvDetail, error) {
 		airTime, _ := time.Parse("2006-01-02", detail.LastAirDate)
 		cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
 		detail.FromCache = true
-		d.TvId = detail.Id
+		s.TvId = detail.Id
 	}
 
 search:
 	// 缓存失效，重新搜索
 	if detail == nil || detail.Id == 0 || cacheExpire {
 		detail.FromCache = false
-		if d.TvId == 0 {
-			SearchResults, err := tmdb.Api.SearchShows(d.ChsTitle, d.EngTitle, d.Year)
+		if s.TvId == 0 {
+			SearchResults, err := tmdb.Api.SearchShows(s.ChsTitle, s.EngTitle, s.Year)
 			if err != nil || SearchResults == nil {
-				utils.Logger.ErrorF("search title: %s year: %d failed", d.Title, d.Year)
+				utils.Logger.ErrorF("search title: %s year: %d failed", s.Title, s.Year)
 				return detail, err
 			}
 
-			d.TvId = SearchResults.Id
-			d.CacheTvId()
+			s.TvId = SearchResults.Id
+			s.CacheTvId()
 		}
 
 		// 获取详情
-		detail, err = tmdb.Api.GetTvDetail(d.TvId)
+		detail, err = tmdb.Api.GetTvDetail(s.TvId)
 		if err != nil || detail == nil || detail.Id == 0 || detail.Name == "" {
-			utils.Logger.ErrorF("get tv: %d detail err: %v", d.TvId, err)
+			utils.Logger.ErrorF("get tv: %d detail err: %v", s.TvId, err)
 			return nil, err
 		}
 
@@ -68,21 +72,21 @@ search:
 	}
 
 	// 剧集分组：不同的季版本
-	if d.GroupId != "" {
-		groupDetail, err := d.getTvEpisodeGroupDetail()
+	/*if s.GroupId != "" {
+		groupDetail, err := s.getTvEpisodeGroupDetail()
 		if err == nil {
 			detail.TvEpisodeGroupDetail = groupDetail
 		}
-	}
+	}*/
 
 	return detail, nil
 }
 
-func (f *File) getTvEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
+func (s *Show) getEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
 	var err error
 	var detail = new(tmdb.TvEpisodeDetail)
 
-	cacheFile := f.getCacheDir() + "/" + f.SeasonEpisode + ".json"
+	cacheFile := fmt.Sprintf("%s/tmdb/s%02de%02d.json", lrace.Ternary(s.SeasonRoot != "", s.SeasonRoot, s.TvRoot), s.Season, s.Episode)
 	cacheExpire := false
 	if cf, err := os.Stat(cacheFile); err == nil {
 		utils.Logger.DebugF("get episode from cache: %s", cacheFile)
@@ -105,14 +109,14 @@ func (f *File) getTvEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
 	// 请求tmdb
 	if detail == nil || detail.Id == 0 || cacheExpire {
 		detail.FromCache = false
-		detail, err = tmdb.Api.GetTvEpisodeDetail(f.TvId, f.Season, f.Episode)
+		detail, err = tmdb.Api.GetTvEpisodeDetail(s.TvId, s.Season, s.Episode)
 		if err != nil {
 			utils.Logger.ErrorF("get tv episode error %v", err)
 			return nil, err
 		}
 
 		if detail == nil {
-			utils.Logger.WarningF("get episode from tmdb: %d season: %d episode: %d failed", f.TvId, f.Season, f.Episode)
+			utils.Logger.WarningF("get episode from tmdb: %d season: %d episode: %d failed", s.TvId, s.Season, s.Episode)
 			return detail, err
 		}
 
@@ -127,47 +131,55 @@ func (f *File) getTvEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
 	return detail, err
 }
 
-func (d *Dir) getTvEpisodeGroupDetail() (*tmdb.TvEpisodeGroupDetail, error) {
-	if d.GroupId == "" {
-		return nil, nil
+// 下载电视剧的相关图片
+// TODO 下载失败后，没有重复以及很长一段时间都不会再触发下载
+func (s *Show) downloadTvImage(detail *tmdb.TvDetail) {
+	utils.Logger.DebugF("download %s tv images", s.Title)
+
+	if len(detail.PosterPath) > 0 {
+		_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.PosterPath), s.TvRoot+"/poster.jpg")
 	}
 
-	var err error
-	var detail = new(tmdb.TvEpisodeGroupDetail)
-
-	// 从缓存读取
-	cacheFile := d.GetCacheDir() + "/group.json"
-	cacheExpire := false
-	if cf, err := os.Stat(cacheFile); err == nil {
-		utils.Logger.DebugF("get tv episode group detail from cache: %s", cacheFile)
-
-		bytes, err := ioutil.ReadFile(cacheFile)
-		if err != nil {
-			utils.Logger.WarningF("read group.json cache: %s err: %v", cacheFile, err)
-		}
-
-		err = json.Unmarshal(bytes, detail)
-		if err != nil {
-			utils.Logger.WarningF("parse group.json file: %s err: %v", cacheFile, err)
-		}
-
-		airTime, _ := time.Parse("2006-01-02", detail.Groups[len(detail.Groups)-1].Episodes[0].AirDate)
-		cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
-		detail.FromCache = true
+	if len(detail.BackdropPath) > 0 {
+		_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.BackdropPath), s.TvRoot+"/fanart.jpg")
 	}
 
-	// 缓存失效，重新搜索
-	if detail == nil || detail.Id == "" || cacheExpire {
-		detail.FromCache = false
-		detail, err = tmdb.Api.GetTvEpisodeGroupDetail(d.GroupId)
-		if err != nil {
-			utils.Logger.ErrorF("get tv episode group: %s detail err: %v", d.GroupId, err)
-			return nil, err
+	// TODO group的信息里可能 season poster不全
+	if len(detail.Seasons) > 0 {
+		for _, item := range detail.Seasons {
+			//if !s.IsCollection && item.SeasonNumber != s.Season || item.PosterPath == "" {
+			//	continue
+			//}
+			seasonPoster := fmt.Sprintf("season%02d-poster.jpg", item.SeasonNumber)
+			_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(item.PosterPath), s.TvRoot+"/"+seasonPoster)
 		}
-
-		// 保存到缓存
-		detail.SaveToCache(cacheFile)
 	}
 
-	return detail, nil
+	if detail.Images != nil && len(detail.Images.Logos) > 0 {
+		sort.SliceStable(detail.Images.Logos, func(i, j int) bool {
+			return detail.Images.Logos[i].VoteAverage > detail.Images.Logos[j].VoteAverage
+		})
+		image := detail.Images.Logos[0]
+		for _, item := range detail.Images.Logos {
+			if image.FilePath == "" && item.FilePath != "" {
+				image = item
+			}
+			if item.Iso6391 == "zh" && image.Iso6391 != "zh" {
+				image = item
+				break
+			}
+		}
+		if image.FilePath != "" {
+			logoFile := s.TvRoot + "/clearlogo.png"
+			_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(image.FilePath), logoFile)
+		}
+	}
+}
+
+// 下载剧集的相关图片
+func (s *Show) downloadEpisodeImage(d *tmdb.TvEpisodeDetail) {
+	file := strings.Replace(s.MediaFile.Path, s.MediaFile.Suffix, "-thumb.jpg", 1)
+	if len(d.StillPath) > 0 {
+		_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(d.StillPath), file)
+	}
 }

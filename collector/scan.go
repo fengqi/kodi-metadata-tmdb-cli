@@ -5,6 +5,7 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/media_file"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"github.com/fengqi/lrace"
 	"io/fs"
 	"log"
 	"os"
@@ -85,6 +86,6 @@ func (c *collector) scanDir(roots []string, videoType media_file.VideoType) {
 // skipFolders 检查是否跳过目录
 func (c *collector) skipFolders(path, filename string) bool {
 	base := filepath.Base(path)
-	return utils.InArray(config.Collector.SkipFolders, base) ||
-		utils.InArray(config.Collector.SkipFolders, filename)
+	return lrace.InArray(config.Collector.SkipFolders, base) ||
+		lrace.InArray(config.Collector.SkipFolders, filename)
 }

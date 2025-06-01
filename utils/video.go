@@ -3,6 +3,8 @@ package utils
 import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fmt"
+	"github.com/fengqi/lrace"
+	"github.com/spf13/cast"
 	"regexp"
 	"strconv"
 	"strings"
@@ -68,12 +70,13 @@ var (
 		":",
 		"：",
 	}
-	delimiterExecute = []string{
+	delimiterExecute = []string{ // todo 使用单独维护的音频编码、视频编码、制作组等
 		"WEB-DL",
 		"DDP5.1",
 		"DDP 5.1",
 		"DDP.5.1",
 		"H.265",
+		"H265",
 		"BLU-RAY",
 		"MA5.1",
 		"MA 5.1",
@@ -82,6 +85,9 @@ var (
 		"MA 7.1",
 		"MA.7.1",
 		"DTS-HD",
+		"HDR",
+		"SDR",
+		"DV",
 	}
 	channel = []string{
 		"OAD",
@@ -90,11 +96,86 @@ var (
 		"DVD",
 		"SP",
 	}
-	videoMap     = map[string]struct{}{}
-	sourceMap    = map[string]struct{}{}
-	studioMap    = map[string]struct{}{}
-	delimiterMap = map[string]struct{}{}
-	channelMap   = map[string]struct{}{}
+	videoCoding = []string{
+		"H.265",
+		"H265",
+		"H.264",
+		"H264",
+		"H.263",
+		"H.261",
+		"x265",
+		"x264",
+		"AVC",
+		"MPEG",
+		"av1",
+		"HEVC",
+	}
+	audioCoding = []string{
+		"ac3",
+		"aac",
+		"dts",
+		"dts-hd",
+		"e-ac-3",
+		"ddp 5.1",
+		"ddp5.1",
+	}
+	dynamicRange = []string{
+		"hdr",
+		"sdr",
+		"dv",
+	}
+	crew = []string{
+		"ADWeb",
+		"Audies",
+		"ADE",
+		"ADAudio",
+		"CMCT",
+		"CMCTA",
+		"CMCTV",
+		"Oldboys",
+		"GTR",
+		"OurBits",
+		"OurTV",
+		"iLoveTV",
+		"iLoveHD",
+		"MTeam",
+		"MWeb",
+		"BMDru",
+		"QHstudio",
+		"HDCTV",
+		"HDArea",
+		"HDAccess",
+		"WiKi",
+		"TTG",
+		"CHD",
+		"beAst",
+		"DTime",
+		"HHWEB",
+		"NoVA",
+		"NoPA",
+		"NoXA",
+		"HDSky",
+		"HDS",
+		"HDSTV",
+		"HDSWEB",
+		"HDSPad",
+		"HDS3D",
+		"HDHome",
+		"HDH",
+		"HDHTV",
+		"HDHWEB",
+		"AGSVPT",
+		"AGSVWEB",
+	}
+	videoMap        = map[string]struct{}{}
+	sourceMap       = map[string]struct{}{}
+	studioMap       = map[string]struct{}{}
+	delimiterMap    = map[string]struct{}{}
+	channelMap      = map[string]struct{}{}
+	videoCodingMap  = map[string]struct{}{}
+	audioCodingMap  = map[string]struct{}{}
+	dynamicRangeMap = map[string]struct{}{}
+	crewMap         = map[string]struct{}{}
 
 	chsNumber = map[string]int{
 		"零": 0,
@@ -121,6 +202,7 @@ var (
 	chsEpisodeMatch *regexp.Regexp
 
 	episodeMatch       *regexp.Regexp
+	episodeMatchAlone  *regexp.Regexp
 	collectionMatch    *regexp.Regexp
 	subEpisodesMatch   *regexp.Regexp
 	yearRangeLikeMatch *regexp.Regexp
@@ -145,25 +227,42 @@ func init() {
 	}
 
 	for _, item := range studio {
-		studioMap[item] = struct{}{}
+		studioMap[strings.ToUpper(item)] = struct{}{}
 	}
 
 	for _, item := range delimiter {
-		delimiterMap[item] = struct{}{}
+		delimiterMap[strings.ToUpper(item)] = struct{}{}
 	}
 
 	for _, item := range channel {
-		channelMap[item] = struct{}{}
+		channelMap[strings.ToUpper(item)] = struct{}{}
+	}
+
+	for _, item := range videoCoding {
+		videoCodingMap[strings.ToUpper(item)] = struct{}{}
+	}
+
+	for _, item := range audioCoding {
+		audioCodingMap[strings.ToUpper(item)] = struct{}{}
+	}
+
+	for _, item := range dynamicRange {
+		dynamicRangeMap[strings.ToUpper(item)] = struct{}{}
+	}
+
+	for _, item := range crew {
+		crewMap[strings.ToUpper(item)] = struct{}{}
 	}
 
 	episodeMatch, _ = regexp.Compile(`(?i)((第|s|season)\s*(\d+).*?季?)?(第|e|p|ep|episode)\s*(\d+).+$`)
+	episodeMatchAlone, _ = regexp.Compile(`(?i)(第|e|p|ep|episode)\s*(\d+).+$`)
 	collectionMatch, _ = regexp.Compile("[sS](0|)[0-9]+-[sS](0|)[0-9]+")
 	subEpisodesMatch, _ = regexp.Compile("[eE](0|)[0-9]+-[eE](0|)[0-9]+")
 	yearRangeLikeMatch, _ = regexp.Compile("[12][0-9]{3}-[12][0-9]{3}")
 	yearRangeMatch, _ = regexp.Compile("[12][0-9]{3}-[12][0-9]{3}")
 	yearMatch, _ = regexp.Compile("^[12][0-9]{3}$")
 	formatMatch, _ = regexp.Compile("([0-9]+[pPiI]|[24][kK])")
-	seasonMatch, _ = regexp.Compile("[sS](0|)[0-9]+")
+	seasonMatch, _ = regexp.Compile(`(?i)(第|s|S|Season)\s*(\d+)(季|)(.+)?$`)
 	optionsMatch, _ = regexp.Compile(`\[.*?\](\.)?`)
 	chsMatch, _ = regexp.Compile("(?:第|)([零一二三四五六七八九十百千万亿]+)[季|集]")
 	chsSeasonMatch, _ = regexp.Compile(`(.*?)(\.|)第([0-9]+)([-至到])?([0-9]+)?季`)
@@ -227,8 +326,22 @@ func IsSeasonRange(name string) string {
 }
 
 // IsSeason 判断并返回季，可能和名字写在一起，所以使用子串，如：黄石S01.Yellowstone.2018.1080p
-func IsSeason(name string) string {
-	return seasonMatch.FindString(name)
+func IsSeason(name string) (string, string) {
+	find := seasonMatch.FindStringSubmatch(name)
+	if len(find) > 0 {
+		return find[0], find[2]
+	}
+
+	return name, ""
+}
+
+// IsEpisode 判断并返回集，如果文件名带数字
+func IsEpisode(name string) (string, string) {
+	find := episodeMatchAlone.FindStringSubmatch(name)
+	if len(find) > 0 {
+		return find[0], find[2]
+	}
+	return name, ""
 }
 
 // IsFormat 判断并返回格式，可能放在结尾，所以使用子串，如：World.Heritage.In.China.E01-E38.2008.CCTVHD.x264.AC3.720p-CMCT
@@ -255,6 +368,38 @@ func IsStudio(name string) string {
 // IsChannel 发行渠道
 func IsChannel(name string) string {
 	if _, ok := channelMap[strings.ToUpper(name)]; ok {
+		return name
+	}
+	return ""
+}
+
+// IsVideoCoding 视频编码器
+func IsVideoCoding(name string) string {
+	if _, ok := videoCodingMap[strings.ToUpper(name)]; ok {
+		return name
+	}
+	return ""
+}
+
+// IsAudioCoding 音频编码
+func IsAudioCoding(name string) string {
+	if _, ok := audioCodingMap[strings.ToUpper(name)]; ok {
+		return name
+	}
+	return ""
+}
+
+// IsDynamicRange 动态范围
+func IsDynamicRange(name string) string {
+	if _, ok := dynamicRangeMap[strings.ToUpper(name)]; ok {
+		return name
+	}
+	return ""
+}
+
+// IsCrew 制作组
+func IsCrew(name string) string {
+	if _, ok := crewMap[strings.ToUpper(name)]; ok {
 		return name
 	}
 	return ""
@@ -299,37 +444,12 @@ func SplitTitleAlias(name string) (string, string) {
 
 // MatchEpisode 匹配季和集
 func MatchEpisode(name string) (int, int) {
-	seasonStr := ""
-	episodeStr := ""
 	find := episodeMatch.FindStringSubmatch(name)
-	if len(find) != 6 {
-		findNumber := numberMatch.FindStringSubmatch(name)
-		if len(findNumber) != 2 {
-			return 0, 0
-		}
-		episodeStr = findNumber[1]
-	} else {
-		seasonStr = find[3]
-		episodeStr = find[5]
+	if len(find) == 6 {
+		return cast.ToInt(find[3]), cast.ToInt(find[5])
 	}
 
-	season := 1
-	episode := 1
-	if seasonStr != "" {
-		s, err := strconv.Atoi(seasonStr)
-		if err == nil {
-			season = s
-		}
-	}
-
-	if episodeStr != "" {
-		s, err := strconv.Atoi(episodeStr)
-		if err == nil {
-			episode = s
-		}
-	}
-
-	return season, episode
+	return 0, 0
 }
 
 // FilterTmpSuffix 过滤临时文件后缀，部分软件会在未完成的文件后面增加后缀
@@ -462,7 +582,7 @@ func IsResolution(name string) string {
 
 // Split 影视目录或文件名切割
 func Split(name string) []string {
-	return SplitWith(name, delimiter, delimiterExecute)
+	return lrace.StringSplitWith(name, delimiter, delimiterExecute)
 }
 
 // MatchPart 匹配分卷

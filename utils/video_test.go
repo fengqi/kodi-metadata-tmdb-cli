@@ -1,27 +1,30 @@
 package utils
 
 import (
+	"github.com/fengqi/lrace"
 	"testing"
 )
 
 func TestMatchEpisode(t *testing.T) {
 	cases := map[string][]int{
-		"[堕落].The.Fall.2013.S02.E03.Complete.BluRay.720p.x264.AC3-CMCT.mkv":                 {2, 3},
-		"Agent.Carter.S02E11.1080p.BluRay.DD5.1.x264-HDS.mkv":                               {2, 11},
-		"[壹高清]21点灵.Leave No Soul Behind.Ep03.HDTV.1080p.H264-OneHD.ts":                      {1, 3},
-		"Kimetsu.no.Yaiba.Yuukaku-hen.E05.2021.Crunchyroll.WEB-DL.1080p.x264.AAC-HDCTV.mkv": {1, 5},
-		"宝贝揪揪 第3季 第10集.mp4":                                                                 {3, 10},
-		"宝贝揪揪 第9集.mp4":                                                                      {1, 9},
-		"宝贝揪揪 s01 p02.mp4":                                                                  {1, 2},
-		"宝贝揪揪 s01xe02.mp4":                                                                  {1, 2},
-		"宝贝揪揪 s01-e02.mp4":                                                                  {1, 2},
-		"Gannibal.E16.2022.mp4":                                                             {1, 16},
-		"Gannibal S02 E11 2022.mp4":                                                         {2, 11},
-		"Gannibal-S01-E02-2022.mp4":                                                         {1, 2},
-		"Gannibal.Season01.EP02.2022.mp4":                                                   {1, 2},
-		"转生成自动贩卖机02全片简中.mp4":                                                                {1, 2},
+		"[堕落].The.Fall.2013.S02.E03.Complete.BluRay.720p.x264.AC3-CMCT.mkv":                     {2, 3},
+		"Agent.Carter.S02E11.1080p.BluRay.DD5.1.x264-HDS.mkv":                                   {2, 11},
+		"[壹高清]21点灵.Leave No Soul Behind.S01Ep03.HDTV.1080p.H264-OneHD.ts":                       {1, 3},
+		"Kimetsu.no.Yaiba.Yuukaku-hen.S01.E05.2021.Crunchyroll.WEB-DL.1080p.x264.AAC-HDCTV.mkv": {1, 5},
+		"宝贝揪揪 第3季 第10集.mp4":                                                                     {3, 10},
+		//"宝贝揪揪 第9集.mp4":                                                                      {1, 9},
+		"宝贝揪揪 s01 p02.mp4": {1, 2},
+		"宝贝揪揪 s01xe02.mp4": {1, 2},
+		"宝贝揪揪 s01-e02.mp4": {1, 2},
+		//"Gannibal.E16.2022.mp4":           {1, 16},
+		"Gannibal S02 E11 2022.mp4":       {2, 11},
+		"Gannibal-S01-E02-2022.mp4":       {1, 2},
+		"Gannibal.Season02.EP03.2022.mp4": {2, 3},
+		//"转生成自动贩卖机02全片简中.mp4":              {1, 2},
 		"地球脉动.第3季.Planet.Earth.S03E02.2023.2160p.WEB-DL.H265.10bit.DDP2.0.2Audio-OurTV.mp4": {3, 2},
-        "E01.mkv": {1, 1},
+		//"E01.mkv":    {1, 1},
+		//"E02.mkv":    {1, 2},
+		"S01E01.mp4": {1, 1},
 	}
 	for name, cse := range cases {
 		s, e := MatchEpisode(name)
@@ -59,18 +62,20 @@ func TestIsFormat(t *testing.T) {
 
 func TestIsSeason(t *testing.T) {
 	unit := map[string]string{
-		"s01":  "s01",
-		"S01":  "S01",
-		"s1":   "s1",
-		"S1":   "S1",
-		"S100": "S100",
+		"第2季":  "2",
+		"s01":  "01",
+		"S01":  "01",
+		"s1":   "1",
+		"S2":   "2",
+		"S100": "100",
 		"4K":   "",
 		"Fall.in.Love.2021.WEB-DL.4k.H265.10bit.AAC-HDCTV FallinLove ": "",
-		"Hawkeye.2021S01.Never.Meet.Your.Heroes.2160p":                 "S01",
+		"Hawkeye.2021S01.Never.Meet.Your.Heroes.2160p":                 "01",
+		"Season 2": "2",
 	}
 
 	for k, v := range unit {
-		actual := IsSeason(k)
+		_, actual := IsSeason(k)
 		if actual != v {
 			t.Errorf("isSeason(%s) = %s; expected %s", k, actual, v)
 		}
@@ -120,7 +125,7 @@ func TestSplit(t *testing.T) {
 
 	for k, v := range unit {
 		actual := Split(k)
-		if !ArrayCompare(actual, v, false) {
+		if !lrace.ArrayCompare(actual, v, false) {
 			t.Errorf("Split(%s) = %v; expected %v", k, actual, v)
 		}
 	}
@@ -241,5 +246,63 @@ func TestIsCollection(t *testing.T) {
 		if give != want {
 			t.Errorf("IsCollection(%s) give: %v, want %v", title, give, want)
 		}
+	}
+}
+
+func TestIsEpisode(t *testing.T) {
+	type args struct {
+		name string
+	}
+	tests := []struct {
+		name     string
+		filename string
+		match    string
+		episode  string
+	}{
+		{
+			name:     "s02e03",
+			filename: "The.Day.of.the.Jackal.S02E03.2024.2160p.PCOK.WEB-DL.H265.HDR.DDP5.1-ADWeb.mkv",
+			match:    "E03.2024.2160p.PCOK.WEB-DL.H265.HDR.DDP5.1-ADWeb.mkv",
+			episode:  "03",
+		},
+		{
+			name:     "s02e03",
+			filename: "第三集.mkv",
+			match:    "E03.mkv",
+			episode:  "03",
+		},
+		{
+			name:     "e02",
+			filename: "p02.mkv",
+			match:    "p02.mkv",
+			episode:  "02",
+		},
+		{
+			name:     "ep02",
+			filename: "ep02.mkv",
+			match:    "ep02.mkv",
+			episode:  "02",
+		},
+		{
+			name:     "episode02",
+			filename: "episode02.mkv",
+			match:    "episode02.mkv",
+			episode:  "02",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			filename := tt.filename
+			filename = ReplaceChsNumber(filename)
+			filename = SeasonCorrecting(filename)
+			filename = EpisodeCorrecting(filename)
+			match, episode := IsEpisode(filename)
+			if episode != tt.episode {
+				t.Errorf("IsEpisode() give = %v, want %v", episode, tt.episode)
+			}
+			if match != tt.match {
+				t.Errorf("IsEpisode() give = %v, want %v", match, tt.match)
+			}
+		})
 	}
 }

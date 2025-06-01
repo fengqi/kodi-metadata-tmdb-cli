@@ -3,6 +3,7 @@ package music_videos
 import (
 	"fengqi/kodi-metadata-tmdb-cli/ffmpeg"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"github.com/fengqi/lrace"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -67,7 +68,7 @@ func (m *MusicVideo) drawThumb() error {
 	for _, i := range ThumbImagesFormat {
 		check := m.Dir + "/" + m.Title + "." + i
 		if utils.FileExist(check) {
-			n, err := utils.CopyFile(check, thumb)
+			n, err := lrace.CopyFile(check, thumb)
 			if n > 0 && err == nil {
 				return nil
 			}

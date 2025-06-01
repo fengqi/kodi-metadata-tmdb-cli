@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"github.com/fengqi/lrace"
 	"io/ioutil"
 	"os"
 	"sort"
@@ -24,7 +25,7 @@ func (m *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 	oldCacheFile := m.GetCacheDir() + "/movie.json"
 	cacheFile := m.GetCacheDir() + "/" + m.MediaFile.Filename + ".movie.json"
 	if _, err := os.Stat(oldCacheFile); err == nil {
-		_, _ = utils.CopyFile(oldCacheFile, cacheFile)
+		_, _ = lrace.CopyFile(oldCacheFile, cacheFile)
 		_ = os.Remove(oldCacheFile)
 	}
 
@@ -56,7 +57,7 @@ func (m *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 		oldIdFile := m.GetCacheDir() + "/id.txt"
 		idFile := m.GetCacheDir() + "/" + m.MediaFile.Filename + ".id.txt"
 		if _, err := os.Stat(oldIdFile); err == nil {
-			_, _ = utils.CopyFile(oldIdFile, idFile)
+			_, _ = lrace.CopyFile(oldIdFile, idFile)
 			_ = os.Remove(oldIdFile)
 		}
 

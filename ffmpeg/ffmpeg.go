@@ -2,7 +2,7 @@ package ffmpeg
 
 import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
-	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"github.com/fengqi/lrace"
 )
 
 func InitFfmpeg() {
@@ -11,7 +11,7 @@ func InitFfmpeg() {
 }
 
 func SetFfmpeg() {
-	if !utils.FileExist(config.Ffmpeg.FfmpegPath) {
+	if !lrace.FileExist(config.Ffmpeg.FfmpegPath) {
 		return
 	}
 
@@ -19,7 +19,7 @@ func SetFfmpeg() {
 }
 
 func SetFfprobe() {
-	if !utils.FileExist(config.Ffmpeg.FfprobePath) {
+	if !lrace.FileExist(config.Ffmpeg.FfprobePath) {
 		return
 	}
 

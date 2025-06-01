@@ -7,6 +7,7 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/media_file"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
+	"github.com/fengqi/lrace"
 	"path/filepath"
 )
 
@@ -50,7 +51,7 @@ func parseMoviesFile(mf *media_file.MediaFile) (*Movie, error) {
 	}
 
 	// 过滤无用文件
-	if movieName[0:1] == "." || utils.InArray(config.Collector.SkipFolders, movieName) {
+	if movieName[0:1] == "." || lrace.InArray(config.Collector.SkipFolders, movieName) {
 		return nil, errors.New("invalid movie name")
 	}
 

@@ -4,12 +4,18 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"github.com/fengqi/lrace"
 	"strconv"
 	"strings"
 )
 
-func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
-	utils.Logger.InfoF("save tvshow.nfo to: %s", d.GetNfoFile())
+func (s *Show) SaveTvNfo(detail *tmdb.TvDetail) error {
+	tvNfo := s.TvRoot + "/tvshow.nfo"
+	if detail.FromCache && lrace.FileExist(tvNfo) {
+		return nil
+	}
+
+	utils.Logger.InfoF("save tvshow.nfo to: %s", tvNfo)
 
 	genre := make([]string, 0)
 	for _, item := range detail.Genres {
@@ -48,9 +54,9 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 	episodeCount := 0
 	namedSeason := make([]NamedSeason, 0)
 	for _, item := range detail.Seasons {
-		if !d.IsCollection && item.SeasonNumber != d.Season {
-			continue
-		}
+		//if !s.IsCollection && item.SeasonNumber != s.Season {
+		//	continue
+		//}
 		namedSeason = append(namedSeason, NamedSeason{
 			Number: item.SeasonNumber,
 			Value:  item.Name,
@@ -99,7 +105,7 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 		Status:      detail.Status,
 		Genre:       genre,
 		Studio:      studio,
-		Season:      d.Season,
+		Season:      s.Season,
 		Episode:     episodeCount,
 		UserRating:  detail.VoteAverage,
 		Actor:       actor,
@@ -108,7 +114,7 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 	}
 
 	// 使用分组信息
-	if d.GroupId != "" && detail.TvEpisodeGroupDetail != nil {
+	if s.GroupId != "" && detail.TvEpisodeGroupDetail != nil {
 		top.Season = detail.TvEpisodeGroupDetail.GroupCount
 		top.Episode = detail.TvEpisodeGroupDetail.EpisodeCount
 
@@ -122,12 +128,17 @@ func (d *Dir) saveToNfo(detail *tmdb.TvDetail) error {
 		top.NamedSeason = namedSeason
 	}
 
-	return utils.SaveNfo(d.GetNfoFile(), top)
+	return utils.SaveNfo(tvNfo, top)
 }
 
-// SaveTvEpisodeNFO 保存每集的信息到独立的NFO文件
-func (f *File) saveToNfo(episode *tmdb.TvEpisodeDetail) error {
-	utils.Logger.InfoF("save episode nfo to: %s", f.getNfoFile())
+// SaveEpisodeNfo 保存每集的信息到独立的NFO文件
+func (s *Show) SaveEpisodeNfo(episode *tmdb.TvEpisodeDetail) error {
+	episodeNfo := strings.Replace(s.MediaFile.Path, s.MediaFile.Suffix, ".nfo", 1)
+	if episode.FromCache && lrace.FileExist(episodeNfo) {
+		return nil
+	}
+
+	utils.Logger.InfoF("save episode nfo to: %s", episodeNfo)
 
 	actor := make([]Actor, 0)
 	for _, item := range episode.GuestStars {
@@ -175,5 +186,5 @@ func (f *File) saveToNfo(episode *tmdb.TvEpisodeDetail) error {
 		Aired:   episode.AirDate,
 	}
 
-	return utils.SaveNfo(f.getNfoFile(), top)
+	return utils.SaveNfo(episodeNfo, top)
 }

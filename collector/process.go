@@ -3,6 +3,7 @@ package collector
 import (
 	"fengqi/kodi-metadata-tmdb-cli/media_file"
 	"fengqi/kodi-metadata-tmdb-cli/movies"
+	"fengqi/kodi-metadata-tmdb-cli/shows"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"log"
 )
@@ -22,7 +23,9 @@ func (c *collector) runProcess() {
 					log.Printf("prcess movies error: %s\n", err)
 				}
 			case media_file.TvShows:
-				// todo
+				if err := shows.Process(file); err != nil {
+					log.Printf("pricess shows error: %s\n", err)
+				}
 			case media_file.MusicVideo:
 				// todo
 			}

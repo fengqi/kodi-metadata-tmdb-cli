@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-// Movie 电影目录详情，从名字分析
+// Movie 电影详情，从名字分析
 // Fortress.2021.BluRay.1080p.AVC.DTS-HD.MA5.1-MTeam
 type Movie struct {
 	MediaFile  *media_file.MediaFile `json:"media_file"`  // 媒体文件
