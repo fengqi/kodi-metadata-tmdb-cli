@@ -67,7 +67,7 @@ func (m *MusicVideo) drawThumb() error {
 	thumb := m.getNfoThumb()
 	for _, i := range ThumbImagesFormat {
 		check := m.Dir + "/" + m.Title + "." + i
-		if utils.FileExist(check) {
+		if lrace.FileExist(check) {
 			n, err := lrace.CopyFile(check, thumb)
 			if n > 0 && err == nil {
 				return nil
