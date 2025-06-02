@@ -4,7 +4,6 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fmt"
 	"github.com/fengqi/lrace"
-	"github.com/spf13/cast"
 	"regexp"
 	"strconv"
 	"strings"
@@ -446,7 +445,7 @@ func SplitTitleAlias(name string) (string, string) {
 func MatchEpisode(name string) (int, int) {
 	find := episodeMatch.FindStringSubmatch(name)
 	if len(find) == 6 {
-		return cast.ToInt(find[3]), cast.ToInt(find[5])
+		return StrToInt(find[3]), StrToInt(find[5])
 	}
 
 	return 0, 0

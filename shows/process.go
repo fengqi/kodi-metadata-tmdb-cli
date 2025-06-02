@@ -79,7 +79,7 @@ func ParseShowFile(show *Show, parse string) error {
 	if lrace.IsDir(parse) {
 		if source, season := utils.IsSeason(filename); len(season) > 0 && source == filename {
 			split = split[0:0]
-			show.Season = cast.ToInt(season)
+			show.Season = utils.StrToInt(season)
 			show.SeasonRoot = parse
 		}
 	}
@@ -167,7 +167,7 @@ func ParseShowFile(show *Show, parse string) error {
 
 		if source, season := utils.IsSeason(item); len(season) > 0 {
 			if show.Season == 0 {
-				show.Season = cast.ToInt(season)
+				show.Season = utils.StrToInt(season)
 			}
 			if source == filename { // 目录是季，如第x季、s02
 				show.SeasonRoot = parse
@@ -179,7 +179,7 @@ func ParseShowFile(show *Show, parse string) error {
 
 		if source, episode := utils.IsEpisode(item + show.MediaFile.Suffix); len(episode) > 0 {
 			if show.Episode == 0 {
-				show.Episode = cast.ToInt(episode)
+				show.Episode = utils.StrToInt(episode)
 			}
 			if show.Episode > 100 {
 				log.Println("what episode 50?")
