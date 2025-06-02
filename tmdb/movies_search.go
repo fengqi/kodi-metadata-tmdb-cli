@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"fmt"
 	"strconv"
 )
 
@@ -79,5 +80,5 @@ func (t *tmdb) SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesRe
 		}
 	}
 
-	return nil, errors.New("search movie not found")
+	return nil, errors.New(fmt.Sprintf("search movie %s-%s-%d not found", chsTitle, engTitle, year))
 }
