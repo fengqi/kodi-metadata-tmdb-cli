@@ -98,3 +98,16 @@ func (s *Show) CacheTvId() {
 		utils.Logger.ErrorF("save tvId %d to %s err: %v", s.TvId, idFile, err)
 	}
 }
+
+// ReadGroupId 从文件读取剧集分组
+func (s *Show) ReadGroupId() {
+	groupFile := s.SeasonRoot + "/tmdb/group.txt"
+	if _, err := os.Stat(groupFile); err == nil {
+		bytes, err := os.ReadFile(groupFile)
+		if err == nil {
+			s.GroupId = strings.Trim(string(bytes), "\r\n ")
+		} else {
+			utils.Logger.WarningF("read group id specially file: %s err: %v", groupFile, err)
+		}
+	}
+}

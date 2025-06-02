@@ -6,7 +6,6 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/media_file"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"github.com/fengqi/lrace"
-	"github.com/spf13/cast"
 	"log"
 	"path/filepath"
 	"strings"
@@ -15,6 +14,7 @@ import (
 // Process 处理扫描到的电视剧文件
 func Process(mf *media_file.MediaFile) error {
 	show := &Show{MediaFile: mf}
+
 	ParseShowFile(show, show.MediaFile.Path)
 
 	show.checkTvCacheDir()
@@ -28,6 +28,10 @@ func Process(mf *media_file.MediaFile) error {
 
 	show.checkCacheDir()
 	episodeDetail, err := show.getEpisodeDetail()
+	if err != nil {
+		return err
+	}
+
 	show.SaveEpisodeNfo(episodeDetail)
 	show.downloadEpisodeImage(episodeDetail)
 
@@ -55,7 +59,7 @@ func ParseShowFile(show *Show, parse string) error {
 			show.checkTvCacheDir()
 			show.ReadSeason()
 			show.ReadTvId()
-			//show.ReadGroupId()
+			show.ReadGroupId()
 			//show.ReadPart()
 
 			return nil
