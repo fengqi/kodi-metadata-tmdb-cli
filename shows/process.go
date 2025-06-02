@@ -42,6 +42,14 @@ func ParseShowFile(show *Show, parse string) error {
 	// 递归到根目录
 	for _, showsDir := range config.Collector.ShowsDir {
 		if strings.TrimRight(showsDir, "/") == parse {
+			if show.Episode > 0 && show.Season == 0 {
+				show.Season = 1
+			}
+
+			if show.SeasonRoot == "" {
+				show.SeasonRoot = show.TvRoot
+			}
+
 			// 读特殊指定的值
 			show.checkCacheDir()
 			show.checkTvCacheDir()
