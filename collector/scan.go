@@ -43,15 +43,13 @@ func (c *collector) scanDir(roots []string, videoType media_file.VideoType) {
 			continue
 		}
 
-		c.watcher.Add(root)
-
 		err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return err
 			}
 
 			if d.Name()[0:1] == "." {
-				return fs.SkipDir
+				return nil
 			}
 
 			if d.IsDir() {
