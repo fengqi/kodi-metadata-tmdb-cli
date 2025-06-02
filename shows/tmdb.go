@@ -3,6 +3,7 @@ package shows
 import (
 	"encoding/json"
 	"errors"
+	"fengqi/kodi-metadata-tmdb-cli/common/memcache"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
@@ -18,10 +19,15 @@ func (s *Show) getTvDetail() (*tmdb.TvDetail, error) {
 	var err error
 	var detail = new(tmdb.TvDetail)
 
-	//s.ReadTvId()
+	cacheKey := fmt.Sprintf("show:%d", s.TvId)
+	if val, ok := memcache.Cache.Get(cacheKey); ok {
+		if detail, ok = val.(*tmdb.TvDetail); ok {
+			utils.Logger.DebugF("get tv detail from memcache: %d", s.TvId)
+			return detail, nil
+		}
+	}
 
 	// 从缓存读取
-	// todo 单集处理会导致大量的读tv详情缓存，增加内存缓存
 	tvCacheFile := s.GetTvCacheDir() + "/tv.json"
 	cacheExpire := false
 	if cf, err := os.Stat(tvCacheFile); err == nil {
@@ -58,7 +64,6 @@ search:
 			}
 
 			s.TvId = SearchResults.Id
-			s.CacheTvId()
 		}
 
 		// 获取详情
@@ -78,6 +83,12 @@ search:
 		if err == nil {
 			detail.TvEpisodeGroupDetail = groupDetail
 		}
+	}
+
+	if s.TvId > 0 {
+		s.CacheTvId()
+		cacheKey = fmt.Sprintf("show:%d", s.TvId)
+		memcache.Cache.SetDefault(cacheKey, detail)
 	}
 
 	return detail, nil
@@ -178,8 +189,6 @@ func (s *Show) getTvEpisodeGroupDetail() (*tmdb.TvEpisodeGroupDetail, error) {
 // 下载电视剧的相关图片
 // TODO 下载失败后，没有重复以及很长一段时间都不会再触发下载
 func (s *Show) downloadTvImage(detail *tmdb.TvDetail) {
-	utils.Logger.DebugF("download %s tv images", s.Title)
-
 	if len(detail.PosterPath) > 0 {
 		_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.PosterPath), s.TvRoot+"/poster.jpg")
 	}

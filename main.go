@@ -2,6 +2,7 @@ package main
 
 import (
 	"fengqi/kodi-metadata-tmdb-cli/collector"
+	"fengqi/kodi-metadata-tmdb-cli/common/memcache"
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/ffmpeg"
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
@@ -32,6 +33,7 @@ func main() {
 
 	config.LoadConfig(configFile)
 
+	memcache.InitCache()
 	utils.InitLogger()
 	tmdb.InitTmdb()
 	kodi.InitKodi()
