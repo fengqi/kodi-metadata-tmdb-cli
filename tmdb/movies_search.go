@@ -9,7 +9,7 @@ import (
 )
 
 func (t *tmdb) SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesResults, error) {
-	utils.Logger.InfoF("search: %s or %s %d from tmdb", chsTitle, engTitle, year)
+	utils.Logger.InfoF("search movies chs: %s eng: %s year: %d from tmdb", chsTitle, engTitle, year)
 
 	strYear := strconv.Itoa(year)
 	searchComb := make([]map[string]string, 0)
@@ -75,10 +75,10 @@ func (t *tmdb) SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesRe
 		}
 
 		if len(moviesResp.Results) > 0 {
-			utils.Logger.InfoF("search movies: %s %d result count: %d, use: %v", chsTitle, year, len(moviesResp.Results), moviesResp.Results[0])
+			utils.Logger.InfoF("search movies chs: %s year: %d result count: %d, use: %v", chsTitle, year, len(moviesResp.Results), moviesResp.Results[0])
 			return moviesResp.Results[0], nil
 		}
 	}
 
-	return nil, errors.New(fmt.Sprintf("search movie %s-%s-%d not found", chsTitle, engTitle, year))
+	return nil, errors.New(fmt.Sprintf("search movies chs: %s eng: %s year: %d not found", chsTitle, engTitle, year))
 }
