@@ -128,9 +128,9 @@ func (m *Movie) saveToNfo(detail *tmdb.MovieDetail, mode int) error {
 // 如果使用 movie.nfo 就不需要考虑这个情况，但是需要打开媒体源的 "电影在以片名命名的单独目录中"
 func (m *Movie) getNfoFile(mode int) string {
 	if m.MediaFile.IsBluRay() {
-		//if utils.FileExist(m.GetFullDir() + "/MovieObject.bdmv") {
+		// if utils.FileExist(m.GetFullDir() + "/MovieObject.bdmv") {
 		//	return m.GetFullDir() + "/MovieObject.nfo"
-		//}
+		// }
 		return m.GetFullDir() + "/index.nfo"
 	}
 
@@ -138,12 +138,12 @@ func (m *Movie) getNfoFile(mode int) string {
 		return m.GetFullDir() + "/VIDEO_TS/VIDEO_TS.nfo"
 	}
 
-	//if mode == 2 { // todo movie.nfo作为可选，<VideoFileName>.nfo为固定生成
+	// if mode == 2 { // todo movie.nfo作为可选，<VideoFileName>.nfo为固定生成
 	//	return m.GetFullDir() + "/movie.nfo"
-	//}
+	// }
 
 	suffix := utils.IsVideo(m.MediaFile.Filename)
-	return strings.Replace(m.MediaFile.Path, "."+suffix, "", 1) + ".nfo"
+	return strings.TrimRight(m.MediaFile.Path, suffix) + ".nfo"
 }
 
 // NfoExist 判断NFO文件是否存在
