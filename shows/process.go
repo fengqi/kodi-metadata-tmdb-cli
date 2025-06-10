@@ -79,7 +79,7 @@ func ParseShowFile(show *Show, parse string) error {
 	filename = utils.EpisodeCorrecting(filename)
 
 	// 使用自定义方法切割
-	split := utils.Split(filename)
+	split := utils.Split(strings.TrimRight(filename, show.MediaFile.Suffix))
 
 	nameStart := false
 	nameStop := false

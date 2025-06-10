@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/fengqi/lrace"
 	"path/filepath"
+	"strings"
 )
 
 // Process 处理扫描到的电影文件
@@ -59,7 +60,7 @@ func parseMoviesFile(mf *media_file.MediaFile) (*Movie, error) {
 	movieName = utils.FilterOptionals(movieName)
 
 	// 使用自定义方法切割
-	split := utils.Split(movieName)
+	split := utils.Split(strings.TrimRight(movieName, mf.Suffix))
 
 	// 文件名识别
 	nameStart := false
