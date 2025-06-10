@@ -12,26 +12,26 @@ import (
 
 // Show 电视剧
 type Show struct {
-	MediaFile    *media_file.MediaFile `json:"media_file"`  // 媒体文件
-	TvRoot       string                `json:"tv_root"`     // 电视剧跟目录
-	SeasonRoot   string                `json:"season_root"` // 季目录
-	TvId         int                   `json:"tv_id"`       // TMDb tv id
-	GroupId      string                `json:"group_id"`    // TMDB Episode Group
-	Season       int                   `json:"season"`      // 第几季 ，电影类 -1
-	Episode      int                   `json:"episode"`     // 第几集，电影类 -1
-	Title        string                `json:"title"`       // 从视频提取的文件名 鹰眼 Hawkeye
-	AliasTitle   string                `json:"alias_title"` // 别名，通常没有用
-	ChsTitle     string                `json:"chs_title"`   // 分离出来的中文名称 鹰眼
-	EngTitle     string                `json:"eng_title"`   // 分离出来的英文名称 Hawkeye
-	Year         int                   `json:"year"`        // 年份：2020、2021
-	Format       string                `json:"format"`
-	VideoCoding  string                `json:"video_coding"`
-	AudioCoding  string                `json:"audio_coding"`
-	Source       string                `json:"source"`
-	Studio       string                `json:"studio"`
-	Channel      string                `json:"channel"`
-	Crew         string                `json:"crew"`
-	DynamicRange string                `json:"dynamic_range"`
+	MediaFile    *media_file.MediaFile `json:"media_file"`    // 媒体文件
+	TvRoot       string                `json:"tv_root"`       // 电视剧跟目录
+	SeasonRoot   string                `json:"season_root"`   // 季目录
+	TvId         int                   `json:"tv_id"`         // TMDb tv id
+	GroupId      string                `json:"group_id"`      // TMDB Episode Group
+	Season       int                   `json:"season"`        // 第几季 ，电影类 -1
+	Episode      int                   `json:"episode"`       // 第几集，电影类 -1
+	Title        string                `json:"title"`         // 从视频提取的文件名 鹰眼 Hawkeye
+	AliasTitle   string                `json:"alias_title"`   // 别名，通常没有用
+	ChsTitle     string                `json:"chs_title"`     // 分离出来的中文名称 鹰眼
+	EngTitle     string                `json:"eng_title"`     // 分离出来的英文名称 Hawkeye
+	Year         int                   `json:"year"`          // 年份：2020、2021
+	Format       string                `json:"format"`        // 格式：1080p、4k
+	VideoCoding  string                `json:"video_coding"`  // 视频格式是：H.265、H.264
+	AudioCoding  string                `json:"audio_coding"`  // 音频格式：DDP5.1、AC3
+	Source       string                `json:"source"`        // 来源：WEB-DL、BluRay
+	Studio       string                `json:"studio"`        // 媒体：Netflix、Hulu
+	Channel      string                `json:"channel"`       // 发行渠道，动漫用的多
+	Crew         string                `json:"crew"`          // 压制组：ADWeb、OurTV
+	DynamicRange string                `json:"dynamic_range"` // 动态范围：HDR、SDR
 }
 
 func (s *Show) checkCacheDir() {
