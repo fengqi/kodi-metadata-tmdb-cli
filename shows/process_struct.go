@@ -1,7 +1,6 @@
 package shows
 
 import (
-	"fengqi/kodi-metadata-tmdb-cli/common/constants"
 	"fengqi/kodi-metadata-tmdb-cli/media_file"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"os"
@@ -53,12 +52,12 @@ func (s *Show) checkTvCacheDir() {
 }
 
 func (s *Show) GetTvCacheDir() string {
-	return s.TvRoot + "/" + constants.TmdbCacheDir
+	return s.TvRoot + "/tmdb"
 }
 
 func (s *Show) GetCacheDir() string {
 	base := filepath.Dir(s.MediaFile.Path)
-	return base + "/" + constants.TmdbCacheDir
+	return base + "/tmdb"
 }
 
 func (s *Show) GetFullDir() string {

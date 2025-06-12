@@ -34,14 +34,14 @@ func Process(mf *media_file.MediaFile) error {
 		return errors.New("get movie detail empty")
 	}
 
-	if !detail.FromCache || !movie.NfoExist(config.Collector.MoviesNfoMode) {
-		_ = movie.saveToNfo(detail, config.Collector.MoviesNfoMode)
+	if !detail.FromCache || !lrace.FileExist(movie.NfoFile) {
+		if err := movie.saveToNfo(detail); err != nil {
+			return err
+		}
 		kodi.Rpc.AddRefreshTask(kodi.TaskRefreshMovie, detail.OriginalTitle)
 	}
 
-	_ = movie.downloadImage(detail)
-
-	return nil
+	return movie.downloadImage(detail)
 }
 
 // 解析文件, 返回详情：年份、中文名称、英文名称等
@@ -66,6 +66,22 @@ func parseMoviesFile(mf *media_file.MediaFile) (*Movie, error) {
 	nameStart := false
 	nameStop := false
 	movie := &Movie{MediaFile: mf}
+	if mf.IsDisc() {
+		movie.PosterFile = mf.Dir + "/poster.jpg"
+		movie.FanArtFile = mf.Dir + "/fanart.jpg"
+		movie.ClearLogoFile = mf.Dir + "/clearlogo.png"
+		if mf.IsBluRay() {
+			movie.NfoFile = mf.Path + "/index.nfo"
+		} else if mf.IsDvd() {
+			movie.NfoFile = mf.Path + "/VIDEO_TS/VIDEO_TS.nfo"
+		}
+	} else {
+		prefix := mf.Dir + "/" + strings.Replace(mf.Filename, mf.Suffix, "", 1)
+		movie.PosterFile = prefix + "-poster.jpg"
+		movie.FanArtFile = prefix + "-fanart.jpg"
+		movie.ClearLogoFile = prefix + "-clearlogo.png"
+		movie.NfoFile = prefix + ".nfo"
+	}
 	for _, item := range split {
 		if resolution := utils.IsResolution(item); resolution != "" {
 			nameStop = true

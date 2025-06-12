@@ -20,12 +20,11 @@ func NewMediaFile(path, filename string, videoType VideoType) *MediaFile {
 		return nil
 	}
 
-	mediaType := parseMediaType(path, filename)
-
 	return &MediaFile{
 		Path:      path,
+		Dir:       filepath.Dir(path),
 		Filename:  filename,
-		MediaType: mediaType,
+		MediaType: parseMediaType(path, filename),
 		VideoType: videoType,
 		Suffix:    filepath.Ext(filename),
 	}

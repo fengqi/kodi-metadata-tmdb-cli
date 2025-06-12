@@ -4,6 +4,7 @@ import "strings"
 
 type MediaFile struct {
 	Path      string    // 完整路径
+	Dir       string    // 目录
 	Filename  string    // 文件名
 	Suffix    string    // 后缀
 	MediaType MediaType // 文件类型

@@ -2,7 +2,6 @@ package movies
 
 import (
 	"encoding/json"
-	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"github.com/fengqi/lrace"
@@ -94,7 +93,6 @@ func (m *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 		}
 
 		// 保存到缓存
-		m.checkCacheDir()
 		detail.SaveToCache(cacheFile)
 	}
 
@@ -109,18 +107,18 @@ func (m *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 func (m *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 	utils.Logger.DebugF("download %s images", m.Title)
 
-	var err error
-	var errs error
 	if len(detail.PosterPath) > 0 {
-		posterFile := m.MediaFile.PathWithoutSuffix() + "-poster.jpg"
-		err = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.PosterPath), posterFile)
-		errs = errors.Join(errs, err)
+		err := tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.PosterPath), m.PosterFile)
+		if err != nil {
+			return err
+		}
 	}
 
 	if len(detail.BackdropPath) > 0 {
-		fanArtFile := m.MediaFile.PathWithoutSuffix() + "-fanart.jpg"
-		err = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.BackdropPath), fanArtFile)
-		errs = errors.Join(errs, err)
+		err := tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.BackdropPath), m.FanArtFile)
+		if err != nil {
+			return err
+		}
 	}
 
 	if detail.Images != nil && len(detail.Images.Logos) > 0 {
@@ -139,10 +137,12 @@ func (m *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 			}
 		}
 		if image.FilePath != "" {
-			logoFile := m.MediaFile.PathWithoutSuffix() + "-clearlogo.png"
-			_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(image.FilePath), logoFile)
+			err := tmdb.DownloadFile(tmdb.Api.GetImageOriginal(image.FilePath), m.ClearLogoFile)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
-	return errs
+	return nil
 }
