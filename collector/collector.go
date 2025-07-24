@@ -29,10 +29,7 @@ func Run() {
 	go ins.runProcess()
 
 	ticker := time.NewTicker(time.Second * time.Duration(config.Collector.CronSeconds))
-	for {
-		select {
-		case <-ticker.C:
-			ins.runScan()
-		}
+	for range ticker.C {
+		ins.runScan()
 	}
 }
