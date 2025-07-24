@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func (t *tmdb) SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesResults, error) {
+func (t *Tmdb) SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesResults, error) {
 	utils.Logger.InfoF("search movies chs: %s eng: %s year: %d from tmdb", chsTitle, engTitle, year)
 
 	strYear := strconv.Itoa(year)
@@ -80,5 +80,5 @@ func (t *tmdb) SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesRe
 		}
 	}
 
-	return nil, errors.New(fmt.Sprintf("search movies chs: %s eng: %s year: %d not found", chsTitle, engTitle, year))
+	return nil, fmt.Errorf("search movies chs: %s eng: %s year: %d not found", chsTitle, engTitle, year)
 }

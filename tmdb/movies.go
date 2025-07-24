@@ -2,13 +2,14 @@ package tmdb
 
 import (
 	"encoding/json"
+	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
 	"os"
 )
 
 // GetMovieDetail 获取电影详情
-func (t *tmdb) GetMovieDetail(id int) (*MovieDetail, error) {
+func (t *Tmdb) GetMovieDetail(id int) (*MovieDetail, error) {
 	utils.Logger.DebugF("get movie detail from tmdb: %d", id)
 
 	api := fmt.Sprintf(ApiMovieDetail, id)
@@ -19,14 +20,12 @@ func (t *tmdb) GetMovieDetail(id int) (*MovieDetail, error) {
 
 	body, err := t.request(api, req)
 	if err != nil {
-		utils.Logger.ErrorF("get movie detail err: %d %v", id, err)
 		return nil, err
 	}
 
 	detail := &MovieDetail{}
 	err = json.Unmarshal(body, detail)
 	if err != nil {
-		utils.Logger.ErrorF("parse movie detail err: %d %v", id, err)
 		return nil, err
 	}
 
@@ -34,17 +33,16 @@ func (t *tmdb) GetMovieDetail(id int) (*MovieDetail, error) {
 }
 
 // SaveToCache 保存剧集详情到文件
-func (d *MovieDetail) SaveToCache(file string) {
+func (d *MovieDetail) SaveToCache(file string) error {
 	if d.Id == 0 || d.Title == "" {
-		return
+		return errors.New("id or title empty")
 	}
 
 	utils.Logger.InfoF("save movie detail to: %s", file)
 
 	f, err := os.OpenFile(file, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 	if err != nil {
-		utils.Logger.ErrorF("save movie to cache, open_file err: %v", err)
-		return
+		return err
 	}
 	defer func(f *os.File) {
 		err := f.Close()
@@ -55,9 +53,9 @@ func (d *MovieDetail) SaveToCache(file string) {
 
 	bytes, err := json.MarshalIndent(d, "", "    ")
 	if err != nil {
-		utils.Logger.ErrorF("save movie to cache, marshal struct err: %v", err)
-		return
+		return err
 	}
 
 	_, err = f.Write(bytes)
+	return err
 }

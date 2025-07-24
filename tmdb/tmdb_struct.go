@@ -1,6 +1,6 @@
 package tmdb
 
-type tmdb struct {
+type Tmdb struct {
 	apiHost   string
 	apiKey    string
 	imageHost string

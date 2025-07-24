@@ -18,7 +18,7 @@ type TvContentRatingsResult struct {
 	Rating   string `json:"rating"`
 }
 
-func (t *tmdb) GetTvContentRatings(tvId int) (*TvContentRatings, error) {
+func (t *Tmdb) GetTvContentRatings(tvId int) (*TvContentRatings, error) {
 	utils.Logger.DebugF("get tv content ratings from tmdb: %d", tvId)
 
 	api := fmt.Sprintf(ApiTvContentRatings, tvId)

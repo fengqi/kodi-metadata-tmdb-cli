@@ -64,7 +64,7 @@ func (d TvEpisodeGroup) SortEpisode() {
 	}})
 }
 
-func (t *tmdb) GetTvEpisodeGroupDetail(groupId string) (*TvEpisodeGroupDetail, error) {
+func (t *Tmdb) GetTvEpisodeGroupDetail(groupId string) (*TvEpisodeGroupDetail, error) {
 	utils.Logger.DebugF("get tv episode group detail from tmdb: %s", groupId)
 
 	if groupId == "" {

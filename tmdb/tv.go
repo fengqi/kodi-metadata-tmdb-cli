@@ -146,7 +146,7 @@ type SpokenLanguage struct {
 	Name        string `json:"name"`
 }
 
-func (t *tmdb) GetTvDetail(id int) (*TvDetail, error) {
+func (t *Tmdb) GetTvDetail(id int) (*TvDetail, error) {
 	utils.Logger.DebugF("get tv detail from tmdb: %d", id)
 
 	api := fmt.Sprintf(ApiTvDetail, id)

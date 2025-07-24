@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-var Api *tmdb
+var Api *Tmdb
 var HttpClient *http.Client
 
 const (
@@ -30,7 +30,7 @@ const (
 
 func InitTmdb() {
 	HttpClient = getHttpClient(config.Tmdb.Proxy)
-	Api = &tmdb{
+	Api = &Tmdb{
 		apiHost:   config.Tmdb.ApiHost,
 		apiKey:    config.Tmdb.ApiKey,
 		imageHost: config.Tmdb.ImageHost,
@@ -40,7 +40,7 @@ func InitTmdb() {
 }
 
 // GetImageW500 压缩后的图片
-func (t *tmdb) GetImageW500(path string) string {
+func (t *Tmdb) GetImageW500(path string) string {
 	if path == "" {
 		return ""
 	}
@@ -48,14 +48,14 @@ func (t *tmdb) GetImageW500(path string) string {
 }
 
 // GetImageOriginal 原始图片
-func (t *tmdb) GetImageOriginal(path string) string {
+func (t *Tmdb) GetImageOriginal(path string) string {
 	if path == "" {
 		return ""
 	}
 	return Api.imageHost + "/t/p/original" + path
 }
 
-func (t *tmdb) request(api string, args map[string]string) ([]byte, error) {
+func (t *Tmdb) request(api string, args map[string]string) ([]byte, error) {
 	if args == nil {
 		args = make(map[string]string, 0)
 	}

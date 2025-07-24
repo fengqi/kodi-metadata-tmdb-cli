@@ -52,7 +52,7 @@ type TvCrew struct {
 	TotalEpisodeCount  int     `json:"total_episode_count"`
 }
 
-func (t *tmdb) GetTvAggregateCredits(tvId int) (*TvAggregateCredits, error) {
+func (t *Tmdb) GetTvAggregateCredits(tvId int) (*TvAggregateCredits, error) {
 	utils.Logger.DebugF("get tv aggregate credits from tmdb: %d", tvId)
 
 	api := fmt.Sprintf(ApiTvAggregateCredits, tvId)

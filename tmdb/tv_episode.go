@@ -47,7 +47,7 @@ type GuestStars struct {
 	ProfilePath string `json:"profile_path"`
 }
 
-func (t *tmdb) GetTvEpisodeDetail(tvId, season, episode int) (*TvEpisodeDetail, error) {
+func (t *Tmdb) GetTvEpisodeDetail(tvId, season, episode int) (*TvEpisodeDetail, error) {
 	utils.Logger.DebugF("get tv episode detail from tmdb: %d %d-%d", tvId, season, episode)
 
 	if tvId <= 0 || season <= 0 || episode <= 0 {

@@ -62,7 +62,7 @@ func (d SearchTvResponse) SortResults() {
 }
 
 // SearchShows 搜索tmdb
-func (t *tmdb) SearchShows(chsTitle, engTitle string, year int) (*SearchResults, error) {
+func (t *Tmdb) SearchShows(chsTitle, engTitle string, year int) (*SearchResults, error) {
 	utils.Logger.InfoF("search: %s or %s %d from tmdb", chsTitle, engTitle, year)
 
 	strYear := strconv.Itoa(year)
