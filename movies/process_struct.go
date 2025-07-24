@@ -44,6 +44,23 @@ func (m *Movie) checkCacheDir() {
 }
 
 func (m *Movie) GetCacheDir() string {
+	if m.MediaFile == nil {
+		return ""
+	}
+
 	base := filepath.Dir(m.MediaFile.Path)
 	return base + "/tmdb"
+}
+
+func (m *Movie) IdFile(legacy ...bool) string {
+	cacheDir := m.GetCacheDir()
+	if cacheDir == "" {
+		return ""
+	}
+
+	if len(legacy) > 0 && legacy[0] {
+		return cacheDir + "/id.txt"
+	}
+
+	return cacheDir + "/" + m.MediaFile.Filename + ".id.txt"
 }
