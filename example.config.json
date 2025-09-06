@@ -30,6 +30,10 @@
             "gallery",
             "metadata"
         ],
+        "skip_keywords": [
+            "纯享",
+            "pure"
+        ],
         "filter_tmp_suffix": true,
         "tmp_suffix":[
             ".part",

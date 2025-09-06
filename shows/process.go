@@ -5,10 +5,11 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/media_file"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
-	"github.com/fengqi/lrace"
 	"log"
 	"path/filepath"
 	"strings"
+
+	"github.com/fengqi/lrace"
 )
 
 // Process 处理扫描到的电视剧文件
@@ -97,6 +98,10 @@ func ParseShowFile(show *Show, parse string) error {
 	}
 
 	for _, item := range split {
+		if lrace.InArray(config.Collector.SkipKeywords, item) {
+			continue
+		}
+
 		if !nameStart && !nameStop {
 			nameStart = true
 			nameStop = false

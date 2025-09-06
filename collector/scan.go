@@ -5,12 +5,13 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/media_file"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
-	"github.com/fengqi/lrace"
 	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/fengqi/lrace"
 )
 
 // collector 运行扫描
