@@ -16,12 +16,14 @@ import (
 var (
 	configFile   string
 	version      bool
+	runMode      int
 	buildVersion = "dev-master"
 )
 
 func init() {
 	flag.StringVar(&configFile, "config", "./config.json", "config file")
 	flag.BoolVar(&version, "version", false, "display version")
+	flag.IntVar(&runMode, "mode", 0, "run mode: 1: daemon, 2: once, 3: spec")
 	flag.Parse()
 }
 
@@ -31,7 +33,7 @@ func main() {
 		return
 	}
 
-	config.LoadConfig(configFile)
+	config.LoadConfig(configFile, runMode)
 
 	memcache.InitCache()
 	utils.InitLogger()

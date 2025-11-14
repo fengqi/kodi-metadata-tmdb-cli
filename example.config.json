@@ -13,6 +13,7 @@
         "rating": "US"
     },
     "collector": {
+        "run_mode": 1,
         "watcher": true,
         "cron_seconds": 3600,
         "cron_scan_kodi": false,

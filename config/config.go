@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+
+	"github.com/fengqi/lrace"
 )
 
 var (
@@ -14,7 +16,7 @@ var (
 	Collector *CollectorConfig
 )
 
-func LoadConfig(file string) {
+func LoadConfig(file string, runMode int) {
 	bytes, err := os.ReadFile(file)
 	if err != nil {
 		log.Fatalf("load config err: %v", err)
@@ -31,4 +33,7 @@ func LoadConfig(file string) {
 	Tmdb = c.Tmdb
 	Kodi = c.Kodi
 	Collector = c.Collector
+
+	Collector.RunMode = lrace.Ternary(Collector.RunMode == 0, 1, Collector.RunMode)
+	Collector.RunMode = lrace.Ternary(runMode > 0, runMode, Collector.RunMode)
 }

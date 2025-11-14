@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/fengqi/lrace"
@@ -16,9 +17,38 @@ import (
 
 // collector 运行扫描
 func (c *collector) runScan() {
-	go c.scanDir(config.Collector.MoviesDir, media_file.Movies)
-	go c.scanDir(config.Collector.ShowsDir, media_file.TvShows)
-	go c.scanDir(config.Collector.MusicVideosDir, media_file.MusicVideo)
+
+	if config.Collector.RunMode == 3 {
+		pwd, err := os.Getwd()
+		if err != nil {
+			utils.Logger.ErrorF("get pwd error: %s", err)
+			return
+		}
+
+		for _, item := range config.Collector.MoviesDir {
+			if strings.HasPrefix(pwd, item) {
+				go c.scanDir([]string{pwd}, media_file.Movies)
+				break
+			}
+		}
+		for _, item := range config.Collector.ShowsDir {
+			if strings.HasPrefix(pwd, item) {
+				go c.scanDir([]string{pwd}, media_file.TvShows)
+				break
+			}
+		}
+		for _, item := range config.Collector.MusicVideosDir {
+			if strings.HasPrefix(pwd, item) {
+				go c.scanDir([]string{pwd}, media_file.MusicVideo)
+				break
+			}
+		}
+
+	} else {
+		go c.scanDir(config.Collector.MoviesDir, media_file.Movies)
+		go c.scanDir(config.Collector.ShowsDir, media_file.TvShows)
+		go c.scanDir(config.Collector.MusicVideosDir, media_file.MusicVideo)
+	}
 
 	time.Sleep(time.Second * 3)
 	c.wg.Wait()
@@ -33,6 +63,11 @@ func (c *collector) runScan() {
 	if config.Kodi.CleanLibrary {
 		log.Println("scan done, clean kodi library")
 		kodi.Rpc.AddCleanTask("")
+	}
+
+	// 单次模式，关闭channel
+	if config.Collector.RunMode == 2 || config.Collector.RunMode == 3 {
+		close(c.channel)
 	}
 }
 
@@ -59,7 +94,7 @@ func (c *collector) scanDir(roots []string, videoType media_file.VideoType) {
 					return fs.SkipDir
 				}
 
-				c.watcher.Add(path)
+				c.watcher.Add(path) // todo 定时执行，等于会重复Add，不确定有没有问题，后续确认
 			}
 
 			mf := media_file.NewMediaFile(path, d.Name(), videoType)

@@ -24,6 +24,12 @@ func Run() {
 		wg:      &sync.WaitGroup{},
 	}
 
+	if config.Collector.RunMode == 2 || config.Collector.RunMode == 3 {
+		go ins.runScan()
+		ins.runProcess()
+		return
+	}
+
 	go ins.watcher.Run(ins.watcherCallback)
 	go ins.runScan()
 	go ins.runProcess()

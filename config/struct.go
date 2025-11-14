@@ -39,6 +39,7 @@ type TmdbConfig struct {
 }
 
 type CollectorConfig struct {
+	RunMode         int      `json:"run_mode"`          // 运行模式：1默认，守护进程运行、2单次运行，可自行配合docker或定时任务运行、3临时默认，可以单独处理一个电视剧或电影
 	Watcher         bool     `json:"watcher"`           // 是否开启文件监听，比定时扫描及时
 	CronSeconds     int      `json:"cron_seconds"`      // 定时扫描频率
 	CronScanKodi    bool     `json:"cron_scan_kodi"`    // 定时扫描后触发kodi扫描
