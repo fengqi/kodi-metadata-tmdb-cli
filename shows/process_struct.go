@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/spf13/cast"
 )
 
 // Show 电视剧
@@ -107,6 +109,28 @@ func (s *Show) ReadGroupId() {
 			s.GroupId = strings.Trim(string(bytes), "\r\n ")
 		} else {
 			utils.Logger.WarningF("read group id specially file: %s err: %v", groupFile, err)
+		}
+	}
+}
+
+// ReadJoin 剧集合并
+// todo 支持多行
+func (s *Show) ReadJoin() {
+	joinFIle := s.GetCacheDir() + "/join.txt"
+	if _, err := os.Stat(joinFIle); err == nil {
+		_content, err := os.ReadFile(joinFIle)
+		if err == nil {
+			content := strings.ReplaceAll(string(_content), " ", "")
+			content = strings.ReplaceAll(content, "，", ",")
+			split := strings.Split(content, ",")
+			if len(split) == 3 {
+				if s.Season == cast.ToInt(split[0]) {
+					s.Season = cast.ToInt(split[1])
+					s.Episode += cast.ToInt(split[2]) - 1
+				}
+			}
+		} else {
+			utils.Logger.WarningF("read join.txt file: %s err: %v", joinFIle, err)
 		}
 	}
 }

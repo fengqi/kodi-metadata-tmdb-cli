@@ -7,6 +7,7 @@ require (
 	github.com/fengqi/lrace v0.0.0-20250601104817-3cb5590f1dec
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/spf13/cast v1.10.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/net v0.42.0
 )

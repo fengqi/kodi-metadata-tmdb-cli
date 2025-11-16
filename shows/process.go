@@ -61,7 +61,8 @@ func ParseShowFile(show *Show, parse string) error {
 			show.ReadSeason()
 			show.ReadTvId()
 			show.ReadGroupId()
-			//show.ReadPart()
+			// show.ReadPart()
+			show.ReadJoin()
 
 			return nil
 		}
