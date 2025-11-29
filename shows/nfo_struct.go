@@ -42,7 +42,7 @@ type TvShowNfo struct {
 	Status         string        `xml:"status"`
 	Aired          string        `xml:"-"`
 	Studio         []string      `xml:"studio"`
-	Trailer        string        `xml:"trailer"`
+	Trailer        string        `xml:"-"`
 	Actor          []Actor       `xml:"actor"`
 	NamedSeason    []NamedSeason `xml:"namedseason"`
 	Resume         Resume        `xml:"-"`
@@ -56,26 +56,27 @@ type TvEpisodeNfo struct {
 	ShowTitle      string   `xml:"showtitle"`
 	Ratings        []Rating `xml:"ratings"`
 	UserRating     float32  `xml:"userrating"`
-	Top250         string   `xml:"top250"`
+	Top250         string   `xml:"-"`
 	Season         int      `xml:"season"`
 	Episode        int      `xml:"episode"`
 	DisplayEpisode int      `xml:"displayepisode"`
 	DisplaySeason  int      `xml:"displayseason"`
-	Outline        string   `xml:"outline"`
+	Outline        string   `xml:"-"`
 	Plot           string   `xml:"plot"`
 	Tagline        string   `xml:"-"`
 	Runtime        int      `xml:"runtime"`
 	Thumb          Thumb    `xml:"thumb"`
 
 	UniqueId UniqueId `xml:"uniqueid"`
-	Year     string   `xml:"year"`
+	Year     string   `xml:"-"`
 	TmdbId   string   `xml:"tmdbid"`
 
 	MPaa      string   `xml:"-"`
 	Premiered string   `xml:"premiered"`
 	Actor     []Actor  `xml:"actor"`
 	Status    string   `xml:"-"`
-	Aired     string   `xml:"aired"`
+	Aired     string   `xml:"-"`
+	Tag       []string `xml:"tag"`
 	Genre     []string `xml:"genre"`
 	Studio    []string `xml:"studio"`
 

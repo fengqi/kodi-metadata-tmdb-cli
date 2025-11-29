@@ -42,6 +42,10 @@
             ".!qb",
             ".!ut"
         ],
+        "nfo_field": {
+            "tag": true,
+            "genre": true
+        },
         "movies_nfo_mode": 2,
         "movies_dir": [
             "/volume1/down/movies"

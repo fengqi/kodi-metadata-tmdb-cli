@@ -4,9 +4,10 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
-	"github.com/fengqi/lrace"
 	"strconv"
 	"strings"
+
+	"github.com/fengqi/lrace"
 )
 
 func (s *Show) SaveTvNfo(detail *tmdb.TvDetail) error {
@@ -103,7 +104,6 @@ func (s *Show) SaveTvNfo(detail *tmdb.TvDetail) error {
 		Ratings:     Ratings{Rating: rating},
 		MPaa:        mpaa,
 		Status:      detail.Status,
-		Genre:       genre,
 		Studio:      studio,
 		Season:      s.Season,
 		Episode:     episodeCount,
@@ -111,6 +111,14 @@ func (s *Show) SaveTvNfo(detail *tmdb.TvDetail) error {
 		Actor:       actor,
 		NamedSeason: namedSeason,
 		FanArt:      fanArt,
+	}
+
+	if config.Collector.NfoField.Genre {
+		top.Tag = genre
+	}
+
+	if config.Collector.NfoField.Genre {
+		top.Genre = genre
 	}
 
 	// 使用分组信息

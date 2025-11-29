@@ -101,14 +101,20 @@ func (m *Movie) saveToNfo(detail *tmdb.MovieDetail) error {
 		MPaa:       mpaa,
 		Year:       year,
 		Status:     detail.Status,
-		Genre:      genre,
-		Tag:        genre,
 		Country:    country,
 		Languages:  languages,
 		Studio:     studio,
 		UserRating: detail.VoteAverage,
 		Actor:      actor,
 		FanArt:     fanArt,
+	}
+
+	if config.Collector.NfoField.Tag {
+		top.Tag = genre
+	}
+
+	if config.Collector.NfoField.Tag {
+		top.Genre = genre
 	}
 
 	return utils.SaveNfo(m.NfoFile, top)
