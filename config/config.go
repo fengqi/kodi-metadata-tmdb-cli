@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/fengqi/lrace"
 )
@@ -36,4 +37,13 @@ func LoadConfig(file string, runMode int) {
 
 	Collector.RunMode = lrace.Ternary(Collector.RunMode == 0, 1, Collector.RunMode)
 	Collector.RunMode = lrace.Ternary(runMode > 0, runMode, Collector.RunMode)
+	Collector.ShowsDir = clearPath(Collector.ShowsDir)
+	Collector.MoviesDir = clearPath(Collector.MoviesDir)
+}
+
+func clearPath(name []string) []string {
+	for i, item := range name {
+		name[i] = filepath.Clean(item)
+	}
+	return name
 }
