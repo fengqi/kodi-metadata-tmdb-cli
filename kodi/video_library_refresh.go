@@ -74,7 +74,7 @@ func (r *JsonRpc) RefreshMusicVideo(s string) bool {
 func (r *JsonRpc) RefreshMovie(name string) bool {
 	kodiMoviesReq := &GetMoviesRequest{
 		Filter: &Filter{
-			Field:    "originaltitle",
+			Field:    "title",
 			Operator: "is",
 			Value:    name,
 		},
@@ -102,7 +102,7 @@ func (r *JsonRpc) RefreshMovie(name string) bool {
 }
 
 func (r *JsonRpc) RefreshShows(name string) bool {
-	kodiShowsResp := r.VideoLibrary.GetTVShowsByField("originaltitle", "contains", name)
+	kodiShowsResp := r.VideoLibrary.GetTVShowsByField("title", "contains", name)
 	if kodiShowsResp == nil || kodiShowsResp.Limits.Total == 0 {
 		r.VideoLibrary.Scan("", true) // 新剧集，刷新变扫描库，不知道在Kodi的路径所以路径为空
 		return false
@@ -122,7 +122,7 @@ func (r *JsonRpc) RefreshEpisode(taskVal string) bool {
 		return false
 	}
 
-	kodiShowsResp := r.VideoLibrary.GetTVShowsByField("originaltitle", "contains", taskInfo[0])
+	kodiShowsResp := r.VideoLibrary.GetTVShowsByField("title", "contains", taskInfo[0])
 	if kodiShowsResp == nil || kodiShowsResp.Limits.Total == 0 {
 		return false
 	}
