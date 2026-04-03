@@ -7,6 +7,21 @@ import (
 	"time"
 )
 
+// AddScanTaskByName 通过名称添加扫描任务，Type 1 为电视剧，2 为电影
+func (r *JsonRpc) AddScanTaskByName(Type int, name string) {
+	if !config.Kodi.Enable {
+		return
+	}
+
+	if Type == 1 {
+		kodiShowsResp := r.VideoLibrary.GetTVShowsByField("title", "contains", name)
+		if kodiShowsResp == nil || kodiShowsResp.Limits.Total == 0 {
+			return
+		}
+		r.AddScanTask(kodiShowsResp.TvShows[0].File)
+	}
+}
+
 func (r *JsonRpc) AddScanTask(directory string) {
 	if !config.Kodi.Enable {
 		return
@@ -14,7 +29,6 @@ func (r *JsonRpc) AddScanTask(directory string) {
 
 	utils.Logger.DebugF("AddScanTask %s", directory)
 	if directory != "" {
-		//directory = filepath.Clean(directory)
 		sources := r.Files.GetSources("video")
 		if sources != nil {
 			for _, item := range sources {

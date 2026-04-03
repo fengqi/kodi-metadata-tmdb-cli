@@ -5,6 +5,7 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/media_file"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
+	"fmt"
 	"log"
 	"path/filepath"
 	"strings"
@@ -37,8 +38,15 @@ func Process(mf *media_file.MediaFile) error {
 	show.downloadEpisodeImage(episodeDetail)
 
 	if !detail.FromCache {
-		kodi.Rpc.AddRefreshTask(kodi.TaskRefreshTVShow, detail.OriginalName)
+		kodi.Rpc.AddRefreshTask(kodi.TaskRefreshTVShow, detail.Name)
 	}
+
+	if !episodeDetail.FromCache {
+		taskVal := fmt.Sprintf("%s|-|%d|-|%d", detail.Name, episodeDetail.SeasonNumber, episodeDetail.EpisodeNumber)
+		kodi.Rpc.AddRefreshTask(kodi.TaskRefreshEpisode, taskVal)
+	}
+
+	kodi.Rpc.AddScanTaskByName(1, detail.Name)
 
 	return nil
 }
