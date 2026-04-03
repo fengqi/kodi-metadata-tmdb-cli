@@ -54,7 +54,7 @@ func Process(mf *media_file.MediaFile) error {
 func ParseShowFile(show *Show, parse string) error {
 	// 递归到根目录
 	for _, showsDir := range config.Collector.ShowsDir {
-		if strings.TrimRight(showsDir, "/") == parse {
+		if strings.TrimRight(showsDir, string(filepath.Separator)) == parse {
 			if show.Episode > 0 && show.Season == 0 {
 				show.Season = 1
 			}
