@@ -12,17 +12,11 @@ import (
 type logLevel int
 
 const (
-	DEBUG logLevel = iota
-	INFO
-	WARNING
-	ERROR
-	FATAL
-)
-
-const (
-	LogModeStdout  = 1
-	LogModeLogfile = 2
-	LogModeBoth    = 3
+	DEBUG   logLevel = logLevel(config.LogLevelDebug)
+	INFO    logLevel = logLevel(config.LogLevelInfo)
+	WARNING logLevel = logLevel(config.LogLevelWarning)
+	ERROR   logLevel = logLevel(config.LogLevelError)
+	FATAL   logLevel = logLevel(config.LogLevelFatal)
 )
 
 var (
@@ -46,7 +40,7 @@ type logger struct {
 func InitLogger() {
 	var err error
 	var file *os.File
-	if config.Log.Mode != LogModeStdout {
+	if config.Log.Mode != config.LogModeStdout {
 		file, err = os.OpenFile(config.Log.File, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 		if err != nil {
 			log.Fatalf("open log file:%s err: %v", config.Log.File, err)
@@ -96,7 +90,7 @@ func (l *logger) ErrorF(format string, v ...interface{}) {
 func (l *logger) Fatal(v ...interface{}) {
 	if FATAL >= l.level {
 		l.write(FATAL, fmt.Sprint(v...))
-		if l.mode != LogModeLogfile {
+		if l.mode != config.LogModeLogfile {
 			log.Fatal(v...)
 		}
 	}
@@ -105,7 +99,7 @@ func (l *logger) Fatal(v ...interface{}) {
 func (l *logger) FatalF(format string, v ...interface{}) {
 	if FATAL >= l.level {
 		l.write(FATAL, fmt.Sprintf(format, v...))
-		if l.mode != LogModeLogfile {
+		if l.mode != config.LogModeLogfile {
 			log.Fatalf(format, v...)
 		}
 	}
@@ -114,7 +108,7 @@ func (l *logger) FatalF(format string, v ...interface{}) {
 func (l *logger) print(level logLevel, v ...interface{}) {
 	if level >= l.level {
 		l.write(level, fmt.Sprint(v...))
-		if l.mode != LogModeLogfile {
+		if l.mode != config.LogModeLogfile {
 			log.Print(v...)
 		}
 	}
@@ -123,14 +117,14 @@ func (l *logger) print(level logLevel, v ...interface{}) {
 func (l *logger) printf(level logLevel, format string, v ...interface{}) {
 	if level >= l.level {
 		l.write(level, fmt.Sprintf(format, v...))
-		if l.mode != LogModeLogfile {
+		if l.mode != config.LogModeLogfile {
 			log.Printf(levelMap[level]+" "+format, v...)
 		}
 	}
 }
 
 func (l *logger) write(level logLevel, str string) {
-	if l.file == nil || l.mode == LogModeStdout {
+	if l.file == nil || l.mode == config.LogModeStdout {
 		return
 	}
 

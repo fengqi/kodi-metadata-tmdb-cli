@@ -18,7 +18,7 @@ import (
 // collector 运行扫描
 func (c *collector) runScan() {
 
-	if config.Collector.RunMode == 3 {
+	if config.Collector.RunMode == config.CollectorRunModeSpec {
 		pwd, err := os.Getwd()
 		if err != nil {
 			utils.Logger.ErrorF("get pwd error: %s", err)
@@ -66,7 +66,7 @@ func (c *collector) runScan() {
 	}
 
 	// 单次模式，关闭channel
-	if config.Collector.RunMode == 2 || config.Collector.RunMode == 3 {
+	if config.Collector.RunMode == config.CollectorRunModeOnce || config.Collector.RunMode == config.CollectorRunModeSpec {
 		close(c.channel)
 	}
 }
