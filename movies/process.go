@@ -2,14 +2,16 @@ package movies
 
 import (
 	"errors"
+	"fengqi/kodi-metadata-tmdb-cli/common/ai"
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/media_file"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
-	"github.com/fengqi/lrace"
 	"path/filepath"
 	"strings"
+
+	"github.com/fengqi/lrace"
 )
 
 // Process 处理扫描到的电影文件
@@ -46,6 +48,44 @@ func Process(mf *media_file.MediaFile) error {
 
 // 解析文件, 返回详情：年份、中文名称、英文名称等
 func parseMoviesFile(mf *media_file.MediaFile) (*Movie, error) {
+	// 未启用ai
+	if !ai.Enabled() {
+		return parseMoviesFileByRule(mf)
+	}
+
+	// 规则优先，匹配不到再 AI 介入
+	if config.Ai.MatchMode == config.AiMatchModeRuleThenAi {
+		ruleMovie, ruleErr := parseMoviesFileByRule(mf)
+		if ruleErr == nil {
+			return ruleMovie, nil
+		}
+		aiMovie, aiErr := parseMoviesFileByAI(mf, ruleMovie)
+		if aiErr == nil {
+			return aiMovie, nil
+		}
+		return nil, ruleErr
+	}
+
+	// AI 优先，匹配不到再规则介入
+	if config.Ai.MatchMode == config.AiMatchModeAiThenRule {
+		aiMovie, aiErr := parseMoviesFileByAI(mf, nil)
+		if aiErr == nil {
+			return aiMovie, nil
+		}
+		return parseMoviesFileByRule(mf)
+	}
+
+	// 规则优先，结果给 AI 参考，最终使用 AI 结果
+	ruleMovie, ruleErr := parseMoviesFileByRule(mf)
+	aiMovie, aiErr := parseMoviesFileByAI(mf, ruleMovie)
+	if aiErr == nil {
+		return aiMovie, nil
+	}
+	return ruleMovie, ruleErr
+}
+
+// parseMoviesFileByRule 规则解析：年份、中英文名、别名
+func parseMoviesFileByRule(mf *media_file.MediaFile) (*Movie, error) {
 	movieName := utils.FilterTmpSuffix(mf.Filename)
 	if mf.IsDisc() { // 光盘类文件使用目录名刮削
 		movieName = filepath.Base(filepath.Dir(mf.Path))
@@ -65,23 +105,8 @@ func parseMoviesFile(mf *media_file.MediaFile) (*Movie, error) {
 	// 文件名识别
 	nameStart := false
 	nameStop := false
-	movie := &Movie{MediaFile: mf}
-	if mf.IsDisc() {
-		movie.PosterFile = mf.Dir + "/poster.jpg"
-		movie.FanArtFile = mf.Dir + "/fanart.jpg"
-		movie.ClearLogoFile = mf.Dir + "/clearlogo.png"
-		if mf.IsBluRay() {
-			movie.NfoFile = mf.Path + "/index.nfo"
-		} else if mf.IsDvd() {
-			movie.NfoFile = mf.Path + "/VIDEO_TS/VIDEO_TS.nfo"
-		}
-	} else {
-		prefix := mf.Dir + "/" + strings.Replace(mf.Filename, mf.Suffix, "", 1)
-		movie.PosterFile = prefix + "-poster.jpg"
-		movie.FanArtFile = prefix + "-fanart.jpg"
-		movie.ClearLogoFile = prefix + "-clearlogo.png"
-		movie.NfoFile = prefix + ".nfo"
-	}
+	movie := newMovieWithPaths(mf)
+
 	for _, item := range split {
 		if resolution := utils.IsResolution(item); resolution != "" {
 			nameStop = true
@@ -126,9 +151,77 @@ func parseMoviesFile(mf *media_file.MediaFile) (*Movie, error) {
 
 	movie.Title, movie.AliasTitle = utils.SplitTitleAlias(movie.Title)
 	movie.ChsTitle, movie.EngTitle = utils.SplitChsEngTitle(movie.Title)
-	if len(movie.Title) == 0 {
-		return nil, errors.New(fmt.Sprintf("file: %s parse title empty: %v", mf.Filename, movie))
+	movie.Title = strings.TrimSpace(movie.Title)
+	if movie.Title == "" {
+		return nil, fmt.Errorf("file: %s parse title empty: %v", mf.Filename, movie)
 	}
 
 	return movie, nil
+}
+
+// 调用AI模型解析
+func parseMoviesFileByAI(mf *media_file.MediaFile, ruleMovie *Movie) (*Movie, error) {
+	if !ai.Enabled() {
+		return nil, errors.New("ai disabled")
+	}
+
+	rule := map[string]any{}
+	if ruleMovie != nil {
+		rule = map[string]any{
+			"title":       ruleMovie.Title,
+			"alias_title": ruleMovie.AliasTitle,
+			"chs_title":   ruleMovie.ChsTitle,
+			"eng_title":   ruleMovie.EngTitle,
+			"year":        ruleMovie.Year,
+		}
+	}
+
+	result, err := ai.ParseMedia(&ai.ParseInput{
+		MediaType: "movie",
+		Path:      mf.Path,
+		Filename:  mf.Filename,
+		Rule:      rule,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if !ai.ParseUsable(result) {
+		return nil, errors.New("ai parse unusable")
+	}
+
+	movie := newMovieWithPaths(mf)
+	movie.Title = result.Title
+	movie.AliasTitle = result.AliasTitle
+	movie.ChsTitle = result.ChsTitle
+	movie.EngTitle = result.EngTitle
+	movie.Year = result.Year
+
+	if movie.Title == "" {
+		return nil, errors.New("ai parse title empty")
+	}
+
+	utils.Logger.DebugF("ai parse movie success: %s (%d) confidence %.2f", movie.Title, movie.Year, result.Confidence)
+	return movie, nil
+}
+
+func newMovieWithPaths(mf *media_file.MediaFile) *Movie {
+	movie := &Movie{MediaFile: mf}
+	if mf.IsDisc() {
+		movie.PosterFile = mf.Dir + "/poster.jpg"
+		movie.FanArtFile = mf.Dir + "/fanart.jpg"
+		movie.ClearLogoFile = mf.Dir + "/clearlogo.png"
+		if mf.IsBluRay() {
+			movie.NfoFile = mf.Path + "/index.nfo"
+		} else if mf.IsDvd() {
+			movie.NfoFile = mf.Path + "/VIDEO_TS/VIDEO_TS.nfo"
+		}
+		return movie
+	}
+
+	prefix := mf.Dir + "/" + strings.Replace(mf.Filename, mf.Suffix, "", 1)
+	movie.PosterFile = prefix + "-poster.jpg"
+	movie.FanArtFile = prefix + "-fanart.jpg"
+	movie.ClearLogoFile = prefix + "-clearlogo.png"
+	movie.NfoFile = prefix + ".nfo"
+	return movie
 }

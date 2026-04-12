@@ -15,6 +15,7 @@ var (
 	Tmdb      *TmdbConfig
 	Kodi      *KodiConfig
 	Collector *CollectorConfig
+	Ai        *AiConfig
 )
 
 func LoadConfig(file string, runMode int) {
@@ -34,6 +35,7 @@ func LoadConfig(file string, runMode int) {
 	Tmdb = c.Tmdb
 	Kodi = c.Kodi
 	Collector = c.Collector
+	Ai = c.Ai
 
 	Collector.RunMode = lrace.Ternary(Collector.RunMode == 0, CollectorRunModeDaemon, Collector.RunMode)
 	Collector.RunMode = lrace.Ternary(runMode > 0, runMode, Collector.RunMode)
@@ -65,6 +67,30 @@ func validateConfigEnums() {
 		if !inIntSet(Log.Level, LogLevelDebug, LogLevelInfo, LogLevelWarning, LogLevelError, LogLevelFatal) {
 			log.Printf("invalid log.level=%d, fallback to %d", Log.Level, LogLevelInfo)
 			Log.Level = LogLevelInfo
+		}
+	}
+
+	if Ai != nil {
+		if !inIntSet(Ai.MatchMode, AiMatchModeRuleThenAi, AiMatchModeAiThenRule, AiMatchModeRuleWithAiOverride) {
+			if Ai.MatchMode != 0 {
+				log.Printf("invalid ai.match_mode=%d, fallback to %d", Ai.MatchMode, AiMatchModeRuleThenAi)
+			}
+			Ai.MatchMode = AiMatchModeRuleThenAi
+		}
+
+		if !inIntSet(Ai.SearchMode, AiSearchModeFirstResult, AiSearchModeAlgorithm, AiSearchModeAiDecision) {
+			if Ai.SearchMode != 0 {
+				log.Printf("invalid ai.search_mode=%d, fallback to %d", Ai.SearchMode, AiSearchModeFirstResult)
+			}
+			Ai.SearchMode = AiSearchModeFirstResult
+		}
+
+		if Ai.TimeoutSeconds <= 0 {
+			Ai.TimeoutSeconds = 15
+		}
+
+		if Ai.ConfidenceThreshold <= 0 {
+			Ai.ConfidenceThreshold = 0.7
 		}
 	}
 }

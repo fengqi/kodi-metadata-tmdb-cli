@@ -10,3 +10,4 @@
 vendor
 config.json
 release
+.gocache/

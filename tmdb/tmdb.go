@@ -1,17 +1,13 @@
 package tmdb
 
 import (
-	"context"
+	"fengqi/kodi-metadata-tmdb-cli/common/httpx"
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
-	"golang.org/x/net/proxy"
 	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
-	"net/url"
 	"os"
-	"time"
 )
 
 var Api *Tmdb
@@ -29,7 +25,7 @@ const (
 )
 
 func InitTmdb() {
-	HttpClient = getHttpClient(config.Tmdb.Proxy)
+	HttpClient = httpx.NewClient(config.Tmdb.Proxy, 0)
 	Api = &Tmdb{
 		apiHost:   config.Tmdb.ApiHost,
 		apiKey:    config.Tmdb.ApiKey,
@@ -124,44 +120,4 @@ func DownloadFile(url string, filename string) error {
 	}
 
 	return nil
-}
-
-// 支持 http 和 socks5 代理
-func getHttpClient(proxyConnect string) *http.Client {
-	proxyUrl, err := url.Parse(proxyConnect)
-	if err != nil || proxyConnect == "" {
-		return http.DefaultClient
-	}
-
-	if proxyUrl.Scheme == "http" || proxyUrl.Scheme == "https" {
-		_ = os.Setenv("HTTP_PROXY", proxyConnect)
-		_ = os.Setenv("HTTPS_PROXY", proxyConnect)
-
-		return http.DefaultClient
-	}
-
-	if proxyUrl.Scheme == "socks5" || proxyUrl.Scheme == "socks5h" {
-		dialContext := func(ctx context.Context, network, addr string) (net.Conn, error) {
-			dialer := &net.Dialer{
-				Timeout:   30 * time.Second,
-				KeepAlive: 30 * time.Second,
-			}
-
-			proxyDialer, err := proxy.FromURL(proxyUrl, dialer)
-			if err != nil {
-				utils.Logger.WarningF("tmdb new proxy dialer err: %v\n", err)
-				return dialer.Dial(network, addr)
-			}
-
-			return proxyDialer.Dial(network, addr)
-		}
-
-		transport := http.DefaultTransport.(*http.Transport)
-		transport.DialContext = dialContext
-		return &http.Client{
-			Transport: transport,
-		}
-	}
-
-	return http.DefaultClient
 }

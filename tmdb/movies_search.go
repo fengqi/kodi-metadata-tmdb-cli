@@ -75,8 +75,9 @@ func (t *Tmdb) SearchMovie(chsTitle, engTitle string, year int) (*SearchMoviesRe
 		}
 
 		if len(moviesResp.Results) > 0 {
-			utils.Logger.InfoF("search movies chs: %s year: %d result count: %d, use: %v", chsTitle, year, len(moviesResp.Results), moviesResp.Results[0])
-			return moviesResp.Results[0], nil
+			selected := selectMovieResult(chsTitle, engTitle, year, moviesResp.Results)
+			utils.Logger.InfoF("search movies chs: %s year: %d result count: %d, use: %v", chsTitle, year, len(moviesResp.Results), selected)
+			return selected, nil
 		}
 	}
 

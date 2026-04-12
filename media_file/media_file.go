@@ -16,6 +16,8 @@ var (
 
 // NewMediaFile 实例化媒体类型
 func NewMediaFile(path, filename string, videoType VideoType) *MediaFile {
+	path = utils.NormalizePath(path)
+
 	if filename[0:1] == "." {
 		return nil
 	}

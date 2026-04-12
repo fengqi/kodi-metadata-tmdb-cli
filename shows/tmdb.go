@@ -7,12 +7,13 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
-	"github.com/fengqi/lrace"
 	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/fengqi/lrace"
 )
 
 func (s *Show) getTvDetail() (*tmdb.TvDetail, error) {

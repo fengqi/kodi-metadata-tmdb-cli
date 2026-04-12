@@ -1,6 +1,8 @@
 package shows
 
 import (
+	"errors"
+	"fengqi/kodi-metadata-tmdb-cli/common/ai"
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/media_file"
@@ -15,17 +17,26 @@ import (
 
 // Process 处理扫描到的电视剧文件
 func Process(mf *media_file.MediaFile) error {
-	show := &Show{MediaFile: mf}
+	show, err := parseShowFile(mf)
+	if err != nil {
+		return err
+	}
+	if show == nil {
+		return errors.New("show file empty")
+	}
 
-	ParseShowFile(show, show.MediaFile.Path)
+	utils.Logger.DebugF("receive shows task: %v", show)
 
 	show.checkTvCacheDir()
 	detail, err := show.getTvDetail()
 	if err != nil {
 		return err
 	}
+	if detail == nil {
+		return errors.New("get show detail empty")
+	}
 
-	show.SaveTvNfo(detail)
+	_ = show.SaveTvNfo(detail)
 	show.downloadTvImage(detail)
 
 	show.checkCacheDir()
@@ -33,8 +44,11 @@ func Process(mf *media_file.MediaFile) error {
 	if err != nil {
 		return err
 	}
+	if episodeDetail == nil {
+		return errors.New("get show episode detail empty")
+	}
 
-	show.SaveEpisodeNfo(episodeDetail)
+	_ = show.SaveEpisodeNfo(episodeDetail)
 	show.downloadEpisodeImage(episodeDetail)
 
 	if !detail.FromCache {
@@ -47,14 +61,151 @@ func Process(mf *media_file.MediaFile) error {
 	}
 
 	kodi.Rpc.AddScanTaskByName(1, detail.Name)
-
 	return nil
 }
 
+func parseShowFile(mf *media_file.MediaFile) (*Show, error) {
+	if mf == nil {
+		return nil, errors.New("show media file nil")
+	}
+
+	if !ai.Enabled() {
+		return parseShowFileByRule(mf)
+	}
+
+	if config.Ai.MatchMode == config.AiMatchModeRuleThenAi {
+		ruleShow, ruleErr := parseShowFileByRule(mf)
+		if ruleErr == nil && ruleShow != nil && ruleShow.Title != "" && ruleShow.Episode > 0 {
+			return ruleShow, nil
+		}
+
+		aiShow, aiErr := parseShowFileByAI(mf, ruleShow)
+		if aiErr == nil {
+			return aiShow, nil
+		}
+		return ruleShow, ruleErr
+	}
+
+	if config.Ai.MatchMode == config.AiMatchModeAiThenRule {
+		aiShow, aiErr := parseShowFileByAI(mf, nil)
+		if aiErr == nil {
+			return aiShow, nil
+		}
+		return parseShowFileByRule(mf)
+	}
+
+	ruleShow, ruleErr := parseShowFileByRule(mf)
+	if ruleErr != nil {
+		return nil, ruleErr
+	}
+	aiShow, aiErr := parseShowFileByAI(mf, ruleShow)
+	if aiErr == nil {
+		return aiShow, nil
+	}
+	return ruleShow, nil
+}
+
+func parseShowFileByRule(mf *media_file.MediaFile) (*Show, error) {
+	if mf == nil {
+		return nil, errors.New("show media file nil")
+	}
+	show := &Show{MediaFile: mf}
+	fillShowPathMeta(show)
+	return show, ParseShowFile(show, show.MediaFile.Path)
+}
+
+func parseShowFileByAI(mf *media_file.MediaFile, ruleShow *Show) (*Show, error) {
+	if !ai.Enabled() {
+		return nil, errors.New("ai disabled")
+	}
+	if mf == nil {
+		return nil, errors.New("show media file nil")
+	}
+	show := &Show{MediaFile: mf}
+	fillShowPathMeta(show)
+
+	rule := map[string]any{}
+	if ruleShow != nil {
+		rule = map[string]any{
+			"title":       ruleShow.Title,
+			"alias_title": ruleShow.AliasTitle,
+			"chs_title":   ruleShow.ChsTitle,
+			"eng_title":   ruleShow.EngTitle,
+			"year":        ruleShow.Year,
+			"season":      ruleShow.Season,
+			"episode":     ruleShow.Episode,
+		}
+	}
+
+	result, err := ai.ParseMedia(&ai.ParseInput{
+		MediaType: "tv",
+		Path:      mf.Path,
+		Filename:  mf.Filename,
+		Rule:      rule,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if !ai.ParseUsable(result) {
+		return nil, errors.New("ai parse unusable")
+	}
+
+	show.Title = result.Title
+	show.AliasTitle = result.AliasTitle
+	show.ChsTitle = result.ChsTitle
+	show.EngTitle = result.EngTitle
+	show.Year = result.Year
+	show.Season = result.Season
+	show.Episode = result.Episode
+
+	if show.Title == "" {
+		return nil, errors.New("ai parse title empty")
+	}
+
+	utils.Logger.DebugF("ai parse show success: %s S%02dE%02d confidence %.2f", show.Title, show.Season, show.Episode, result.Confidence)
+	return show, nil
+}
+
+func fillShowPathMeta(show *Show) {
+	if show == nil || show.MediaFile == nil {
+		return
+	}
+
+	cursor := show.MediaFile.Path
+	for {
+		parent := filepath.Dir(cursor)
+
+		for _, showsDir := range config.Collector.ShowsDir {
+			if utils.PathEqual(showsDir, parent) {
+				show.TvRoot = cursor
+				goto foundRoot
+			}
+		}
+
+		if utils.PathEqual(parent, cursor) {
+			break
+		}
+		cursor = parent
+	}
+
+foundRoot:
+	if show.TvRoot == "" {
+		show.TvRoot = filepath.Dir(show.MediaFile.Path)
+	}
+	if show.SeasonRoot == "" {
+		show.SeasonRoot = show.TvRoot
+	}
+}
+
 func ParseShowFile(show *Show, parse string) error {
+	if show == nil {
+		return errors.New("show nil")
+	}
+
 	// 递归到根目录
+	parseNorm := utils.NormalizePath(parse)
 	for _, showsDir := range config.Collector.ShowsDir {
-		if strings.TrimRight(showsDir, string(filepath.Separator)) == parse {
+		if utils.NormalizePath(showsDir) == parseNorm {
 			if show.Episode > 0 && show.Season == 0 {
 				show.Season = 1
 			}
@@ -227,10 +378,10 @@ func ParseShowFile(show *Show, parse string) error {
 	show.Title, show.AliasTitle = utils.SplitTitleAlias(show.Title)
 	show.ChsTitle, show.EngTitle = utils.SplitChsEngTitle(show.Title)
 
-	show.TvRoot = filepath.Dir(parse)
-	if lrace.InArray(config.Collector.ShowsDir, show.TvRoot) {
-		show.TvRoot = parse
+	parent := filepath.Dir(parse)
+	if utils.NormalizePath(parent) == parseNorm {
+		return nil
 	}
 
-	return ParseShowFile(show, filepath.Dir(parse))
+	return ParseShowFile(show, parent)
 }

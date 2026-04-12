@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
-	"github.com/fengqi/lrace"
 	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/fengqi/lrace"
 )
 
 // getMovieDetail 获取电影详情
