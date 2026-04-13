@@ -73,11 +73,20 @@ type completionChoice struct {
 
 type completionResponse struct {
 	Choices []completionChoice `json:"choices"`
+	Usage   completionUsage    `json:"usage"`
 }
 
 type chooseCandidateResponse struct {
 	Id         int     `json:"id"`
 	Confidence float64 `json:"confidence"`
+}
+
+type completionUsage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
+	InputTokens      int `json:"input_tokens"`
+	OutputTokens     int `json:"output_tokens"`
 }
 
 func Enabled() bool {
@@ -221,12 +230,24 @@ func completion(system string, user any) (string, error) {
 	if err = json.Unmarshal(body, out); err != nil {
 		return "", err
 	}
+	logCompletionUsage(out.Usage)
 	if len(out.Choices) == 0 {
 		return "", errors.New("ai response empty")
 	}
 
 	content := strings.TrimSpace(out.Choices[0].Message.Content)
 	return extractJSONObject(content), nil
+}
+
+func logCompletionUsage(usage completionUsage) {
+	utils.Logger.InfoF(
+		"ai usage: prompt_tokens=%d completion_tokens=%d total_tokens=%d input_tokens=%d output_tokens=%d",
+		usage.PromptTokens,
+		usage.CompletionTokens,
+		usage.TotalTokens,
+		usage.InputTokens,
+		usage.OutputTokens,
+	)
 }
 
 func currentProxy() string {
