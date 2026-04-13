@@ -38,7 +38,7 @@ type Show struct {
 func (s *Show) checkCacheDir() {
 	dir := s.GetCacheDir()
 	if _, err := os.Stat(dir); err != nil && os.IsNotExist(err) {
-		if err := os.Mkdir(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, 0755); err != nil {
 			utils.Logger.ErrorF("create cache: %s dir err: %v", dir, err)
 		}
 	}
@@ -47,7 +47,7 @@ func (s *Show) checkCacheDir() {
 func (s *Show) checkTvCacheDir() {
 	dir := s.GetTvCacheDir()
 	if _, err := os.Stat(dir); err != nil && os.IsNotExist(err) {
-		if err := os.Mkdir(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, 0755); err != nil {
 			utils.Logger.ErrorF("create cache: %s dir err: %v", dir, err)
 		}
 	}
@@ -60,6 +60,22 @@ func (s *Show) GetTvCacheDir() string {
 func (s *Show) GetCacheDir() string {
 	base := filepath.Dir(s.MediaFile.Path)
 	return base + "/tmdb"
+}
+
+func (s *Show) EpisodeCacheFile() string {
+	if s == nil || s.MediaFile == nil {
+		return ""
+	}
+
+	base := s.SeasonRoot
+	if base == "" {
+		base = s.TvRoot
+	}
+	if base == "" {
+		return ""
+	}
+
+	return base + "/tmdb/" + s.MediaFile.Filename + ".episode.json"
 }
 
 func (s *Show) GetFullDir() string {
@@ -116,11 +132,11 @@ func (s *Show) ReadGroupId() {
 // ReadJoin 剧集合并
 // todo 支持多行
 func (s *Show) ReadJoin() {
-	joinFIle := s.GetCacheDir() + "/join.txt"
-	if _, err := os.Stat(joinFIle); err == nil {
-		_content, err := os.ReadFile(joinFIle)
+	joinFile := s.GetCacheDir() + "/join.txt"
+	if _, err := os.Stat(joinFile); err == nil {
+		contentBytes, err := os.ReadFile(joinFile)
 		if err == nil {
-			content := strings.ReplaceAll(string(_content), " ", "")
+			content := strings.ReplaceAll(string(contentBytes), " ", "")
 			content = strings.ReplaceAll(content, "，", ",")
 			split := strings.Split(content, ",")
 			if len(split) == 3 {
@@ -130,7 +146,7 @@ func (s *Show) ReadJoin() {
 				}
 			}
 		} else {
-			utils.Logger.WarningF("read join.txt file: %s err: %v", joinFIle, err)
+			utils.Logger.WarningF("read join.txt file: %s err: %v", joinFile, err)
 		}
 	}
 }

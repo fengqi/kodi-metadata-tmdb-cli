@@ -12,8 +12,6 @@ import (
 	"sort"
 	"strings"
 	"time"
-
-	"github.com/fengqi/lrace"
 )
 
 func (s *Show) getTvDetail() (*tmdb.TvDetail, error) {
@@ -29,42 +27,25 @@ func (s *Show) getTvDetail() (*tmdb.TvDetail, error) {
 	}
 
 	// 从缓存读取
-	tvCacheFile := s.GetTvCacheDir() + "/tv.json"
-	cacheExpire := false
-	if cf, err := os.Stat(tvCacheFile); err == nil {
-		utils.Logger.DebugF("get tv detail from cache: %s", tvCacheFile)
-
-		bytes, err := os.ReadFile(tvCacheFile)
-		if err != nil {
-			utils.Logger.WarningF("read tv.json cache: %s err: %v", tvCacheFile, err)
-			goto search
-		}
-
-		err = json.Unmarshal(bytes, detail)
-		if err != nil {
-			utils.Logger.WarningF("parse tv file: %s err: %v", tvCacheFile, err)
-			_ = os.Remove(tvCacheFile)
-			goto search
-		}
-
-		airTime, _ := time.Parse("2006-01-02", detail.LastAirDate)
-		cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
-		detail.FromCache = true
-		s.TvId = detail.Id
+	detail, err = s.loadTvDetailFromCache()
+	if err != nil {
+		utils.Logger.WarningF("load tv detail cache err: %v", err)
+	}
+	cacheExpire := detail == nil
+	if detail == nil {
+		detail = new(tmdb.TvDetail)
 	}
 
-search:
 	// 缓存失效，重新搜索
-	if detail == nil || detail.Id == 0 || cacheExpire {
+	if detail.Id == 0 || cacheExpire {
 		detail.FromCache = false
 		if s.TvId == 0 {
-			SearchResults, err := tmdb.Api.SearchShows(s.ChsTitle, s.EngTitle, s.Year)
-			if err != nil || SearchResults == nil {
+			searchResults, err := tmdb.Api.SearchShows(s.ChsTitle, s.EngTitle, s.Year)
+			if err != nil || searchResults == nil {
 				utils.Logger.ErrorF("search title: %s year: %d failed", s.Title, s.Year)
 				return detail, err
 			}
-
-			s.TvId = SearchResults.Id
+			s.TvId = searchResults.Id
 		}
 
 		// 获取详情
@@ -75,7 +56,7 @@ search:
 		}
 
 		// 保存到缓存
-		detail.SaveToCache(tvCacheFile)
+		detail.SaveToCache(s.GetTvCacheDir() + "/tv.json")
 	}
 
 	// 剧集分组：不同的季版本
@@ -96,31 +77,20 @@ search:
 }
 
 func (s *Show) getEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
-	var err error
-	var detail = new(tmdb.TvEpisodeDetail)
+	// 从缓存读取
+	detail, err := s.loadLegacyEpisodeDetailFromCache()
+	if err != nil {
+		utils.Logger.WarningF("load legacy episode detail cache err: %v", err)
+		return nil, err
+	}
 
-	cacheFile := fmt.Sprintf("%s/tmdb/s%02de%02d.json", lrace.Ternary(s.SeasonRoot != "", s.SeasonRoot, s.TvRoot), s.Season, s.Episode)
-	cacheExpire := false
-	if cf, err := os.Stat(cacheFile); err == nil {
-		utils.Logger.DebugF("get episode from cache: %s", cacheFile)
-
-		bytes, err := os.ReadFile(cacheFile)
-		if err != nil {
-			utils.Logger.WarningF("read episode cache: %s err: %v", cacheFile, err)
-		}
-
-		err = json.Unmarshal(bytes, &detail)
-		if err != nil {
-			utils.Logger.WarningF("parse episode cache: %s err: %v", cacheFile, err)
-		}
-
-		airTime, _ := time.Parse("2006-01-02", detail.AirDate)
-		cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
-		detail.FromCache = true
+	cacheExpire := detail == nil
+	if detail == nil {
+		detail = new(tmdb.TvEpisodeDetail)
 	}
 
 	// 请求tmdb
-	if detail == nil || detail.Id == 0 || cacheExpire {
+	if detail.Id == 0 || cacheExpire {
 		detail.FromCache = false
 		detail, err = tmdb.Api.GetTvEpisodeDetail(s.TvId, s.Season, s.Episode)
 		if err != nil {
@@ -132,7 +102,7 @@ func (s *Show) getEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
 		}
 
 		// 保存到缓存
-		detail.SaveToCache(cacheFile)
+		detail.SaveToCache(s.EpisodeCacheFile())
 	}
 
 	if detail.Id == 0 || detail.Name == "" {
@@ -236,4 +206,110 @@ func (s *Show) downloadEpisodeImage(d *tmdb.TvEpisodeDetail) {
 	if len(d.StillPath) > 0 {
 		_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(d.StillPath), file)
 	}
+}
+
+// loadTvDetailFromCache 从缓存中加载电视剧详情
+func (s *Show) loadTvDetailFromCache() (*tmdb.TvDetail, error) {
+	detail := new(tmdb.TvDetail)
+	tvCacheFile := s.GetTvCacheDir() + "/tv.json"
+	cf, err := os.Stat(tvCacheFile)
+	if err != nil {
+		return nil, nil
+	}
+
+	utils.Logger.DebugF("get tv detail from cache: %s", tvCacheFile)
+	bytes, err := os.ReadFile(tvCacheFile)
+	if err != nil {
+		return nil, err
+	}
+	if err = json.Unmarshal(bytes, detail); err != nil {
+		return nil, err
+	}
+
+	airTime, _ := time.Parse("2006-01-02", detail.LastAirDate)
+	if detail.Id == 0 || utils.CacheExpire(cf.ModTime(), airTime) {
+		return nil, nil
+	}
+
+	detail.FromCache = true
+	s.TvId = detail.Id
+	return detail, nil
+}
+
+// loadEpisodeDetailFromCache 从缓存中加载剧集详情
+func (s *Show) loadEpisodeDetailFromCache() (*tmdb.TvEpisodeDetail, error) {
+	detail := new(tmdb.TvEpisodeDetail)
+	cacheFile := s.EpisodeCacheFile()
+	cf, err := os.Stat(cacheFile)
+	if err != nil {
+		return nil, nil
+	}
+
+	utils.Logger.DebugF("get episode from cache: %s", cacheFile)
+	bytes, err := os.ReadFile(cacheFile)
+	if err != nil {
+		return nil, err
+	}
+	if err = json.Unmarshal(bytes, &detail); err != nil {
+		return nil, err
+	}
+
+	airTime, _ := time.Parse("2006-01-02", detail.AirDate)
+	if detail.Id == 0 || utils.CacheExpire(cf.ModTime(), airTime) {
+		return nil, nil
+	}
+
+	detail.FromCache = true
+	s.Season = detail.SeasonNumber
+	s.Episode = detail.EpisodeNumber
+	return detail, nil
+}
+
+// TODO 从旧版缓存中加载剧集详情，加载后重命名到新缓存文件，后续删除该逻辑
+func (s *Show) loadLegacyEpisodeDetailFromCache() (*tmdb.TvEpisodeDetail, error) {
+	base := s.SeasonRoot
+	if base == "" {
+		base = s.TvRoot
+	}
+
+	if base == "" {
+		return nil, errors.New("season root or tv root is empty")
+	}
+
+	if s.Season == 0 || s.Episode == 0 {
+		return nil, errors.New("season or episode is zero")
+	}
+
+	detail := new(tmdb.TvEpisodeDetail)
+	cacheFile := fmt.Sprintf("%s/tmdb/s%02de%02d.json", base, s.Season, s.Episode)
+	cf, err := os.Stat(cacheFile)
+	if err != nil {
+		return nil, nil
+	}
+
+	utils.Logger.DebugF("get legacy episode from cache: %s", cacheFile)
+	bytes, err := os.ReadFile(cacheFile)
+	if err != nil {
+		return nil, err
+	}
+	if err = json.Unmarshal(bytes, &detail); err != nil {
+		return nil, err
+	}
+
+	airTime, _ := time.Parse("2006-01-02", detail.AirDate)
+	if detail.Id == 0 || utils.CacheExpire(cf.ModTime(), airTime) {
+		return nil, nil
+	}
+
+	detail.FromCache = true
+	s.Season = detail.SeasonNumber
+	s.Episode = detail.EpisodeNumber
+	newCacheFile := s.EpisodeCacheFile()
+	if newCacheFile != "" && newCacheFile != cacheFile {
+		if err = os.Rename(cacheFile, newCacheFile); err != nil {
+			utils.Logger.WarningF("rename legacy episode cache %s to %s err: %v", cacheFile, newCacheFile, err)
+		}
+	}
+
+	return detail, nil
 }

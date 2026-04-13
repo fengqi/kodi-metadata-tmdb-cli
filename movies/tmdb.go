@@ -14,15 +14,11 @@ import (
 )
 
 // getMovieDetail 获取电影详情
-func (m *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
-	var err error
-	detail := &tmdb.MovieDetail{}
-	cacheExpire := false
-
+func (m *Movie) loadMovieDetailFromCache() (*tmdb.MovieDetail, error) {
 	// 缓存文件路径
 	// todo `tmdb/movie.json` 这种格式后期删除掉
-	oldCacheFile := m.GetCacheDir() + "/movie.json"
-	cacheFile := m.GetCacheDir() + "/" + m.MediaFile.Filename + ".movie.json"
+	oldCacheFile := m.DetailCacheFile(true)
+	cacheFile := m.DetailCacheFile()
 	if _, err := os.Stat(oldCacheFile); err == nil {
 		utils.Logger.DebugF("rename old cache file %s to %s", oldCacheFile, cacheFile)
 		if _, err = lrace.CopyFile(oldCacheFile, cacheFile); err == nil {
@@ -32,22 +28,41 @@ func (m *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 		}
 	}
 
+	detail := &tmdb.MovieDetail{}
 	// 从缓存读取
-	if cf, err := os.Stat(cacheFile); err == nil {
-		utils.Logger.DebugF("get movie detail from cache: %s", cacheFile)
+	cf, err := os.Stat(cacheFile)
+	if err != nil {
+		return nil, nil
+	}
 
-		bytes, err := os.ReadFile(cacheFile)
-		if err != nil {
-			utils.Logger.WarningF("read movie.json cache: %s err: %v", cacheFile, err)
-		}
+	utils.Logger.DebugF("get movie detail from cache: %s", cacheFile)
+	bytes, err := os.ReadFile(cacheFile)
+	if err != nil {
+		return nil, err
+	}
+	if err = json.Unmarshal(bytes, detail); err != nil {
+		return nil, err
+	}
 
-		if err = json.Unmarshal(bytes, detail); err != nil {
-			utils.Logger.WarningF("parse movie: %s file err: %v", cacheFile, err)
-		}
+	airTime, _ := time.Parse("2006-01-02", detail.ReleaseDate)
+	if detail.Id == 0 || utils.CacheExpire(cf.ModTime(), airTime) {
+		return nil, nil
+	}
 
-		airTime, _ := time.Parse("2006-01-02", detail.ReleaseDate)
-		cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
-		detail.FromCache = true
+	detail.FromCache = true
+	return detail, nil
+}
+
+// getMovieDetail 获取电影详情
+func (m *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
+	var err error
+	detail, err := m.loadMovieDetailFromCache()
+	if err != nil {
+		utils.Logger.WarningF("load movie detail cache err: %v", err)
+	}
+	cacheExpire := detail == nil
+	if detail == nil {
+		detail = &tmdb.MovieDetail{}
 	}
 
 	// 缓存失效，重新搜索
@@ -56,8 +71,8 @@ func (m *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 		movieId := 0
 
 		// todo 兼容 tmdb/id.txt，后期删除
-		oldIdFile := m.GetCacheDir() + "/id.txt"
-		idFile := m.GetCacheDir() + "/" + m.MediaFile.Filename + ".id.txt"
+		oldIdFile := m.IdFile(true)
+		idFile := m.IdFile()
 		if _, err := os.Stat(oldIdFile); err == nil {
 			utils.Logger.DebugF("rename old id file %s to %s", oldIdFile, idFile)
 			if _, err = lrace.CopyFile(oldIdFile, idFile); err == nil {
@@ -78,13 +93,13 @@ func (m *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 		}
 
 		if movieId == 0 {
-			SearchResults, err := tmdb.Api.SearchMovie(m.ChsTitle, m.EngTitle, m.Year)
-			if err != nil || SearchResults == nil {
+			searchResults, err := tmdb.Api.SearchMovie(m.ChsTitle, m.EngTitle, m.Year)
+			if err != nil || searchResults == nil {
 				return detail, err
 			}
 
 			// 保存movieId
-			movieId = SearchResults.Id
+			movieId = searchResults.Id
 			err = os.WriteFile(idFile, []byte(strconv.Itoa(movieId)), 0664)
 			if err != nil {
 				utils.Logger.ErrorF("save movieId %d to %s err: %v", movieId, idFile, err)
@@ -97,16 +112,50 @@ func (m *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 		}
 
 		// 保存到缓存
-		if err = detail.SaveToCache(cacheFile); err != nil {
-			utils.Logger.ErrorF("save detail to: %s err: %v", cacheFile, err)
+		if err = detail.SaveToCache(m.DetailCacheFile()); err != nil {
+			utils.Logger.ErrorF("save detail to: %s err: %v", m.DetailCacheFile(), err)
 		}
 	}
 
-	if detail.Id == 0 || m.Title == "" {
+	if detail.Id == 0 {
 		return nil, err
 	}
 
+	m.fillByDetail(detail)
 	return detail, err
+}
+
+func (m *Movie) hasIdCache() bool {
+	if _, err := os.Stat(m.IdFile()); err == nil {
+		return true
+	}
+
+	_, err := os.Stat(m.IdFile(true))
+	return err == nil
+}
+
+func (m *Movie) fillByDetail(detail *tmdb.MovieDetail) {
+	if detail == nil {
+		return
+	}
+	if m.MovieId == 0 {
+		m.MovieId = detail.Id
+	}
+	if m.Title == "" {
+		m.Title = strings.TrimSpace(detail.Title)
+	}
+	if m.EngTitle == "" {
+		m.EngTitle = strings.TrimSpace(detail.OriginalTitle)
+	}
+	if m.ChsTitle == "" {
+		m.ChsTitle, _ = utils.SplitChsEngTitle(m.Title)
+		if m.ChsTitle == "" {
+			m.ChsTitle = m.Title
+		}
+	}
+	if m.Year == 0 && len(detail.ReleaseDate) >= 4 {
+		m.Year, _ = strconv.Atoi(detail.ReleaseDate[:4])
+	}
 }
 
 // downloadImage 下载图片

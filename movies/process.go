@@ -6,6 +6,7 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/media_file"
+	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
 	"path/filepath"
@@ -16,11 +17,17 @@ import (
 
 // Process 处理扫描到的电影文件
 func Process(mf *media_file.MediaFile) error {
-	movie, err := parseMoviesFile(mf)
+	movie, detail, err := loadMovieCache(mf)
 	if err != nil {
 		return err
 	}
 
+	if movie == nil {
+		movie, err = parseMoviesFile(mf)
+		if err != nil {
+			return err
+		}
+	}
 	if movie == nil {
 		return errors.New("movie file empty")
 	}
@@ -28,9 +35,11 @@ func Process(mf *media_file.MediaFile) error {
 	utils.Logger.DebugF("receive movies task: %v", movie)
 
 	movie.checkCacheDir()
-	detail, err := movie.getMovieDetail()
-	if err != nil {
-		return err
+	if detail == nil {
+		detail, err = movie.getMovieDetail()
+		if err != nil {
+			return err
+		}
 	}
 	if detail == nil {
 		return errors.New("get movie detail empty")
@@ -224,4 +233,29 @@ func newMovieWithPaths(mf *media_file.MediaFile) *Movie {
 	movie.ClearLogoFile = prefix + "-clearlogo.png"
 	movie.NfoFile = prefix + ".nfo"
 	return movie
+}
+
+// 加载缓存
+func loadMovieCache(mf *media_file.MediaFile) (*Movie, *tmdb.MovieDetail, error) {
+	if mf == nil {
+		return nil, nil, errors.New("movie file empty")
+	}
+
+	movie := newMovieWithPaths(mf)
+	movie.checkCacheDir()
+	detail, err := movie.loadMovieDetailFromCache()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if detail != nil {
+		movie.fillByDetail(detail)
+		return movie, detail, nil
+	}
+
+	if movie.hasIdCache() {
+		return movie, nil, nil
+	}
+
+	return nil, nil, nil
 }

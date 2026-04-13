@@ -6,6 +6,7 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/kodi"
 	"fengqi/kodi-metadata-tmdb-cli/media_file"
+	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
 	"log"
@@ -17,9 +18,16 @@ import (
 
 // Process 处理扫描到的电视剧文件
 func Process(mf *media_file.MediaFile) error {
-	show, err := parseShowFile(mf)
+	show, detail, episodeDetail, err := loadShowCache(mf)
 	if err != nil {
 		return err
+	}
+
+	if show == nil || detail == nil || episodeDetail == nil {
+		show, err = parseShowFile(mf)
+		if err != nil {
+			return err
+		}
 	}
 	if show == nil {
 		return errors.New("show file empty")
@@ -28,9 +36,11 @@ func Process(mf *media_file.MediaFile) error {
 	utils.Logger.DebugF("receive shows task: %v", show)
 
 	show.checkTvCacheDir()
-	detail, err := show.getTvDetail()
-	if err != nil {
-		return err
+	if detail == nil {
+		detail, err = show.getTvDetail()
+		if err != nil {
+			return err
+		}
 	}
 	if detail == nil {
 		return errors.New("get show detail empty")
@@ -40,9 +50,11 @@ func Process(mf *media_file.MediaFile) error {
 	show.downloadTvImage(detail)
 
 	show.checkCacheDir()
-	episodeDetail, err := show.getEpisodeDetail()
-	if err != nil {
-		return err
+	if episodeDetail == nil {
+		episodeDetail, err = show.getEpisodeDetail()
+		if err != nil {
+			return err
+		}
 	}
 	if episodeDetail == nil {
 		return errors.New("get show episode detail empty")
@@ -384,4 +396,38 @@ func ParseShowFile(show *Show, parse string) error {
 	}
 
 	return ParseShowFile(show, parent)
+}
+
+// loadShowCache 从缓存中加载电视剧信息
+func loadShowCache(mf *media_file.MediaFile) (*Show, *tmdb.TvDetail, *tmdb.TvEpisodeDetail, error) {
+	if mf == nil {
+		return nil, nil, nil, errors.New("show media file nil")
+	}
+
+	show := &Show{MediaFile: mf}
+	fillShowPathMeta(show)
+	show.ReadTvId()
+	if show.TvId == 0 {
+		return nil, nil, nil, nil
+	}
+
+	show.checkTvCacheDir()
+	detail, err := show.loadTvDetailFromCache()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	if detail == nil {
+		return nil, nil, nil, nil
+	}
+
+	show.checkCacheDir()
+	episodeDetail, err := show.loadEpisodeDetailFromCache()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	if episodeDetail == nil {
+		return show, detail, nil, nil
+	}
+
+	return show, detail, episodeDetail, nil
 }

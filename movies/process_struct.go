@@ -37,7 +37,7 @@ type Movie struct {
 func (m *Movie) checkCacheDir() {
 	dir := m.GetCacheDir()
 	if _, err := os.Stat(dir); err != nil && os.IsNotExist(err) {
-		if err := os.Mkdir(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, 0755); err != nil {
 			utils.Logger.ErrorF("create cache: %s dir err: %v", dir, err)
 		}
 	}
@@ -63,4 +63,17 @@ func (m *Movie) IdFile(legacy ...bool) string {
 	}
 
 	return cacheDir + "/" + m.MediaFile.Filename + ".id.txt"
+}
+
+func (m *Movie) DetailCacheFile(legacy ...bool) string {
+	cacheDir := m.GetCacheDir()
+	if cacheDir == "" {
+		return ""
+	}
+
+	if len(legacy) > 0 && legacy[0] {
+		return cacheDir + "/movie.json"
+	}
+
+	return cacheDir + "/" + m.MediaFile.Filename + ".movie.json"
 }
