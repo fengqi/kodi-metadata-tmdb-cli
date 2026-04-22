@@ -43,6 +43,7 @@ type CollectorConfig struct {
 	RunMode         int      `json:"run_mode"`          // 运行模式：1 daemon，2 once，3 spec
 	Watcher         bool     `json:"watcher"`           // 是否开启文件监听
 	CronSeconds     int      `json:"cron_seconds"`      // 定时扫描频率
+	CronScan        bool     `json:"cron_scan"`         // 是否开启定时扫描
 	CronScanKodi    bool     `json:"cron_scan_kodi"`    // 定时扫描后触发 kodi 扫描
 	FilterTmpSuffix bool     `json:"filter_tmp_suffix"` // 过滤临时文件后缀
 	TmpSuffix       []string `json:"tmp_suffix"`        // 临时文件后缀列表

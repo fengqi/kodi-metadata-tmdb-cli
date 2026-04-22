@@ -34,8 +34,10 @@ func Run() {
 	go ins.runScan()
 	go ins.runProcess()
 
-	ticker := time.NewTicker(time.Second * time.Duration(config.Collector.CronSeconds))
-	for range ticker.C {
-		ins.runScan()
+	if config.Collector.CronScan && config.Collector.CronSeconds > 0 {
+		ticker := time.NewTicker(time.Second * time.Duration(config.Collector.CronSeconds))
+		for range ticker.C {
+			ins.runScan()
+		}
 	}
 }

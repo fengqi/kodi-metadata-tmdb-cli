@@ -54,7 +54,7 @@ func (c *collector) runScan() {
 	c.wg.Wait()
 
 	// 扫描完成，通知kodi刷新媒体库
-	if config.Collector.CronScanKodi {
+	if config.Kodi.Enable && config.Collector.CronScanKodi {
 		log.Println("scan done, refresh kodi library")
 		kodi.Rpc.VideoLibrary.Scan("", false)
 	}

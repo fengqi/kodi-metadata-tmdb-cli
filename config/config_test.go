@@ -17,6 +17,7 @@ func writeTestConfig(t *testing.T, runMode, moviesNfoMode, logMode, logLevel int
     "run_mode": %d,
     "watcher": true,
     "cron_seconds": 60,
+    "cron_scan": false,
     "cron_scan_kodi": false,
     "filter_tmp_suffix": true,
     "tmp_suffix": [".part"],
