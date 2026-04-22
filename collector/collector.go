@@ -5,7 +5,6 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/media_file"
 	"sync"
-	"time"
 )
 
 type collector struct {
@@ -32,12 +31,7 @@ func Run() {
 
 	go ins.watcher.Run(ins.watcherCallback)
 	go ins.runScan()
-	go ins.runProcess()
+	go ins.runCronScan()
 
-	if config.Collector.CronScan && config.Collector.CronSeconds > 0 {
-		ticker := time.NewTicker(time.Second * time.Duration(config.Collector.CronSeconds))
-		for range ticker.C {
-			ins.runScan()
-		}
-	}
+	ins.runProcess()
 }

@@ -17,7 +17,6 @@ import (
 
 // collector 运行扫描
 func (c *collector) runScan() {
-
 	if config.Collector.RunMode == config.CollectorRunModeSpec {
 		pwd, err := os.Getwd()
 		if err != nil {
@@ -68,6 +67,16 @@ func (c *collector) runScan() {
 	// 单次模式，关闭channel
 	if config.Collector.RunMode == config.CollectorRunModeOnce || config.Collector.RunMode == config.CollectorRunModeSpec {
 		close(c.channel)
+	}
+}
+
+// runCronScan 运行定时扫描
+func (c *collector) runCronScan() {
+	if config.Collector.CronScan && config.Collector.CronSeconds > 0 {
+		ticker := time.NewTicker(time.Second * time.Duration(config.Collector.CronSeconds))
+		for range ticker.C {
+			c.runScan()
+		}
 	}
 }
 
