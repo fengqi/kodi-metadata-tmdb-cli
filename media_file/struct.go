@@ -9,14 +9,17 @@ type MediaFile struct {
 	Suffix    string    // 后缀
 	MediaType MediaType // 文件类型
 	VideoType VideoType // 视频类型
+	TaskType  TaskType  // 任务类型
 }
 
-type VideoType int
-
-type MediaType int
+type (
+	VideoType int
+	MediaType int
+	TaskType  int
+)
 
 const (
-	Movies = iota + 1
+	Movies VideoType = iota + 1
 	TvShows
 	MusicVideo
 )
@@ -54,11 +57,16 @@ const (
 	DOUBLE_EXT
 )
 
-var (
-	VIDEO_TS = "VIDEO_TS"
-	BDMV     = "BDMV"
-	HVDVD_TS = "HVDVD_TS"
+const (
+	TaskScan    TaskType = iota + 1 // 来自全量扫描
+	TaskSpec                        // 来自指定目录扫描
+	TaskWatcher                     // 来自实时监听
+)
 
+var (
+	VideoTs          = "VIDEO_TS"
+	BDMV             = "BDMV"
+	HvdvdTs          = "HVDVD_TS"
 	ArtworkFileTypes = []string{
 		"jpg", "jpeg,", "png", "tbn", "gif", "bmp", "webp",
 	}
@@ -91,12 +99,12 @@ func (mf *MediaFile) IsVideo() bool {
 
 // IsBluRay 是否是蓝光目录
 func (mf *MediaFile) IsBluRay() bool {
-	return mf.MediaType == DISC && (mf.Filename == BDMV || mf.Filename == HVDVD_TS)
+	return mf.MediaType == DISC && (mf.Filename == BDMV || mf.Filename == HvdvdTs)
 }
 
 // IsDvd 是否是DVD目录
 func (mf *MediaFile) IsDvd() bool {
-	return mf.IsDisc() && (mf.Filename == VIDEO_TS || mf.Filename == "DVD")
+	return mf.IsDisc() && (mf.Filename == VideoTs || mf.Filename == "DVD")
 }
 
 // IsDisc 判断是否是光盘目录

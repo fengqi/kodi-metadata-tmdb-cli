@@ -63,16 +63,18 @@ func Process(mf *media_file.MediaFile) error {
 	_ = show.SaveEpisodeNfo(episodeDetail)
 	show.downloadEpisodeImage(episodeDetail)
 
-	if !detail.FromCache {
-		kodi.Rpc.AddRefreshTask(kodi.TaskRefreshTVShow, detail.Name)
-	}
+	if mf.TaskType != media_file.TaskScan {
+		if !detail.FromCache {
+			kodi.Rpc.AddRefreshTask(kodi.TaskRefreshTVShow, detail.Name)
+		}
 
-	if !episodeDetail.FromCache {
-		taskVal := fmt.Sprintf("%s|-|%d|-|%d", detail.Name, episodeDetail.SeasonNumber, episodeDetail.EpisodeNumber)
-		kodi.Rpc.AddRefreshTask(kodi.TaskRefreshEpisode, taskVal)
-	}
+		if !episodeDetail.FromCache {
+			taskVal := fmt.Sprintf("%s|-|%d|-|%d", detail.Name, episodeDetail.SeasonNumber, episodeDetail.EpisodeNumber)
+			kodi.Rpc.AddRefreshTask(kodi.TaskRefreshEpisode, taskVal)
+		}
 
-	kodi.Rpc.AddScanTaskByName(1, detail.Name)
+		kodi.Rpc.AddScanTaskByName(1, detail.Name)
+	}
 	return nil
 }
 

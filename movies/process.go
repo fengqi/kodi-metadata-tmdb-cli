@@ -49,7 +49,9 @@ func Process(mf *media_file.MediaFile) error {
 		if err := movie.saveToNfo(detail); err != nil {
 			return err
 		}
-		kodi.Rpc.AddRefreshTask(kodi.TaskRefreshMovie, detail.Title)
+		if mf.TaskType != media_file.TaskScan {
+			kodi.Rpc.AddRefreshTask(kodi.TaskRefreshMovie, detail.Title)
+		}
 	}
 
 	return movie.downloadImage(detail)

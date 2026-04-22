@@ -180,7 +180,7 @@ func TestNewMovieWithPaths_Dvd(t *testing.T) {
 	mf := &media_file.MediaFile{
 		Path:      dir,
 		Dir:       dir,
-		Filename:  media_file.VIDEO_TS,
+		Filename:  media_file.VideoTs,
 		MediaType: media_file.DISC,
 		VideoType: media_file.Movies,
 	}

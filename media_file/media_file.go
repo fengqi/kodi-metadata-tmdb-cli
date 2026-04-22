@@ -1,6 +1,7 @@
 package media_file
 
 import (
+	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"path/filepath"
 	"regexp"
@@ -22,6 +23,14 @@ func NewMediaFile(path, filename string, videoType VideoType) *MediaFile {
 		return nil
 	}
 
+	taskType := TaskWatcher
+	switch config.Collector.RunMode {
+	case config.CollectorRunModeSpec:
+		taskType = TaskSpec
+	case config.CollectorRunModeDaemon, config.CollectorRunModeOnce:
+		taskType = TaskScan
+	}
+
 	return &MediaFile{
 		Path:      path,
 		Dir:       filepath.Dir(path),
@@ -29,6 +38,7 @@ func NewMediaFile(path, filename string, videoType VideoType) *MediaFile {
 		MediaType: parseMediaType(path, filename),
 		VideoType: videoType,
 		Suffix:    filepath.Ext(filename),
+		TaskType:  taskType,
 	}
 }
 
