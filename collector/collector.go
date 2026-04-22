@@ -7,10 +7,16 @@ import (
 	"sync"
 )
 
+type scanTask struct {
+	file *media_file.MediaFile
+	done *sync.WaitGroup
+}
+
 type collector struct {
-	channel chan *media_file.MediaFile
-	watcher *watcher.Watcher
-	wg      *sync.WaitGroup
+	channel   chan *scanTask
+	watcher   *watcher.Watcher
+	closeOnce sync.Once
+	scanMu    sync.Mutex
 }
 
 var ins *collector
@@ -18,20 +24,17 @@ var ins *collector
 // Run 运行扫描
 func Run() {
 	ins = &collector{
-		channel: make(chan *media_file.MediaFile, 100),
+		channel: make(chan *scanTask, 100),
 		watcher: watcher.InitWatcher("collector"),
-		wg:      &sync.WaitGroup{},
 	}
 
 	if config.Collector.RunMode == config.CollectorRunModeOnce || config.Collector.RunMode == config.CollectorRunModeSpec {
 		go ins.runScan()
-		ins.runProcess()
-		return
+	} else {
+		go ins.watcher.Run(ins.watcherCallback)
+		go ins.runScan()
+		go ins.runCronScan()
 	}
-
-	go ins.watcher.Run(ins.watcherCallback)
-	go ins.runScan()
-	go ins.runCronScan()
 
 	ins.runProcess()
 }

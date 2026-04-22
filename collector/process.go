@@ -13,24 +13,32 @@ import (
 func (c *collector) runProcess() {
 	utils.Logger.Debug("run process")
 
-	for file := range c.channel {
-		utils.Logger.DebugF("receive task: %s", file.Filename)
+	for task := range c.channel {
+		if task == nil || task.file == nil {
+			continue
+		}
 
-		switch file.VideoType {
+		utils.Logger.DebugF("receive task: %s", task.file.Filename)
+
+		switch task.file.VideoType {
 		case media_file.Movies:
-			if err := movies.Process(file); err != nil {
+			if err := movies.Process(task.file); err != nil {
 				log.Printf("prcess movies error: %v\n", err)
 			}
 		case media_file.TvShows:
-			if err := shows.Process(file); err != nil {
+			if err := shows.Process(task.file); err != nil {
 				log.Printf("pricess shows error: %v\n", err)
 			}
 		case media_file.MusicVideo:
-			if err := music_videos.Process(file); err != nil {
+			if err := music_videos.Process(task.file); err != nil {
 				log.Printf("pricess music videos error: %v\n", err)
 			}
 		}
 
-		c.wg.Done()
+		if task.done != nil {
+			task.done.Done()
+		}
 	}
+
+	log.Println("run process done")
 }

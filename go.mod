@@ -3,7 +3,6 @@ module fengqi/kodi-metadata-tmdb-cli
 go 1.26.0
 
 require (
-	github.com/agiledragon/gomonkey/v2 v2.14.0
 	github.com/fengqi/lrace v0.0.0-20250730054650-e6a8fe26b27b
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
