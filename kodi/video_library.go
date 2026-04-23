@@ -195,7 +195,7 @@ func (vl *VideoLibrary) GetEpisodes(tvShowId, season int, filter *Filter) ([]*Ep
 
 // SetEpisodeDetails 更新剧集详情
 // https://kodi.wiki/view/JSON-RPC_API/v12#VideoLibrary.SetEpisodeDetails
-func (vl *VideoLibrary) SetEpisodeDetails(episodeId int, params map[string]interface{}) bool {
+func (vl *VideoLibrary) SetEpisodeDetails(episodeId int, params map[string]any) bool {
 	params["episodeid"] = episodeId
 
 	bytes, err := Rpc.request(&JsonRpcRequest{
@@ -211,7 +211,7 @@ func (vl *VideoLibrary) SetEpisodeDetails(episodeId int, params map[string]inter
 
 // SetMovieDetails 更新电影信息
 // https://kodi.wiki/view/JSON-RPC_API/v12#VideoLibrary.SetMovieDetails
-func (vl *VideoLibrary) SetMovieDetails(movieId int, params map[string]interface{}) bool {
+func (vl *VideoLibrary) SetMovieDetails(movieId int, params map[string]any) bool {
 	params["movieid"] = movieId
 
 	bytes, err := Rpc.request(&JsonRpcRequest{

@@ -38,7 +38,7 @@ func (x *XBMC) GetInfoBooleans(booleans []string) map[string]bool {
 // GetInfoLabels 获取Kodi和系统相关信息
 // https://kodi.wiki/view/JSON-RPC_API/v13#XBMC.GetInfoLabels
 // https://kodi.wiki/view/InfoLabels
-func (x *XBMC) GetInfoLabels(labels []string) map[string]interface{} {
+func (x *XBMC) GetInfoLabels(labels []string) map[string]any {
 	// TODO
 	return nil
 }

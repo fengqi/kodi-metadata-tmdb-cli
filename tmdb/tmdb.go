@@ -5,7 +5,7 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"io"
-	"io/ioutil"
+
 	"net/http"
 	"os"
 )
@@ -73,7 +73,7 @@ func (t *Tmdb) request(api string, args map[string]string) ([]byte, error) {
 		}
 	}(resp.Body)
 
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }
 
 // DownloadFile 下载文件, 提供网址和目的地

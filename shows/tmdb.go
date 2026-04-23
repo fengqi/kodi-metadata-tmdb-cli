@@ -7,7 +7,7 @@ import (
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
-	"io/ioutil"
+
 	"os"
 	"sort"
 	"strings"
@@ -126,7 +126,7 @@ func (s *Show) getTvEpisodeGroupDetail() (*tmdb.TvEpisodeGroupDetail, error) {
 	if cf, err := os.Stat(cacheFile); err == nil {
 		utils.Logger.DebugF("get tv episode group detail from cache: %s", cacheFile)
 
-		bytes, err := ioutil.ReadFile(cacheFile)
+		bytes, err := os.ReadFile(cacheFile)
 		if err != nil {
 			utils.Logger.WarningF("read group.json cache: %s err: %v", cacheFile, err)
 		}

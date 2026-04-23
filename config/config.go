@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/fengqi/lrace"
 )
@@ -96,12 +97,7 @@ func validateConfigEnums() {
 }
 
 func inIntSet(val int, set ...int) bool {
-	for _, item := range set {
-		if val == item {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(set, val)
 }
 
 func clearPath(name []string) []string {

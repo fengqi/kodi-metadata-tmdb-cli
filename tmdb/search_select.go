@@ -215,7 +215,7 @@ func parseYear(date string) int {
 		return 0
 	}
 	year := 0
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		c := date[i]
 		if c < '0' || c > '9' {
 			return 0

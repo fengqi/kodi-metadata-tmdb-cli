@@ -74,8 +74,8 @@ type Stream struct {
 	BitRate            string            `json:"bit_rate"`
 	BitsPerRawSample   string            `json:"bits_per_raw_sample"`
 	NbFrames           string            `json:"nb_frames"`
-	Disposition        StreamDisposition `json:"disposition,omitempty"`
-	Tags               StreamTags        `json:"tags,omitempty"`
+	Disposition        StreamDisposition `json:"disposition"`
+	Tags               StreamTags        `json:"tags"`
 	Profile            string            `json:"profile,omitempty"`
 	Width              int               `json:"width"`
 	Height             int               `json:"height"`

@@ -26,17 +26,17 @@ type JsonRpc struct {
 
 // JsonRpcRequest JsonRpc 请求参数
 type JsonRpcRequest struct {
-	Id      string      `json:"id"`
-	JsonRpc string      `json:"jsonrpc"`
-	Method  string      `json:"method"`
-	Params  interface{} `json:"params,omitempty"`
+	Id      string `json:"id"`
+	JsonRpc string `json:"jsonrpc"`
+	Method  string `json:"method"`
+	Params  any    `json:"params,omitempty"`
 }
 
 // JsonRpcResponse JsonRpc 返回参数
 type JsonRpcResponse struct {
-	Id      string                 `json:"id"`
-	JsonRpc string                 `json:"jsonrpc"`
-	Result  map[string]interface{} `json:"result"`
+	Id      string         `json:"id"`
+	JsonRpc string         `json:"jsonrpc"`
+	Result  map[string]any `json:"result"`
 }
 
 type Limits struct {
