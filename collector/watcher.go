@@ -45,6 +45,11 @@ func (c *collector) watcherCallback(filename string, fi os.FileInfo) {
 	}
 
 	mf := media_file.NewMediaFile(filename, fi.Name(), videoType)
+	if mf == nil {
+		return
+	}
+
+	mf.TaskType = media_file.TaskWatcher
 	if mf.IsBluRay() {
 		c.channel <- &scanTask{file: mf}
 	}
