@@ -43,48 +43,50 @@ func NewMediaFile(path, filename string, videoType VideoType) *MediaFile {
 }
 
 // MediaType 解析文件类型
-func parseMediaType(path, filename string) MediaType {
-	folderName := strings.ToLower(filepath.Base(path))
+func parseMediaType(pathname, filename string) MediaType {
+	pathname = strings.ToLower(pathname)
+	filename = strings.ToLower(filename)
+	folderName := filepath.Base(pathname)
 	ext := filepath.Ext(filename)
-	basename := strings.ToLower(strings.Replace(filename, ext, "", 1))
+	basename := strings.Replace(filename, ext, "", 1)
 
 	if folderName == "extras" || folderName == "extra" {
 		return EXTRA
 	}
 
-	if ext == ".nfo" {
+	if strings.ToLower(ext) == ".nfo" {
 		return NFO
 	}
 
-	if ext == ".vsmeta" {
+	if strings.ToLower(ext) == ".vsmeta" {
 		return VSMETA
 	}
 
 	// 图片
 	for _, v := range ArtworkFileTypes { // todo map
-		if strings.Contains(filename, v) {
+		if strings.HasSuffix(filename, v) {
 			return GRAPHIC
 		}
 	}
 
 	for _, v := range AudioFileTypes {
-		if strings.Contains(filename, v) {
+		if strings.HasSuffix(filename, v) {
 			return AUDIO
 		}
 	}
 
 	for _, v := range SubtitleFileTypes {
-		if strings.Contains(filename, v) {
+		if strings.HasSuffix(filename, v) {
 			return SUBTITLE
 		}
 	}
 
-	if isDiscFile(filename, path) {
+	if isDiscFile(filename, pathname) {
 		return DISC
 	}
 
 	for _, v := range VideoFileTypes {
-		if strings.Contains(filename, v) {
+		if strings.HasSuffix(filename, v) {
 			if basename == "movie-trailer" ||
 				folderName == "trailer" ||
 				folderName == "trailers" ||
@@ -104,7 +106,7 @@ func parseMediaType(path, filename string) MediaType {
 		return VIDEO
 	}
 
-	if ext == ".txt" {
+	if strings.ToLower(ext) == ".txt" {
 		return VSMETA
 	}
 

@@ -40,20 +40,19 @@ type TmdbConfig struct {
 }
 
 type CollectorConfig struct {
-	RunMode         int      `json:"run_mode"`          // 运行模式：1 daemon，2 once，3 spec
-	Watcher         bool     `json:"watcher"`           // 是否开启文件监听
-	CronSeconds     int      `json:"cron_seconds"`      // 定时扫描频率
-	CronScan        bool     `json:"cron_scan"`         // 是否开启定时扫描
-	CronScanKodi    bool     `json:"cron_scan_kodi"`    // 定时扫描后触发 kodi 扫描
-	FilterTmpSuffix bool     `json:"filter_tmp_suffix"` // 过滤临时文件后缀
-	TmpSuffix       []string `json:"tmp_suffix"`        // 临时文件后缀列表
-	NfoField        NfoField `json:"nfo_field"`         // NFO 字段
-	SkipFolders     []string `json:"skip_folders"`      // 跳过目录，可多个
-	SkipKeywords    []string `json:"skip_keywords"`     // 跳过文件名中的关键字，可多个
-	MoviesNfoMode   int      `json:"movies_nfo_mode"`   // 电影 NFO 写入模式：1 movie.nfo，2 <VideoFileName>.nfo（当前版本未启用）
-	MoviesDir       []string `json:"movies_dir"`        // 电影文件根目录，可多个
-	ShowsDir        []string `json:"shows_dir"`         // 电视剧文件根目录，可多个
-	MusicVideosDir  []string `json:"music_videos_dir"`  // 音乐视频文件根目录，可多个
+	RunMode        int      `json:"run_mode"`         // 运行模式：1 daemon，2 once，3 spec
+	Watcher        bool     `json:"watcher"`          // 是否开启文件监听
+	CronSeconds    int      `json:"cron_seconds"`     // 定时扫描频率
+	CronScan       bool     `json:"cron_scan"`        // 是否开启定时扫描
+	CronScanKodi   bool     `json:"cron_scan_kodi"`   // 定时扫描后触发 kodi 扫描
+	TmpSuffix      []string `json:"tmp_suffix"`       // 临时文件后缀列表
+	NfoField       NfoField `json:"nfo_field"`        // NFO 字段
+	SkipFolders    []string `json:"skip_folders"`     // 跳过目录，可多个
+	SkipKeywords   []string `json:"skip_keywords"`    // 跳过文件名中的关键字，可多个
+	MoviesNfoMode  int      `json:"movies_nfo_mode"`  // 电影 NFO 写入模式：1 movie.nfo，2 <VideoFileName>.nfo（当前版本未启用）
+	MoviesDir      []string `json:"movies_dir"`       // 电影文件根目录，可多个
+	ShowsDir       []string `json:"shows_dir"`        // 电视剧文件根目录，可多个
+	MusicVideosDir []string `json:"music_videos_dir"` // 音乐视频文件根目录，可多个
 }
 
 type NfoField struct {

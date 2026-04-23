@@ -97,7 +97,7 @@ func parseMoviesFile(mf *media_file.MediaFile) (*Movie, error) {
 
 // parseMoviesFileByRule 规则解析：年份、中英文名、别名
 func parseMoviesFileByRule(mf *media_file.MediaFile) (*Movie, error) {
-	movieName := utils.FilterTmpSuffix(mf.Filename)
+	movieName := mf.Filename
 	if mf.IsDisc() { // 光盘类文件使用目录名刮削
 		movieName = filepath.Base(filepath.Dir(mf.Path))
 	}

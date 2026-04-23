@@ -1,13 +1,13 @@
 package utils
 
 import (
-	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fmt"
-	"github.com/fengqi/lrace"
 	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/fengqi/lrace"
 )
 
 var (
@@ -449,21 +449,6 @@ func MatchEpisode(name string) (int, int) {
 	}
 
 	return 0, 0
-}
-
-// FilterTmpSuffix 过滤临时文件后缀，部分软件会在未完成的文件后面增加后缀
-func FilterTmpSuffix(name string) string {
-	if !config.Collector.FilterTmpSuffix || len(config.Collector.TmpSuffix) == 0 {
-		return name
-	}
-
-	for _, tmp := range tmpSuffix {
-		for _, suffix := range video {
-			name = strings.Replace(name, suffix+tmp, suffix, 1)
-		}
-	}
-
-	return name
 }
 
 // FilterOptionals 过滤掉可选的字符: 被中括号[]包围的
