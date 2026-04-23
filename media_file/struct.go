@@ -64,11 +64,15 @@ const (
 )
 
 var (
-	VideoTs          = "VIDEO_TS"
-	BDMV             = "BDMV"
-	HvdvdTs          = "HVDVD_TS"
+	VideoTsType      = "video_ts"
+	BDMVType         = "bdmv"
+	HvdvdType        = "hdvd_ts"
+	DVDType          = "dvd"
+	ExtrasType       = "extras"
+	ExtraType        = "extra"
+	NfoType          = ".nfo"
 	ArtworkFileTypes = []string{
-		"jpg", "jpeg,", "png", "tbn", "gif", "bmp", "webp",
+		".jpg", ".jpeg,", ".png", ".tbn", ".gif", ".bmp", ".webp",
 	}
 	VideoFileTypes = []string{
 		".3gp", ".asf", ".asx", ".avc", ".avi", ".bdmv", ".bin", ".bivx", ".braw", ".dat", ".divx", ".dv", ".dvr-ms",
@@ -82,7 +86,7 @@ var (
 		".pcm", ".ra", ".ram", ".tta", ".thd", ".wav", ".wave", ".wma",
 	}
 	SubtitleFileTypes = []string{
-		".aqt", ".cvd", ".dks", ".jss", ".sub", ".sup", ".ttxt", ".mpl", ".pjs", ".psb", ".rt", ".srt", ".smi",
+		".aqt", ".cvd", ".dks", ".jss", ".sub", ".sup", ".txt", ".mpl", ".pjs", ".psb", ".rt", ".srt", ".smi",
 		".ssf", ".ssa", ".svcd", ".usf", ".ass", ".pgs", ".vobsub",
 	}
 )
@@ -99,12 +103,12 @@ func (mf *MediaFile) IsVideo() bool {
 
 // IsBluRay 是否是蓝光目录
 func (mf *MediaFile) IsBluRay() bool {
-	return mf.MediaType == DISC && (mf.Filename == BDMV || mf.Filename == HvdvdTs)
+	return mf.MediaType == DISC && (strings.EqualFold(mf.Filename, BDMVType) || strings.EqualFold(mf.Filename, HvdvdType))
 }
 
 // IsDvd 是否是DVD目录
 func (mf *MediaFile) IsDvd() bool {
-	return mf.IsDisc() && (mf.Filename == VideoTs || mf.Filename == "DVD")
+	return mf.IsDisc() && (strings.EqualFold(mf.Filename, VideoTsType) || strings.EqualFold(mf.Filename, DVDType))
 }
 
 // IsDisc 判断是否是光盘目录

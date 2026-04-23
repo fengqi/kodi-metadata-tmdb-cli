@@ -50,16 +50,12 @@ func parseMediaType(pathname, filename string) MediaType {
 	ext := filepath.Ext(filename)
 	basename := strings.Replace(filename, ext, "", 1)
 
-	if folderName == "extras" || folderName == "extra" {
+	if strings.EqualFold(folderName, ExtrasType) || strings.EqualFold(folderName, ExtraType) {
 		return EXTRA
 	}
 
-	if strings.ToLower(ext) == ".nfo" {
+	if strings.EqualFold(ext, NfoType) {
 		return NFO
-	}
-
-	if strings.ToLower(ext) == ".vsmeta" {
-		return VSMETA
 	}
 
 	// 图片
@@ -87,14 +83,16 @@ func parseMediaType(pathname, filename string) MediaType {
 
 	for _, v := range VideoFileTypes {
 		if strings.HasSuffix(filename, v) {
-			if basename == "movie-trailer" ||
-				folderName == "trailer" ||
-				folderName == "trailers" ||
+			if strings.EqualFold(basename, "movie-trailer") ||
+				strings.EqualFold(folderName, "trailer") ||
+				strings.EqualFold(folderName, "trailers") ||
 				trailerCompile.FindString(basename) != "" {
 				return TRAILER
 			}
 
-			if basename == "sample" || folderName == "sample" || sampleCompile.FindString(basename) != "" {
+			if strings.EqualFold(basename, "sample") ||
+				strings.EqualFold(folderName, "sample") ||
+				sampleCompile.FindString(basename) != "" {
 				return SAMPLE
 			}
 
@@ -104,10 +102,6 @@ func parseMediaType(pathname, filename string) MediaType {
 
 	if isDiscFile(filename, folderName) {
 		return VIDEO
-	}
-
-	if strings.ToLower(ext) == ".txt" {
-		return VSMETA
 	}
 
 	return UNKNOWN
@@ -120,7 +114,7 @@ func isDiscFile(filename, path string) bool {
 
 // 是否是DVD光盘文件
 func isDVDFile(filename, path string) bool {
-	if filename == "VIDEO_TS" || utils.EndsWith(path, "VIDEO_TS") {
+	if strings.EqualFold(filename, VideoTsType) || utils.EndsWith(path, VideoTsType) {
 		return true
 	}
 
@@ -129,7 +123,7 @@ func isDVDFile(filename, path string) bool {
 
 // 是否是蓝光文件
 func isBluRayFile(filename, path string) bool {
-	if filename == "BDMV" || utils.EndsWith(path, "BDMV") {
+	if strings.EqualFold(filename, BDMVType) || utils.EndsWith(path, BDMVType) {
 		return true
 	}
 
@@ -138,5 +132,5 @@ func isBluRayFile(filename, path string) bool {
 
 // 是否是HD DVD文件
 func isHDDVDFile(filename, path string) bool {
-	return filename == "HVDVD_TS" || utils.EndsWith(path, "HVDVD_TS")
+	return strings.EqualFold(filename, HvdvdType) || utils.EndsWith(path, HvdvdType)
 }
