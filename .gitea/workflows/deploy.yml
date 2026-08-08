@@ -1,0 +1,10 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: fengqi/deploy-workflows/.gitea/workflows/kodi-metadata-tmdb-cli.yml@master
