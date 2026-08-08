@@ -140,7 +140,7 @@ func (s *Show) SaveTvNfo(detail *tmdb.TvDetail) error {
 }
 
 // SaveEpisodeNfo 保存每集的信息到独立的NFO文件
-func (s *Show) SaveEpisodeNfo(episode *tmdb.TvEpisodeDetail) error {
+func (s *Show) SaveEpisodeNfo(episode *tmdb.TvEpisodeDetail, showTitle string) error {
 	episodeNfo := strings.Replace(s.MediaFile.Path, s.MediaFile.Suffix, ".nfo", 1)
 	if episode.FromCache && lrace.FileExist(episodeNfo) {
 		return nil
@@ -170,12 +170,13 @@ func (s *Show) SaveEpisodeNfo(episode *tmdb.TvEpisodeDetail) error {
 
 	top := &TvEpisodeNfo{
 		Title:         episode.Name,
-		ShowTitle:     episode.Name,
+		ShowTitle:     showTitle,
 		OriginalTitle: episode.Name,
 		Plot:          episode.Overview,
 		UniqueId: UniqueId{
-			Type:    strconv.Itoa(episode.Id),
+			Type:    "tmdb",
 			Default: true,
+			Value:   strconv.Itoa(episode.Id),
 		},
 		Premiered:      episode.AirDate,
 		Season:         episode.SeasonNumber,
@@ -183,14 +184,14 @@ func (s *Show) SaveEpisodeNfo(episode *tmdb.TvEpisodeDetail) error {
 		DisplaySeason:  episode.SeasonNumber,
 		DisplayEpisode: episode.EpisodeNumber,
 		UserRating:     episode.VoteAverage,
-		TmdbId:         "tmdb" + strconv.Itoa(episode.Id),
+		TmdbId:         strconv.Itoa(episode.Id),
 		Runtime:        6,
 		Actor:          actor,
 		Thumb: Thumb{
 			Aspect:  "thumb",
 			Preview: tmdb.Api.GetImageOriginal(episode.StillPath),
 		},
-		Ratings: rating,
+		Ratings: Ratings{Rating: rating},
 		Aired:   episode.AirDate,
 	}
 

@@ -60,7 +60,7 @@ func Process(mf *media_file.MediaFile) error {
 		return errors.New("get show episode detail empty")
 	}
 
-	_ = show.SaveEpisodeNfo(episodeDetail)
+	_ = show.SaveEpisodeNfo(episodeDetail, detail.Name)
 	show.downloadEpisodeImage(episodeDetail)
 
 	if mf.TaskType != media_file.TaskScan {

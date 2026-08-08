@@ -54,7 +54,7 @@ type TvEpisodeNfo struct {
 	Title          string   `xml:"title"`
 	OriginalTitle  string   `xml:"originaltitle"`
 	ShowTitle      string   `xml:"showtitle"`
-	Ratings        []Rating `xml:"ratings"`
+	Ratings        Ratings  `xml:"ratings"`
 	UserRating     float32  `xml:"userrating"`
 	Top250         string   `xml:"-"`
 	Season         int      `xml:"season"`
@@ -75,7 +75,7 @@ type TvEpisodeNfo struct {
 	Premiered string   `xml:"premiered"`
 	Actor     []Actor  `xml:"actor"`
 	Status    string   `xml:"-"`
-	Aired     string   `xml:"-"`
+	Aired     string   `xml:"aired"`
 	Tag       []string `xml:"tag"`
 	Genre     []string `xml:"genre"`
 	Studio    []string `xml:"studio"`
