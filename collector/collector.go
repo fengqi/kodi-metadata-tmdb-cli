@@ -32,7 +32,12 @@ func Run() {
 		go ins.runScan()
 	} else {
 		go ins.watcher.Run(ins.watcherCallback)
-		go ins.runScan()
+
+		// 守护进程模式，启动后立即执行一次扫描
+		if config.Collector.CronScanBoot {
+			go ins.runScan()
+		}
+
 		go ins.runCronScan()
 	}
 

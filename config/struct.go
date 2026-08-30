@@ -45,6 +45,7 @@ type CollectorConfig struct {
 	CronSeconds    int      `json:"cron_seconds"`     // 定时扫描频率
 	CronScan       bool     `json:"cron_scan"`        // 是否开启定时扫描
 	CronScanKodi   bool     `json:"cron_scan_kodi"`   // 定时扫描后触发 kodi 扫描
+	CronScanBoot   bool     `json:"cron_scan_boot"`   // 守护进程模式启动后立即执行一次扫描
 	TmpSuffix      []string `json:"tmp_suffix"`       // 临时文件后缀列表
 	NfoField       NfoField `json:"nfo_field"`        // NFO 字段
 	SkipFolders    []string `json:"skip_folders"`     // 跳过目录，可多个
