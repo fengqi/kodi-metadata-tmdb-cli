@@ -21,7 +21,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&configFile, "config", "./config.json", "config file")
+	flag.StringVar(&configFile, "config", "config.json", "config file, read from working dir first, then binary dir")
 	flag.BoolVar(&version, "version", false, "display version")
 	flag.IntVar(&runMode, "mode", 0, "run mode: 1: daemon, 2: once, 3: spec")
 	flag.Parse()

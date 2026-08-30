@@ -20,6 +20,18 @@ var (
 )
 
 func LoadConfig(file string, runMode int) {
+	// 优先从当前工作目录读取 不存在时回退到可执行文件所在目录
+	if !filepath.IsAbs(file) {
+		if _, err := os.Stat(file); err != nil {
+			if exe, err := os.Executable(); err == nil {
+				binFile := filepath.Join(filepath.Dir(exe), filepath.Base(file))
+				if _, err := os.Stat(binFile); err == nil {
+					file = binFile
+				}
+			}
+		}
+	}
+
 	bytes, err := os.ReadFile(file)
 	if err != nil {
 		log.Fatalf("load config err: %v", err)
