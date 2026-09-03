@@ -9,11 +9,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/fengqi/lrace"
 )
 
 // collector 运行扫描
@@ -93,11 +92,13 @@ func (c *collector) runCronScan() {
 // registerWatcherDirs 仅注册 watcher 目录，不产生扫描任务
 // watcher 目录原本只在扫描时注册，定时扫描和启动扫描都关闭时需在此注册，否则 watcher 失效
 func (c *collector) registerWatcherDirs() {
-	roots := make([]string, 0, len(config.Collector.MoviesDir)+len(config.Collector.ShowsDir)+len(config.Collector.MusicVideosDir))
-	roots = append(roots, config.Collector.MoviesDir...)
-	roots = append(roots, config.Collector.ShowsDir...)
-	roots = append(roots, config.Collector.MusicVideosDir...)
+	c.registerWatcherDir(config.Collector.MoviesDir, media_file.Movies)
+	c.registerWatcherDir(config.Collector.ShowsDir, media_file.TvShows)
+	c.registerWatcherDir(config.Collector.MusicVideosDir, media_file.MusicVideo)
+}
 
+// registerWatcherDir 遍历目录注册 watcher
+func (c *collector) registerWatcherDir(roots []string, videoType media_file.VideoType) {
 	for _, root := range roots {
 		if f, err := os.Stat(root); err != nil || !f.IsDir() {
 			utils.Logger.WarningF("%s is not a directory", root)
@@ -114,7 +115,7 @@ func (c *collector) registerWatcherDirs() {
 			}
 
 			if d.Name()[0:1] == "." {
-				return nil
+				return fs.SkipDir
 			}
 
 			if c.skipFolders(path, d.Name()) {
@@ -122,6 +123,11 @@ func (c *collector) registerWatcherDirs() {
 			}
 
 			c.watcher.Add(path)
+
+			if media_file.NewMediaFile(path, d.Name(), videoType).IsBluRay() {
+				return fs.SkipDir
+			}
+
 			return nil
 		})
 
@@ -147,7 +153,7 @@ func (c *collector) scanDir(roots []string, videoType media_file.VideoType, prod
 			}
 
 			if d.Name()[0:1] == "." {
-				return nil
+				return fs.SkipDir
 			}
 
 			if d.IsDir() {
@@ -182,6 +188,6 @@ func (c *collector) scanDir(roots []string, videoType media_file.VideoType, prod
 // skipFolders 检查是否跳过目录
 func (c *collector) skipFolders(path, filename string) bool {
 	base := filepath.Base(path)
-	return lrace.InArray(config.Collector.SkipFolders, base) ||
-		lrace.InArray(config.Collector.SkipFolders, filename)
+	return slices.Contains(config.Collector.SkipFolders, base) ||
+		slices.Contains(config.Collector.SkipFolders, filename)
 }
