@@ -92,55 +92,24 @@ func (c *collector) runCronScan() {
 // registerWatcherDirs 仅注册 watcher 目录，不产生扫描任务
 // watcher 目录原本只在扫描时注册，定时扫描和启动扫描都关闭时需在此注册，否则 watcher 失效
 func (c *collector) registerWatcherDirs() {
-	c.registerWatcherDir(config.Collector.MoviesDir, media_file.Movies)
-	c.registerWatcherDir(config.Collector.ShowsDir, media_file.TvShows)
-	c.registerWatcherDir(config.Collector.MusicVideosDir, media_file.MusicVideo)
-}
-
-// registerWatcherDir 遍历目录注册 watcher
-func (c *collector) registerWatcherDir(roots []string, videoType media_file.VideoType) {
-	for _, root := range roots {
-		if f, err := os.Stat(root); err != nil || !f.IsDir() {
-			utils.Logger.WarningF("%s is not a directory", root)
-			continue
-		}
-
-		err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-
-			if !d.IsDir() {
-				return nil
-			}
-
-			if d.Name()[0:1] == "." {
-				return fs.SkipDir
-			}
-
-			if c.skipFolders(path, d.Name()) {
-				return fs.SkipDir
-			}
-
-			c.watcher.Add(path)
-
-			if media_file.NewMediaFile(path, d.Name(), videoType).IsBluRay() {
-				return fs.SkipDir
-			}
-
-			return nil
-		})
-
-		if err != nil {
-			utils.Logger.WarningF("walk dir %s error: %s", root, err)
-		}
-	}
+	c.walkMediaDir(config.Collector.MoviesDir, media_file.Movies, nil)
+	c.walkMediaDir(config.Collector.ShowsDir, media_file.TvShows, nil)
+	c.walkMediaDir(config.Collector.MusicVideosDir, media_file.MusicVideo, nil)
 }
 
 // scanDir 扫描目录
 func (c *collector) scanDir(roots []string, videoType media_file.VideoType, producerWG, scanTaskWG *sync.WaitGroup) {
 	defer producerWG.Done()
 
+	c.walkMediaDir(roots, videoType, func(mf *media_file.MediaFile) {
+		scanTaskWG.Add(1)
+		c.channel <- &scanTask{file: mf, done: scanTaskWG}
+	})
+}
+
+// walkMediaDir 遍历媒体目录，统一处理隐藏目录、skip_folders、watcher注册、蓝光目录识别
+// emit 接收发现的蓝光目录和视频文件，nil 表示只注册watcher不投递
+func (c *collector) walkMediaDir(roots []string, videoType media_file.VideoType, emit func(mf *media_file.MediaFile)) {
 	for _, root := range roots {
 		if f, err := os.Stat(root); err != nil || !f.IsDir() {
 			utils.Logger.WarningF("%s is not a directory", root)
@@ -152,8 +121,13 @@ func (c *collector) scanDir(roots []string, videoType media_file.VideoType, prod
 				return err
 			}
 
+			// 隐藏文件跳过自身，隐藏目录跳过整个子树
+			// 文件不能返回SkipDir，否则会跳过同目录剩余文件
 			if d.Name()[0:1] == "." {
-				return fs.SkipDir
+				if d.IsDir() {
+					return fs.SkipDir
+				}
+				return nil
 			}
 
 			if d.IsDir() {
@@ -161,26 +135,28 @@ func (c *collector) scanDir(roots []string, videoType media_file.VideoType, prod
 					utils.Logger.DebugF("skip folder by config: %s", d.Name())
 					return fs.SkipDir
 				}
-
-				c.watcher.Add(path) // todo 定时执行，等于会重复Add，不确定有没有问题，后续确认
+				c.watcher.Add(path)
 			}
 
 			mf := media_file.NewMediaFile(path, d.Name(), videoType)
+
+			// 蓝光目录只监听目录本身，不下探内部结构
 			if mf.IsBluRay() {
-				scanTaskWG.Add(1)
-				c.channel <- &scanTask{file: mf, done: scanTaskWG}
+				if emit != nil {
+					emit(mf)
+				}
 				return fs.SkipDir
 			}
-			if mf.IsVideo() {
-				scanTaskWG.Add(1)
-				c.channel <- &scanTask{file: mf, done: scanTaskWG}
+
+			if emit != nil && mf.IsVideo() {
+				emit(mf)
 			}
 
 			return nil
 		})
 
 		if err != nil {
-			utils.Logger.WarningF("scan dir %s error: %s", root, err)
+			utils.Logger.WarningF("walk dir %s error: %s", root, err)
 		}
 	}
 }
