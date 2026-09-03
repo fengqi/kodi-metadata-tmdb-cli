@@ -414,8 +414,8 @@ func SplitChsEngTitle(name string) (string, string) {
 
 	//chsFind := false
 	chsName := ""
-	split := strings.Split(name, " ")
-	for _, item := range split {
+	split := strings.SplitSeq(name, " ")
+	for item := range split {
 		r := []rune(item)
 		//if item == "" || unicode.Is(unicode.Han, r[0]) || (chsFind && unicode.IsDigit(r[0])) {
 		if item == "" || unicode.Is(unicode.Han, r[0]) {

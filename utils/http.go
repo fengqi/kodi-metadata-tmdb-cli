@@ -10,10 +10,10 @@ func StringMapToQuery(m map[string]string) string {
 		return ""
 	}
 
-	s := ""
+	var s strings.Builder
 	for k, v := range m {
-		s += k + "=" + url.QueryEscape(v) + "&"
+		s.WriteString(k + "=" + url.QueryEscape(v) + "&")
 	}
 
-	return strings.TrimRight(s, "&")
+	return strings.TrimRight(s.String(), "&")
 }

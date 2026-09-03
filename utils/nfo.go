@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func SaveNfo(file string, v interface{}) error {
+func SaveNfo(file string, v any) error {
 	if file == "" {
 		return nil
 	}

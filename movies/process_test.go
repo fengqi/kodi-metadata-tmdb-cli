@@ -162,7 +162,7 @@ func TestNewMovieWithPaths_BluRay(t *testing.T) {
 	mf := &media_file.MediaFile{
 		Path:      dir,
 		Dir:       dir,
-		Filename:  media_file.BDMV,
+		Filename:  media_file.BDMVType,
 		MediaType: media_file.DISC,
 		VideoType: media_file.Movies,
 	}
@@ -180,7 +180,7 @@ func TestNewMovieWithPaths_Dvd(t *testing.T) {
 	mf := &media_file.MediaFile{
 		Path:      dir,
 		Dir:       dir,
-		Filename:  media_file.VideoTs,
+		Filename:  media_file.VideoTsType,
 		MediaType: media_file.DISC,
 		VideoType: media_file.Movies,
 	}

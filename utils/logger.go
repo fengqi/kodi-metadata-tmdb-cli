@@ -55,39 +55,39 @@ func InitLogger() {
 	}
 }
 
-func (l *logger) Debug(v ...interface{}) {
+func (l *logger) Debug(v ...any) {
 	l.print(DEBUG, v...)
 }
 
-func (l *logger) DebugF(format string, v ...interface{}) {
+func (l *logger) DebugF(format string, v ...any) {
 	l.printf(DEBUG, format, v...)
 }
 
-func (l *logger) Info(v ...interface{}) {
+func (l *logger) Info(v ...any) {
 	l.print(INFO, v...)
 }
 
-func (l *logger) InfoF(format string, v ...interface{}) {
+func (l *logger) InfoF(format string, v ...any) {
 	l.printf(INFO, format, v...)
 }
 
-func (l *logger) Warning(v ...interface{}) {
+func (l *logger) Warning(v ...any) {
 	l.print(WARNING, v...)
 }
 
-func (l *logger) WarningF(format string, v ...interface{}) {
+func (l *logger) WarningF(format string, v ...any) {
 	l.printf(WARNING, format, v...)
 }
 
-func (l *logger) Error(v ...interface{}) {
+func (l *logger) Error(v ...any) {
 	l.print(ERROR, v...)
 }
 
-func (l *logger) ErrorF(format string, v ...interface{}) {
+func (l *logger) ErrorF(format string, v ...any) {
 	l.printf(ERROR, format, v...)
 }
 
-func (l *logger) Fatal(v ...interface{}) {
+func (l *logger) Fatal(v ...any) {
 	if FATAL >= l.level {
 		l.write(FATAL, fmt.Sprint(v...))
 		if l.mode != config.LogModeLogfile {
@@ -96,7 +96,7 @@ func (l *logger) Fatal(v ...interface{}) {
 	}
 }
 
-func (l *logger) FatalF(format string, v ...interface{}) {
+func (l *logger) FatalF(format string, v ...any) {
 	if FATAL >= l.level {
 		l.write(FATAL, fmt.Sprintf(format, v...))
 		if l.mode != config.LogModeLogfile {
@@ -105,7 +105,7 @@ func (l *logger) FatalF(format string, v ...interface{}) {
 	}
 }
 
-func (l *logger) print(level logLevel, v ...interface{}) {
+func (l *logger) print(level logLevel, v ...any) {
 	if level >= l.level {
 		l.write(level, fmt.Sprint(v...))
 		if l.mode != config.LogModeLogfile {
@@ -114,7 +114,7 @@ func (l *logger) print(level logLevel, v ...interface{}) {
 	}
 }
 
-func (l *logger) printf(level logLevel, format string, v ...interface{}) {
+func (l *logger) printf(level logLevel, format string, v ...any) {
 	if level >= l.level {
 		l.write(level, fmt.Sprintf(format, v...))
 		if l.mode != config.LogModeLogfile {
