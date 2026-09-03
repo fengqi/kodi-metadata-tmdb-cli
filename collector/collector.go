@@ -16,7 +16,6 @@ type collector struct {
 	channel   chan *scanTask
 	watcher   *watcher.Watcher
 	closeOnce sync.Once
-	scanMu    sync.Mutex
 }
 
 var ins *collector
@@ -31,15 +30,23 @@ func Run() {
 	if config.Collector.RunMode == config.CollectorRunModeOnce || config.Collector.RunMode == config.CollectorRunModeSpec {
 		go ins.runScan()
 	} else {
-		go ins.watcher.Run(ins.watcherCallback)
-
-		// 守护进程模式，启动后立即执行一次扫描
-		if config.Collector.CronScanBoot {
-			go ins.runScan()
-		}
-
-		go ins.runCronScan()
+		go ins.runDaemon()
 	}
 
 	ins.runProcess()
+}
+
+// runDaemon 守护进程模式启动流程
+func (c *collector) runDaemon() {
+	c.watcher.Run(c.watcherCallback)
+
+	// watcher 目录注册不依赖扫描，定时扫描和启动扫描都关闭时 watcher 依然生效
+	c.registerWatcherDirs()
+
+	// 启动后立即执行一次扫描
+	if config.Collector.CronScanBoot {
+		c.runScan()
+	}
+
+	c.runCronScan()
 }

@@ -18,9 +18,6 @@ import (
 
 // collector 运行扫描
 func (c *collector) runScan() {
-	c.scanMu.Lock()
-	defer c.scanMu.Unlock()
-
 	producerWG := &sync.WaitGroup{}
 	scanTaskWG := &sync.WaitGroup{}
 
@@ -90,6 +87,47 @@ func (c *collector) runCronScan() {
 	defer ticker.Stop()
 	for range ticker.C {
 		c.runScan()
+	}
+}
+
+// registerWatcherDirs 仅注册 watcher 目录，不产生扫描任务
+// watcher 目录原本只在扫描时注册，定时扫描和启动扫描都关闭时需在此注册，否则 watcher 失效
+func (c *collector) registerWatcherDirs() {
+	roots := make([]string, 0, len(config.Collector.MoviesDir)+len(config.Collector.ShowsDir)+len(config.Collector.MusicVideosDir))
+	roots = append(roots, config.Collector.MoviesDir...)
+	roots = append(roots, config.Collector.ShowsDir...)
+	roots = append(roots, config.Collector.MusicVideosDir...)
+
+	for _, root := range roots {
+		if f, err := os.Stat(root); err != nil || !f.IsDir() {
+			utils.Logger.WarningF("%s is not a directory", root)
+			continue
+		}
+
+		err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if !d.IsDir() {
+				return nil
+			}
+
+			if d.Name()[0:1] == "." {
+				return nil
+			}
+
+			if c.skipFolders(path, d.Name()) {
+				return fs.SkipDir
+			}
+
+			c.watcher.Add(path)
+			return nil
+		})
+
+		if err != nil {
+			utils.Logger.WarningF("walk dir %s error: %s", root, err)
+		}
 	}
 }
 
