@@ -23,9 +23,6 @@
 - [x] 更新NFO文件后触发Kodi更新媒体库
 - [x] 音乐视频使用ffmpeg提取缩略图、视频音频信息
 - [x] 支持AI匹配
-
-# 代办
-
 - [ ] 手动指定电视剧分组
 
 # 参考
@@ -37,14 +34,3 @@
 - TMDB Api V3 https://developers.themoviedb.org/3/getting-started/introduction
 - File system notifications for Go https://github.com/fsnotify/fsnotify
 - tinyMediaManager https://gitlab.com/tinyMediaManager/tinyMediaManager
-
-## AI Config Enums
-
-- `ai.match_mode`
-  - `1`: rule_then_ai
-  - `2`: ai_then_rule
-  - `3`: rule_with_ai_override
-- `ai.search_mode`
-  - `1`: first_result
-  - `2`: algorithm_rank
-  - `3`: ai_rank
