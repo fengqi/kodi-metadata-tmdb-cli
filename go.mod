@@ -3,7 +3,7 @@ module fengqi/kodi-metadata-tmdb-cli
 go 1.27.0
 
 require (
-	github.com/fengqi/lrace v0.0.0-20250730054650-e6a8fe26b27b
+	github.com/fengqi/lrace v0.0.0-20260909170324-2293ea8b11e5
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/spf13/cast v1.10.0
