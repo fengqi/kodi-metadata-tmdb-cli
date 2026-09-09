@@ -77,11 +77,19 @@ func (s *Show) getTvDetail() (*tmdb.TvDetail, error) {
 }
 
 func (s *Show) getEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
-	// 从缓存读取
-	detail, err := s.loadLegacyEpisodeDetailFromCache()
+	// 从缓存读取，优先新缓存，未命中再读旧版缓存（读取后会迁移到新缓存文件）
+	detail, err := s.loadEpisodeDetailFromCache()
 	if err != nil {
-		utils.Logger.WarningF("load legacy episode detail cache err: %v", err)
+		utils.Logger.WarningF("load episode detail cache err: %v", err)
 		return nil, err
+	}
+
+	if detail == nil {
+		detail, err = s.loadLegacyEpisodeDetailFromCache()
+		if err != nil {
+			utils.Logger.WarningF("load legacy episode detail cache err: %v", err)
+			return nil, err
+		}
 	}
 
 	cacheExpire := detail == nil
