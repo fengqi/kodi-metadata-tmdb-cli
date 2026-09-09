@@ -83,6 +83,13 @@ func validateConfigEnums() {
 		}
 	}
 
+	if Tmdb != nil {
+		if Tmdb.TimeoutSeconds <= 0 {
+			log.Printf("invalid tmdb.timeout_seconds=%d, fallback to 30", Tmdb.TimeoutSeconds)
+			Tmdb.TimeoutSeconds = 30
+		}
+	}
+
 	if Ai != nil {
 		if !inIntSet(Ai.MatchMode, AiMatchModeRuleThenAi, AiMatchModeAiThenRule, AiMatchModeRuleWithAiOverride) {
 			if Ai.MatchMode != 0 {

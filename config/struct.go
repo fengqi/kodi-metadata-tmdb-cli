@@ -31,12 +31,14 @@ type FfmpegConfig struct {
 }
 
 type TmdbConfig struct {
-	ApiHost   string `json:"api_host"`   // TMDB 接口地址
-	ApiKey    string `json:"api_key"`    // api key
-	ImageHost string `json:"image_host"` // 图片地址
-	Language  string `json:"language"`   // 语言
-	Rating    string `json:"rating"`     // 内容分级
-	Proxy     string `json:"proxy"`      // 请求 TMDB 代理，支持 http、https、socks5、socks5h
+	ApiHost        string `json:"api_host"`        // TMDB 接口地址
+	ApiKey         string `json:"api_key"`         // api key
+	ImageHost      string `json:"image_host"`      // 图片地址
+	Language       string `json:"language"`        // 语言
+	Rating         string `json:"rating"`          // 内容分级
+	Proxy          string `json:"proxy"`           // 请求 TMDB 代理，支持 http、https、socks5、socks5h
+	TimeoutSeconds int    `json:"timeout_seconds"` // 请求超时时间（秒），未配置或为0时默认30
+	RetryCount     int    `json:"retry_count"`     // 请求失败重试次数，0表示不重试
 }
 
 type CollectorConfig struct {
