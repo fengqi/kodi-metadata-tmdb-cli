@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -59,13 +60,7 @@ func (s *Show) getTvDetail() (*tmdb.TvDetail, error) {
 		detail.SaveToCache(s.GetTvCacheDir() + "/tv.json")
 	}
 
-	// 剧集分组：不同的季版本
-	if s.GroupId != "" {
-		groupDetail, err := s.getTvEpisodeGroupDetail()
-		if err == nil {
-			detail.TvEpisodeGroupDetail = groupDetail
-		}
-	}
+	// 剧集分组详情的附加在Process中处理，避免分组信息混入memcache
 
 	if s.TvId > 0 {
 		s.CacheTvId()
@@ -100,7 +95,13 @@ func (s *Show) getEpisodeDetail() (*tmdb.TvEpisodeDetail, error) {
 	// 请求tmdb
 	if detail.Id == 0 || cacheExpire {
 		detail.FromCache = false
-		detail, err = tmdb.Api.GetTvEpisodeDetail(s.TvId, s.Season, s.Episode)
+
+		if s.GroupId != "" {
+			// 指定了剧集分组，文件名的season/episode是分组内编号，需通过分组映射获取
+			detail, err = s.getEpisodeDetailFromGroup()
+		} else {
+			detail, err = tmdb.Api.GetTvEpisodeDetail(s.TvId, s.Season, s.Episode)
+		}
 		if err != nil {
 			return nil, errors.Join(errors.New("get tv episode error"), err)
 		}
@@ -125,44 +126,94 @@ func (s *Show) getTvEpisodeGroupDetail() (*tmdb.TvEpisodeGroupDetail, error) {
 		return nil, nil
 	}
 
-	var err error
-	var detail = new(tmdb.TvEpisodeGroupDetail)
-
-	// 从缓存读取
+	detail := new(tmdb.TvEpisodeGroupDetail)
 	cacheFile := s.SeasonRoot + "/tmdb/group.json"
 	cacheExpire := false
 	if cf, err := os.Stat(cacheFile); err == nil {
 		utils.Logger.DebugF("get tv episode group detail from cache: %s", cacheFile)
 
-		bytes, err := os.ReadFile(cacheFile)
-		if err != nil {
+		if bytes, err := os.ReadFile(cacheFile); err != nil {
 			utils.Logger.WarningF("read group.json cache: %s err: %v", cacheFile, err)
-		}
-
-		err = json.Unmarshal(bytes, detail)
-		if err != nil {
+		} else if err = json.Unmarshal(bytes, detail); err != nil {
 			utils.Logger.WarningF("parse group.json file: %s err: %v", cacheFile, err)
 		}
 
-		airTime, _ := time.Parse("2006-01-02", detail.Groups[len(detail.Groups)-1].Episodes[0].AirDate)
-		cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
+		if len(detail.Groups) > 0 {
+			lastGroup := detail.Groups[len(detail.Groups)-1]
+			if len(lastGroup.Episodes) > 0 {
+				airTime, _ := time.Parse("2006-01-02", lastGroup.Episodes[len(lastGroup.Episodes)-1].AirDate)
+				cacheExpire = utils.CacheExpire(cf.ModTime(), airTime)
+			}
+		}
 		detail.FromCache = true
 	}
 
-	// 缓存失效，重新搜索
-	if detail == nil || detail.Id == "" || cacheExpire {
+	// 缓存失效，重新请求
+	if detail.Id == "" || cacheExpire {
 		detail.FromCache = false
-		detail, err = tmdb.Api.GetTvEpisodeGroupDetail(s.GroupId)
-		if err != nil {
+		newDetail, err := tmdb.Api.GetTvEpisodeGroupDetail(s.GroupId)
+		if err != nil || newDetail == nil || newDetail.Id == "" {
 			utils.Logger.ErrorF("get tv episode group: %s detail err: %v", s.GroupId, err)
 			return nil, err
 		}
+		detail = newDetail
 
 		// 保存到缓存
+		if err := os.MkdirAll(filepath.Dir(cacheFile), 0755); err != nil {
+			utils.Logger.WarningF("create tv episode group cache dir: %s err: %v", filepath.Dir(cacheFile), err)
+		}
 		detail.SaveToCache(cacheFile)
 	}
 
 	return detail, nil
+}
+
+// getEpisodeDetailFromGroup 从剧集分组获取分集详情
+// 文件名解析出的season/episode是分组内的编号：season对应分组的order，episode对应组内位置；
+// 分组内剧集自带标题、简介、播出日期、剧照、评分等信息，直接取用，
+// 再用分组编号覆盖season/episode，保证写入NFO的编号和文件名一致
+func (s *Show) getEpisodeDetailFromGroup() (*tmdb.TvEpisodeDetail, error) {
+	groupDetail, err := s.getTvEpisodeGroupDetail()
+	if err != nil {
+		return nil, err
+	}
+	if groupDetail == nil || len(groupDetail.Groups) == 0 {
+		return nil, errors.New("get tv episode group detail empty")
+	}
+
+	var group *tmdb.TvEpisodeGroup
+	for i := range groupDetail.Groups {
+		if groupDetail.Groups[i].Order == s.Season {
+			group = &groupDetail.Groups[i]
+			break
+		}
+	}
+	if group == nil {
+		return nil, fmt.Errorf("season: %d not found in episode group: %s", s.Season, groupDetail.Name)
+	}
+
+	episodes := make([]tmdb.TvEpisodeGroupEpisode, len(group.Episodes))
+	copy(episodes, group.Episodes)
+	sort.SliceStable(episodes, func(i, j int) bool { return episodes[i].Order < episodes[j].Order })
+
+	if s.Episode < 1 || s.Episode > len(episodes) {
+		return nil, fmt.Errorf("episode: %d out of range in group: %s", s.Episode, group.Name)
+	}
+	groupEpisode := &episodes[s.Episode-1]
+
+	return &tmdb.TvEpisodeDetail{
+		AirDate:        groupEpisode.AirDate,
+		Name:           groupEpisode.Name,
+		Overview:       groupEpisode.Overview,
+		Id:             groupEpisode.Id,
+		ProductionCode: groupEpisode.ProductionCode,
+		StillPath:      groupEpisode.StillPath,
+		VoteAverage:    groupEpisode.VoteAverage,
+		VoteCount:      groupEpisode.VoteCount,
+		// 使用分组内的编号
+		SeasonNumber:  group.Order,
+		EpisodeNumber: s.Episode,
+	}, nil
 }
 
 // 下载电视剧的相关图片

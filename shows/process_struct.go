@@ -116,17 +116,33 @@ func (s *Show) CacheTvId() {
 	}
 }
 
-// ReadGroupId 从文件读取剧集分组
+// ReadGroupId 从文件读取剧集分组id
+// 优先季目录（合集：合集目录/某一季目录/tmdb/group.txt），其次电视剧目录（电视剧目录/tmdb/group.txt）
 func (s *Show) ReadGroupId() {
-	groupFile := s.SeasonRoot + "/tmdb/group.txt"
-	if _, err := os.Stat(groupFile); err == nil {
-		bytes, err := os.ReadFile(groupFile)
-		if err == nil {
-			s.GroupId = strings.Trim(string(bytes), "\r\n ")
-		} else {
-			utils.Logger.WarningF("read group id specially file: %s err: %v", groupFile, err)
-		}
+	if s.readGroupIdFrom(s.SeasonRoot) {
+		return
 	}
+	_ = s.readGroupIdFrom(s.TvRoot)
+}
+
+func (s *Show) readGroupIdFrom(dir string) bool {
+	if dir == "" {
+		return false
+	}
+
+	groupFile := dir + "/tmdb/group.txt"
+	if _, err := os.Stat(groupFile); err != nil {
+		return false
+	}
+
+	bytes, err := os.ReadFile(groupFile)
+	if err != nil {
+		utils.Logger.WarningF("read group id specially file: %s err: %v", groupFile, err)
+		return false
+	}
+
+	s.GroupId = strings.Trim(string(bytes), "\r\n ")
+	return true
 }
 
 // ReadJoin 剧集合并

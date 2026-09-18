@@ -46,6 +46,18 @@ func Process(mf *media_file.MediaFile) error {
 		return errors.New("get show detail empty")
 	}
 
+	// 剧集分组：附加分组详情，tv detail可能来自缓存或memcache，需统一处理
+	if show.GroupId != "" {
+		groupDetail, groupErr := show.getTvEpisodeGroupDetail()
+		if groupErr != nil {
+			utils.Logger.WarningF("get tv episode group: %s detail err: %v", show.GroupId, groupErr)
+		} else if groupDetail != nil {
+			detail.TvEpisodeGroupDetail = groupDetail
+		}
+	} else {
+		detail.TvEpisodeGroupDetail = nil
+	}
+
 	_ = show.SaveTvNfo(detail)
 	show.downloadTvImage(detail)
 
@@ -409,6 +421,7 @@ func loadShowCache(mf *media_file.MediaFile) (*Show, *tmdb.TvDetail, *tmdb.TvEpi
 	show := &Show{MediaFile: mf}
 	fillShowPathMeta(show)
 	show.ReadTvId()
+	show.ReadGroupId()
 	if show.TvId == 0 {
 		return nil, nil, nil, nil
 	}
