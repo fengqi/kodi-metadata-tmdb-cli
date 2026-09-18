@@ -50,7 +50,8 @@ type GuestStars struct {
 func (t *Tmdb) GetTvEpisodeDetail(tvId, season, episode int) (*TvEpisodeDetail, error) {
 	utils.Logger.DebugF("get tv episode detail from tmdb: %d %d-%d", tvId, season, episode)
 
-	if tvId <= 0 || season <= 0 || episode <= 0 {
+	// season允许为0：特别篇
+	if tvId <= 0 || season < 0 || episode <= 0 {
 		return nil, nil
 	}
 
