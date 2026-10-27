@@ -212,10 +212,14 @@ func TestGetEpisodeDetail_IgnoreExpiredLegacyCache(t *testing.T) {
 
 	show := &Show{MediaFile: mf, TvRoot: showRoot, SeasonRoot: seasonRoot, Season: 2, Episode: 3}
 	legacyFile := filepath.Join(seasonRoot, "tmdb", fmt.Sprintf("s%02de%02d.json", show.Season, show.Episode))
-	episodeBytes, err := json.Marshal(&tmdb.TvEpisodeDetail{Id: 1001, Name: "Legacy Episode", AirDate: "2026-04-01", SeasonNumber: 2, EpisodeNumber: 3})
+	// 播出时间和缓存修改时间相对当前时间构造：播出30天内在"3天过期"策略分支，缓存设为10天前确保过期。
+	// 硬编码日期会随时间推移落入其他缓存策略分支（如播出超过180天），导致测试失效
+	episodeBytes, err := json.Marshal(&tmdb.TvEpisodeDetail{
+		Id: 1001, Name: "Legacy Episode", AirDate: time.Now().AddDate(0, 0, -30).Format("2006-01-02"), SeasonNumber: 2, EpisodeNumber: 3,
+	})
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(legacyFile, episodeBytes, 0644))
-	oldTime := time.Date(2026, time.April, 3, 0, 0, 0, 0, time.UTC)
+	oldTime := time.Now().AddDate(0, 0, -10)
 	require.NoError(t, os.Chtimes(legacyFile, oldTime, oldTime))
 
 	got, err := show.getEpisodeDetail()

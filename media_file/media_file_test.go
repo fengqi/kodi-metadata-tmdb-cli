@@ -41,7 +41,7 @@ func TestNewMediaFile(t *testing.T) {
 			name:       "spec mode should map to task spec",
 			runMode:    config.CollectorRunModeSpec,
 			wantTask:   TaskSpec,
-			path:       " C:\\library\\movies\\Movie.Name.2024.mkv ",
+			path:       " C:/library/movies/Movie.Name.2024.mkv ",
 			wantPath:   "C:/library/movies/Movie.Name.2024.mkv",
 			filename:   "Movie.Name.2024.mkv",
 			videoType:  Movies,
