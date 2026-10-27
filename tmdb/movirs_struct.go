@@ -114,19 +114,9 @@ type ReleaseCountry struct {
 	ReleaseDate   string `json:"release_date"`
 }
 
-type MovieImage struct {
-	AspectRatio float32 `json:"aspect_ratio"`
-	Height      int     `json:"height"`
-	Iso6391     string  `json:"iso_639_1"`
-	FilePath    string  `json:"file_path"`
-	VoteAverage float32 `json:"vote_average"`
-	VoteCount   int     `json:"vote_count"`
-	Width       int     `json:"width"`
-}
-
 type MovieImages struct {
-	Id        int           `json:"id"`
-	Logos     []*MovieImage `json:"logos"`
-	Posters   []*MovieImage `json:"posters"`
-	Backdrops []*MovieImage `json:"backdrops"`
+	Id        int      `json:"id"`
+	Logos     []*Image `json:"logos"`
+	Posters   []*Image `json:"posters"`
+	Backdrops []*Image `json:"backdrops"`
 }

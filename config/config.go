@@ -37,7 +37,18 @@ func LoadConfig(file string, runMode int) {
 		log.Fatalf("load config err: %v", err)
 	}
 
-	c := &Config{}
+	// image_field 未配置时默认全部开启，显式写入的 false 才会关闭对应下载
+	c := &Config{
+		Collector: &CollectorConfig{
+			ImageField: ImageField{
+				Poster:       true,
+				Fanart:       true,
+				ClearLogo:    true,
+				SeasonPoster: true,
+				EpisodeThumb: true,
+			},
+		},
+	}
 	err = json.Unmarshal(bytes, c)
 	if err != nil {
 		log.Fatalf("parse config err: %v", err)

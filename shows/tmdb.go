@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fengqi/kodi-metadata-tmdb-cli/common/memcache"
+	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"fmt"
@@ -40,6 +41,7 @@ func (s *Show) getTvDetail() (*tmdb.TvDetail, error) {
 	// 缓存失效，重新搜索
 	if detail.Id == 0 || cacheExpire {
 		detail.FromCache = false
+		originalLanguage := ""
 		if s.TvId == 0 {
 			searchResults, err := tmdb.Api.SearchShows(s.ChsTitle, s.EngTitle, s.Year)
 			if err != nil || searchResults == nil {
@@ -47,10 +49,11 @@ func (s *Show) getTvDetail() (*tmdb.TvDetail, error) {
 				return detail, err
 			}
 			s.TvId = searchResults.Id
+			originalLanguage = searchResults.OriginalLanguage
 		}
 
 		// 获取详情
-		detail, err = tmdb.Api.GetTvDetail(s.TvId)
+		detail, err = tmdb.Api.GetTvDetail(s.TvId, originalLanguage)
 		if err != nil || detail == nil || detail.Id == 0 || detail.Name == "" {
 			utils.Logger.ErrorF("get tv: %d detail err: %v", s.TvId, err)
 			return nil, err
@@ -219,16 +222,18 @@ func (s *Show) getEpisodeDetailFromGroup() (*tmdb.TvEpisodeDetail, error) {
 // 下载电视剧的相关图片
 // TODO 下载失败后，没有重复以及很长一段时间都不会再触发下载
 func (s *Show) downloadTvImage(detail *tmdb.TvDetail) {
-	if len(detail.PosterPath) > 0 {
+	imageField := config.Collector.ImageField
+
+	if imageField.Poster && len(detail.PosterPath) > 0 {
 		_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.PosterPath), s.TvRoot+"/poster.jpg")
 	}
 
-	if len(detail.BackdropPath) > 0 {
+	if imageField.Fanart && len(detail.BackdropPath) > 0 {
 		_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.BackdropPath), s.TvRoot+"/fanart.jpg")
 	}
 
 	// TODO group的信息里可能 season poster不全
-	if len(detail.Seasons) > 0 {
+	if imageField.SeasonPoster && len(detail.Seasons) > 0 {
 		for _, item := range detail.Seasons {
 			if /*!s.IsCollection &&*/ item.SeasonNumber != s.Season || item.PosterPath == "" {
 				continue
@@ -238,29 +243,21 @@ func (s *Show) downloadTvImage(detail *tmdb.TvDetail) {
 		}
 	}
 
-	if detail.Images != nil && len(detail.Images.Logos) > 0 {
-		sort.SliceStable(detail.Images.Logos, func(i, j int) bool {
-			return detail.Images.Logos[i].VoteAverage > detail.Images.Logos[j].VoteAverage
-		})
-		image := detail.Images.Logos[0]
-		for _, item := range detail.Images.Logos {
-			if image.FilePath == "" && item.FilePath != "" {
-				image = item
-			}
-			if item.Iso6391 == "zh" && image.Iso6391 != "zh" {
-				image = item
-				break
-			}
-		}
-		if image.FilePath != "" {
+	if imageField.ClearLogo && detail.Images != nil && len(detail.Images.Logos) > 0 {
+		// 主语言优先，其次影片原始语言，最后票选最高
+		filePath := tmdb.PickLogoFile(detail.Images.Logos, config.Tmdb.Language, detail.OriginalLanguage)
+		if filePath != "" {
 			logoFile := s.TvRoot + "/clearlogo.png"
-			_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(image.FilePath), logoFile)
+			_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(filePath), logoFile)
 		}
 	}
 }
 
 // 下载剧集的相关图片
 func (s *Show) downloadEpisodeImage(d *tmdb.TvEpisodeDetail) {
+	if !config.Collector.ImageField.EpisodeThumb {
+		return
+	}
 	file := strings.Replace(s.MediaFile.Path, s.MediaFile.Suffix, "-thumb.jpg", 1)
 	if len(d.StillPath) > 0 {
 		_ = tmdb.DownloadFile(tmdb.Api.GetImageOriginal(d.StillPath), file)

@@ -127,7 +127,7 @@ binary is used. Both `/` and `\` path separators are accepted, so the same file 
 | `api_host` | string | TMDB API host, default `https://api.themoviedb.org` |
 | `image_host` | string | TMDB image host, default `https://image.tmdb.org` |
 | `api_key` | string | TMDB v3 API key |
-| `language` | string | Metadata language, e.g. `zh-CN`, `en-US` |
+| `language` | string | Metadata and artwork language, e.g. `zh-CN`, `en-US`. The clearlogo prefers this language, then the media's original language, then the highest voted |
 | `rating` | string | Region used for content rating, e.g. `US` |
 | `proxy` | string | Proxy for TMDB requests: `http`, `https`, `socks5`, `socks5h`. Format `scheme://[user:password@]host:port` |
 | `timeout_seconds` | int | Request timeout in seconds, default `30` |
@@ -147,6 +147,11 @@ binary is used. Both `/` and `\` path separators are accepted, so the same file 
 | `skip_keywords` | []string | Keywords dropped while parsing titles, e.g. `纯享`, `pure` |
 | `nfo_field.tag` | bool | Write tags into the NFO |
 | `nfo_field.genre` | bool | Write genres into the NFO |
+| `image_field.poster` | bool | Download the poster, default `true` |
+| `image_field.fanart` | bool | Download the fanart, default `true` |
+| `image_field.clearlogo` | bool | Download the clearlogo, default `true` |
+| `image_field.season_poster` | bool | Download season posters, default `true` |
+| `image_field.episode_thumb` | bool | Download episode thumbnails, default `true` |
 | `movies_dir` | []string | Movie root directories |
 | `shows_dir` | []string | TV show root directories |
 | `music_videos_dir` | []string | Music video root directories |
@@ -156,6 +161,9 @@ binary is used. Both `/` and `\` path separators are accepted, so the same file 
 Notes:
 
 - Directories and files whose name starts with `.` are always skipped.
+- Details (including artwork URLs) are cached in the `tmdb/` folder next to each media file. Changes to
+  `tmdb.language` or `image_field` only apply to freshly fetched details — delete the cached files to
+  force a re-scrape.
 - `skip_folders` matches a single directory name, not a path. The defaults cover NAS/PT leftovers such as
   `@eaDir`, `Sample`, `CERTIFICATE`, `$RECYCLE.BIN`.
 

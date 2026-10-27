@@ -50,6 +50,13 @@
             "tag": true,
             "genre": true
         },
+        "image_field": {
+            "poster": true,
+            "fanart": true,
+            "clearlogo": true,
+            "season_poster": true,
+            "episode_thumb": true
+        },
         "movies_nfo_mode": 2,
         "movies_dir": [
             "/volume1/down/movies"

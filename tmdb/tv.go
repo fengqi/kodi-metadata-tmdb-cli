@@ -55,21 +55,11 @@ type TvDetail struct {
 	FromCache            bool                  `json:"from_cache"`
 }
 
-type TvImage struct {
-	AspectRatio float32 `json:"aspect_ratio"`
-	Height      int     `json:"height"`
-	Iso6391     string  `json:"iso_639_1"`
-	FilePath    string  `json:"file_path"`
-	VoteAverage float32 `json:"vote_average"`
-	VoteCount   int     `json:"vote_count"`
-	Width       int     `json:"width"`
-}
-
 type TvImages struct {
-	Id        int        `json:"id"`
-	Logos     []*TvImage `json:"logos"`
-	Posters   []*TvImage `json:"posters"`
-	Backdrops []*TvImage `json:"backdrops"`
+	Id        int      `json:"id"`
+	Logos     []*Image `json:"logos"`
+	Posters   []*Image `json:"posters"`
+	Backdrops []*Image `json:"backdrops"`
 }
 
 type Genre struct {
@@ -146,13 +136,13 @@ type SpokenLanguage struct {
 	Name        string `json:"name"`
 }
 
-func (t *Tmdb) GetTvDetail(id int) (*TvDetail, error) {
+func (t *Tmdb) GetTvDetail(id int, originalLanguage string) (*TvDetail, error) {
 	utils.Logger.DebugF("get tv detail from tmdb: %d", id)
 
 	api := fmt.Sprintf(ApiTvDetail, id)
 	req := map[string]string{
 		"append_to_response":     "aggregate_credits,content_ratings,images",
-		"include_image_language": "zh,en,null",
+		"include_image_language": includeImageLanguage(t.language, originalLanguage),
 	}
 
 	body, err := t.request(api, req)

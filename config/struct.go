@@ -49,7 +49,8 @@ type CollectorConfig struct {
 	CronScanKodi   bool     `json:"cron_scan_kodi"`   // 定时扫描后触发 kodi 扫描
 	CronScanBoot   bool     `json:"cron_scan_boot"`   // 守护进程模式启动后立即执行一次扫描
 	TmpSuffix      []string `json:"tmp_suffix"`       // 临时文件后缀列表
-	NfoField       NfoField `json:"nfo_field"`        // NFO 字段
+	NfoField       NfoField   `json:"nfo_field"`   // NFO 字段
+	ImageField     ImageField `json:"image_field"` // 图片下载字段
 	SkipFolders    []string `json:"skip_folders"`     // 跳过目录，可多个
 	SkipKeywords   []string `json:"skip_keywords"`    // 跳过文件名中的关键字，可多个
 	MoviesNfoMode  int      `json:"movies_nfo_mode"`  // 电影 NFO 写入模式：1 movie.nfo，2 <VideoFileName>.nfo（当前版本未启用）
@@ -61,6 +62,15 @@ type CollectorConfig struct {
 type NfoField struct {
 	Tag   bool `json:"tag"`   // 开启标签
 	Genre bool `json:"genre"` // 开启分类
+}
+
+// ImageField 图片下载开关，未配置时默认全部开启
+type ImageField struct {
+	Poster       bool `json:"poster"`        // 下载海报
+	Fanart       bool `json:"fanart"`        // 下载背景图
+	ClearLogo    bool `json:"clearlogo"`     // 下载透明 logo
+	SeasonPoster bool `json:"season_poster"` // 下载季海报
+	EpisodeThumb bool `json:"episode_thumb"` // 下载剧集缩略图
 }
 
 type AiConfig struct {

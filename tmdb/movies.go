@@ -9,13 +9,13 @@ import (
 )
 
 // GetMovieDetail 获取电影详情
-func (t *Tmdb) GetMovieDetail(id int) (*MovieDetail, error) {
+func (t *Tmdb) GetMovieDetail(id int, originalLanguage string) (*MovieDetail, error) {
 	utils.Logger.DebugF("get movie detail from tmdb: %d", id)
 
 	api := fmt.Sprintf(ApiMovieDetail, id)
 	req := map[string]string{
 		"append_to_response":     "credits,releases,images",
-		"include_image_language": "zh,en,null",
+		"include_image_language": includeImageLanguage(t.language, originalLanguage),
 	}
 
 	body, err := t.request(api, req)

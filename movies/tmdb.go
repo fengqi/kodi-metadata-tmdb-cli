@@ -2,10 +2,10 @@ package movies
 
 import (
 	"encoding/json"
+	"fengqi/kodi-metadata-tmdb-cli/config"
 	"fengqi/kodi-metadata-tmdb-cli/tmdb"
 	"fengqi/kodi-metadata-tmdb-cli/utils"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -69,6 +69,7 @@ func (m *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 	if detail.Id == 0 || cacheExpire {
 		detail.FromCache = false
 		movieId := 0
+		originalLanguage := ""
 
 		// todo 兼容 tmdb/id.txt，后期删除
 		oldIdFile := m.IdFile(true)
@@ -100,6 +101,7 @@ func (m *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 
 			// 保存movieId
 			movieId = searchResults.Id
+			originalLanguage = searchResults.OriginalLanguage
 			err = os.WriteFile(idFile, []byte(strconv.Itoa(movieId)), 0664)
 			if err != nil {
 				utils.Logger.ErrorF("save movieId %d to %s err: %v", movieId, idFile, err)
@@ -107,7 +109,7 @@ func (m *Movie) getMovieDetail() (*tmdb.MovieDetail, error) {
 		}
 
 		// 获取详情
-		if detail, err = tmdb.Api.GetMovieDetail(movieId); err != nil {
+		if detail, err = tmdb.Api.GetMovieDetail(movieId, originalLanguage); err != nil {
 			return nil, err
 		}
 
@@ -161,38 +163,27 @@ func (m *Movie) fillByDetail(detail *tmdb.MovieDetail) {
 // downloadImage 下载图片
 func (m *Movie) downloadImage(detail *tmdb.MovieDetail) error {
 	utils.Logger.DebugF("download %s images", m.Title)
+	imageField := config.Collector.ImageField
 
-	if len(detail.PosterPath) > 0 {
+	if imageField.Poster && len(detail.PosterPath) > 0 {
 		err := tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.PosterPath), m.PosterFile)
 		if err != nil {
 			return err
 		}
 	}
 
-	if len(detail.BackdropPath) > 0 {
+	if imageField.Fanart && len(detail.BackdropPath) > 0 {
 		err := tmdb.DownloadFile(tmdb.Api.GetImageOriginal(detail.BackdropPath), m.FanArtFile)
 		if err != nil {
 			return err
 		}
 	}
 
-	if detail.Images != nil && len(detail.Images.Logos) > 0 {
-		sort.SliceStable(detail.Images.Logos, func(i, j int) bool {
-			return detail.Images.Logos[i].VoteAverage > detail.Images.Logos[j].VoteAverage
-		})
-
-		image := detail.Images.Logos[0]
-		for _, item := range detail.Images.Logos {
-			if image.FilePath == "" && item.FilePath != "" {
-				image = item
-			}
-			if item.Iso6391 == "zh" && image.Iso6391 != "zh" { // todo 语言可选
-				image = item
-				break
-			}
-		}
-		if image.FilePath != "" {
-			err := tmdb.DownloadFile(tmdb.Api.GetImageOriginal(image.FilePath), m.ClearLogoFile)
+	if imageField.ClearLogo && detail.Images != nil && len(detail.Images.Logos) > 0 {
+		// 主语言优先，其次影片原始语言，最后票选最高
+		filePath := tmdb.PickLogoFile(detail.Images.Logos, config.Tmdb.Language, detail.OriginalLanguage)
+		if filePath != "" {
+			err := tmdb.DownloadFile(tmdb.Api.GetImageOriginal(filePath), m.ClearLogoFile)
 			if err != nil {
 				return err
 			}

@@ -75,3 +75,31 @@ func TestLoadConfig_ValidEnumsKeepValue(t *testing.T) {
 		t.Fatalf("Log.Level = %d; want %d", Log.Level, LogLevelFatal)
 	}
 }
+
+func TestLoadConfig_ImageFieldDefault(t *testing.T) {
+	// 配置未写 image_field 时默认全部开启
+	configFile := writeTestConfig(t, CollectorRunModeDaemon, CollectorMoviesNfoModeVideoNfo, LogModeStdout, LogLevelInfo)
+	LoadConfig(configFile, 0)
+
+	want := ImageField{Poster: true, Fanart: true, ClearLogo: true, SeasonPoster: true, EpisodeThumb: true}
+	if Collector.ImageField != want {
+		t.Fatalf("Collector.ImageField = %+v; want %+v", Collector.ImageField, want)
+	}
+}
+
+func TestLoadConfig_ImageFieldOverride(t *testing.T) {
+	// 显式关闭的开关生效，未写的字段保持默认开启
+	configFile := filepath.Join(t.TempDir(), "config.json")
+	content := `{"collector": {"image_field": {"poster": false, "episode_thumb": false}}}`
+	if err := os.WriteFile(configFile, []byte(content), 0644); err != nil {
+		t.Fatalf("write config file: %v", err)
+	}
+	LoadConfig(configFile, 0)
+
+	if Collector.ImageField.Poster || Collector.ImageField.EpisodeThumb {
+		t.Fatalf("Collector.ImageField = %+v; poster and episode_thumb want false", Collector.ImageField)
+	}
+	if !Collector.ImageField.Fanart || !Collector.ImageField.ClearLogo || !Collector.ImageField.SeasonPoster {
+		t.Fatalf("Collector.ImageField = %+v; others want true", Collector.ImageField)
+	}
+}

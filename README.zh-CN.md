@@ -123,7 +123,7 @@ Usage of kodi-tmdb:
 | `api_host` | string | TMDB 接口地址，默认 `https://api.themoviedb.org` |
 | `image_host` | string | TMDB 图片地址，默认 `https://image.tmdb.org` |
 | `api_key` | string | TMDB v3 API Key |
-| `language` | string | 元数据语言，如 `zh-CN`、`en-US` |
+| `language` | string | 元数据与图片语言，如 `zh-CN`、`en-US`。透明 logo 优先使用该语言，其次影片原始语言，最后票选最高 |
 | `rating` | string | 内容分级使用的地区，如 `US` |
 | `proxy` | string | 请求 TMDB 的代理，支持 `http`、`https`、`socks5`、`socks5h`，格式 `scheme://[user:password@]host:port` |
 | `timeout_seconds` | int | 请求超时时间（秒），默认 `30` |
@@ -143,6 +143,11 @@ Usage of kodi-tmdb:
 | `skip_keywords` | []string | 解析标题时丢弃的关键字，如 `纯享`、`pure` |
 | `nfo_field.tag` | bool | 是否将标签写入 NFO |
 | `nfo_field.genre` | bool | 是否将分类写入 NFO |
+| `image_field.poster` | bool | 是否下载海报，默认 `true` |
+| `image_field.fanart` | bool | 是否下载背景图，默认 `true` |
+| `image_field.clearlogo` | bool | 是否下载透明 logo，默认 `true` |
+| `image_field.season_poster` | bool | 是否下载季海报，默认 `true` |
+| `image_field.episode_thumb` | bool | 是否下载剧集缩略图，默认 `true` |
 | `movies_dir` | []string | 电影根目录，可多个 |
 | `shows_dir` | []string | 电视剧根目录，可多个 |
 | `music_videos_dir` | []string | 音乐视频根目录，可多个 |
@@ -152,6 +157,8 @@ Usage of kodi-tmdb:
 补充说明：
 
 - 以 `.` 开头的文件和目录始终会被跳过。
+- 详情（含图片地址）缓存在媒体文件旁边的 `tmdb/` 目录中。修改 `tmdb.language` 或 `image_field` 只对重新
+  获取的详情生效，删除缓存文件可强制重新刮削。
 - `skip_folders` 匹配的是单个目录名，而不是路径。默认值已覆盖 `@eaDir`、`Sample`、`CERTIFICATE`、
   `$RECYCLE.BIN` 等 NAS / PT 常见目录。
 
